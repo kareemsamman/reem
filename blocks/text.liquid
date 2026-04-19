@@ -1,0 +1,77 @@
+<div can-reveal class="hdt-theme-block hdt-text-block rte hdt-s-text{{ block.settings.text_color }} hdt-text-{{ block.settings.text_size }}{% if block.settings.hide_mobile %} hdt-hidden md:hdt-block{% endif %}" {{ block.shopify_attributes }}>
+  {{- block.settings.text -}}
+</div>
+{% schema %}
+{
+  "name": "t:names.text",
+  "tag": null,
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:settings.text",
+      "default": "t:text_defaults.text_content"
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "t:settings.color",
+      "options": [
+        {
+          "value": "",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "2",
+          "label": "t:options.secondary"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:settings.text_size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "t:options.text_sm"
+        },
+        {
+          "value": "base",
+          "label": "t:options.text_base"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.text_lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.text_xl"
+        },
+        {
+          "value": "2xl",
+          "label": "t:options.text_2xl"
+        },
+        {
+          "value": "4xl",
+          "label": "t:options.text_4xl"
+        },
+        {
+          "value": "6xl",
+          "label": "t:options.text_6xl"
+        }
+      ],
+      "default": "base"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_mobile",
+      "label": "t:settings.hide_mobile",
+      "default": false
+    }
+  ],
+  "presets": [
+    { "name": "t:names.text" }
+  ]
+}
+{% endschema %}

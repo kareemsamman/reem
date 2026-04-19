@@ -1,0 +1,33 @@
+{%- comment -%}
+  Renders the language picker for the localization form
+  Accepts:
+  - id: {String} The ID (required)
+  Usage:
+ {%- render 'language-localization' -%}
+{%- endcomment -%}
+
+{%- assign form_id = id | append: 'LanguageForm' -%}
+
+<hdt-popover class="hdt-contents" placement="top" data-auto-close update-pos-when-hover-focus{% if id == 'Global' %} popover-active-min-width="99999"{% endif %}>
+  <dialog id="Popover-{{ id }}Language" class="hdt-popover hdt-popover-u hdt-popover-u--no-padding hdt-disclosure hdt-s-text" color-scheme="{{ settings.color_scheme_popover }}" scroll-lock>
+    <button ref="closeButton" class="hdt-s-text" aria-controls="Popover-{{ id }}Language" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+    <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+    <div class="hdt-popover__arrow"></div>
+    <div class="hdt-popover__body">
+      <div class="hdt-popover__header md:hdt-hidden hdt-s-text">
+        <p id="{{ id }}LanguageLabel" class="hdt-text-lg hdt-font-medium">{{ 'localization.language_label' | t }}</p>
+      </div>
+      <div class="hdt-popover__inner hdt-scrollbar">
+        <localization-form class="hdt-contents"{% if id == 'Header' %} on-header{% endif %}>
+          {%- form 'localization', id: form_id, class: 'localization-form' -%}
+            <div class="hdt-disclosure__list hdt-language-selector__list hdt-grid" id="{{ id }}Language-language-results" role="listbox" aria-activedescendant="{{ id }}-option-language--{{ localization.language.iso_code }}">
+                {%- for language in localization.available_languages -%}
+                  <button type="submit" name="language_code" class="hdt-disclosure__item hdt-flex hdt-align-center focus-inset-1" role="option" value="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} aria-selected="true" {%- endif -%}id="{{ id }}-option-language--{{ language.iso_code }}">{{ language.endonym_name | capitalize }}{%- if language.iso_code == localization.language.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}</button>
+                {%- endfor -%}
+            </div>
+          {%- endform -%}
+        </localization-form>
+      </div>
+    </div>
+  </dialog>
+</hdt-popover>

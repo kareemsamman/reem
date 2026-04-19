@@ -1,0 +1,98 @@
+{%- doc -%}
+  Renders a cart complementary products
+  @param {object} [section] - Section settings object
+  @param {string} [prefix] - a prefix
+
+  @example
+  {%- render 'cart-complementary' -%}
+{%- enddoc -%}
+
+{%- liquid
+    if section.settings.replaces_products_selected
+      assign complementary_products = cart.items.first.product.metafields.shopify--discovery--product_recommendation.complementary_products.value | default: section.settings.product_list
+    else
+      assign complementary_products = section.settings.product_list
+    endif
+    if complementary_products != blank
+      assign complementary_products_available = complementary_products | where: "available", true
+    endif
+    assign complementary_index = 0
+  -%}
+
+  <div id="Cart{{ prefix }}-complementary" class="hdt-cart-complementary" data-id="{{ cart.items.first.product.id }}" style="--tab-animation-duration: {{ section.settings.complementary_change_every }}s">
+  {%- if complementary_products_available != blank -%}
+    {%- capture code_complementary -%}
+        {%- for product in complementary_products_available limit: 10 -%}
+          {%- liquid
+          assign line_items_quantity = cart | line_items_for: product | sum: 'quantity'
+          if line_items_quantity > 0
+            continue
+          endif
+          assign complementary_index = complementary_index | plus: 1
+          assign image = product.featured_image | default: settings.placeholder_img
+          -%}
+          <div class="hdt-product__complementary-product hdt-slider__slide">
+            <a href="{{ product.url }}" calc-nav class="hdt-product__complementary-product-image hdt-rounded-sm hdt-oh hdt-ratio hdt-product-has-qv"{% if section.settings.image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ image.aspect_ratio | default: 1 }}"{% endif %}>
+              {%- if image != blank -%}
+                {{- image | image_url: width: image.width | image_tag: loading: 'lazy', width: image.width, height: image.height, sizes: '(min-width: 480px) 121px, 80px', widths: '80,121,160,200,242,250' -}}
+              {%- else -%}
+              {%- liquid
+                capture current
+                cycle 2, 1 , 3, 4
+                endcapture
+                echo 'product-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-w-full hdt-h-full'
+              -%}
+              {%- endif -%}
+            </a>
+            <div class="hdt-product__complementary-product-info">
+              <p class="hdt-product__complementary-product-title"><a class="hdt-font-medium hdt-link" href="{{ product.url }}">{{ product.title }}</a></p>
+              {%- render 'item-price', product: product, price_class: 'hdt-product__complementary-product-price hdt-s-text hdt-text-lg hdt-font-semibold' -%}
+              {%- if product.has_only_default_variant -%}
+                {%- liquid
+                  assign product_form_id = 'form-' | append: section.id | append: product.id
+                  assign quantity_rule = product.selected_or_first_available_variant.quantity_rule
+                  assign quantity_rule_min = quantity_rule.min | default: 1
+                -%}
+                <product-form class="hdt-contents">
+                  {%- form 'product', product, id: product_form_id, class: 'hdt-contents', novalidate: 'novalidate' -%}
+                    <input type="hidden" name="quantity" value="{{ quantity_rule_min }}">
+                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                    <button aria-label="{{ 'products.product.add_to_cart' | t }}" type="submit" name="add" class="hdt-product-card-btn hdt-btn--loading_spinner hdt-product-card-btn--atc hdt-btn hdt-btn--inner hdt-btn--size-s hdt-btn--with-icon">
+                      <span circle-bg-wrap class="hdt-inner-btn">
+                        <span>{{- 'icon-addtocart.svg' | inline_asset_content -}}</span>
+                        <span class="sr-only-mobile">{{ 'products.product.add_to_cart' | t }}</span>
+                        {%- render 'loading-spinner', class: 'hdt-loading-area__spinner' -%}
+                        <hdt-circle-bg mousemove></hdt-circle-bg>
+                      </span>
+                    </button>
+                  {%- endform -%}
+                </product-form>
+              {%- elsif settings.show_quick_view -%}
+                 <wrapp-hdt-open-btn class="hdt-contents hdt-open-quickview-wrapp">
+                  <button circle-bg-wrap type="button" handle="{{ product.handle }}" aria-controls="hdt-quick-view-modal" class="hdt-btn hdt-open-quickview-btn hdt-btn--size-s hdt-btn--with-icon" aria-expanded="false">
+                    {{- 'icon-quickview-rc.svg' | inline_asset_content -}}
+                    {{- 'products.product.view' | t -}}
+                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                  </button>
+                </wrapp-hdt-open-btn>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if complementary_index > 0 and cart != empty  -%}
+    <div class="hdt-pc-cart--wrapper hdt-pc--fieldset  hdt-border hdt-rounded">
+      <h6 class="hdt-product__complementary-title hdt-h6">{{ section.settings.heading }}</h6>
+      <div class="hdt-pc--slide-container hdt-tab-block hdt-pc--slide-container-single" data-auto_switch="{{ section.settings.complementary_auto_play }}">
+        <hdt-slider id="Slider-cart-{{ section.id }}" class="hdt-slider hdt-product__complementary-products hdt-ratio--{{ section.settings.image_ratio }} {% if section.settings.complementary_auto_play %} hdt-slide_autoplay{% endif %}" {% if section.settings.complementary_auto_play %}autoplay="{{ section.settings.complementary_change_every }}000" style="--hdt-remaining: {{ section.settings.complementary_change_every | times: 1000 }}ms"{% endif %}{% if section.settings.complementary_pause_on_hover %} pause-on-hover{% endif %}>
+          <div class="hdt-slider__viewport">
+            <div class="hdt-slider__container">{{ code_complementary }}</div>
+          </div>
+          <hdt-slider-dots aria-controls="Slider-cart-{{ section.id }}" class="hdt-slider-dots hdt-slider-dots__progressbar"></hdt-slider-dots>
+        </hdt-slider>
+      </div>
+    </div>
+    {%- endif -%}
+  {%- endif -%}
+</div>

@@ -1,0 +1,282 @@
+{%- style -%}
+    #Section-{{ section.id }} { --corner-radius: {% if section.settings.corner_radius_unit == '%' %}{{ section.settings.corner_radius_percent }}%{% else %}{{ section.settings.corner_radius }}px{% endif %}; }
+    #Section-{{ section.id }} hdt-slider { --slide-spacing: {{ section.settings.gap_img }}px; }
+    @media only screen and (min-width: 768px) {
+    #Section-{{ section.id }} hdt-slider {--slide-spacing: {{ section.settings.gap_img_xl }}px; }
+    }
+    {%- if section.settings.gap_img == 0 and section.settings.full_width -%}
+    @media (max-width: 767px) { #Section-{{ section.id }} { --padding: 1.5rem } }
+    {%- endif -%}
+    {%- if section.settings.gap_img_xl == 0 and section.settings.full_width -%}
+        @media (min-width: 768px) { #Section-{{ section.id }} { --padding: 3rem } }
+        @media (min-width: 1150px) { #Section-{{ section.id }} { --padding: 5rem} }
+    {%- endif -%}
+{%- endstyle -%}
+
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__gallery hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;--spacing-xl: {{ section.settings.gap_img_xl }}px;--spacing-md: {{ section.settings.gap_img_xl }}px;--spacing: {{ section.settings.gap_img }}px">
+    <div class="hdt-container{% if section.settings.full_width %}-xl hdt-container-spacing md:hdt-slider__marquee{% endif %} mb:hdt-slider__overflow">
+      {%- content_for 'block', type: '_section-header-gallery', id: 'header' -%}
+      <hdt-gallery-modal show-thumb{% if section.settings.image_action == 'link' %} set-disabled{% endif %}>
+        {% if section.settings.auto_scroll %}
+          <hdt-pause-play-slider class="hdt-pause-play-slider hdt-pause-play-slider--gallery">
+            <button class="hdt-btn-control_media hdt-btn-media-no-progress" aria-label="{{ 'accessibility.slider.pause_play' | t }}" aria-controls="Slider-{{ section.id }}"><span class="hdt-ic-play-wrap">{{ 'icon-play.svg' | inline_asset_content }}</span><span class="hdt-ic-pause-wrap" hidden>{{ 'icon-pause.svg' | inline_asset_content }}</span></button>
+          </hdt-pause-play-slider>
+      {%- endif -%}
+        <hdt-slider style="--slide-size-set-mb: {{ section.settings.slide_width }}%" id="Slider-{{ section.id }}" autoheight class="hdt-slider{% if section.settings.gap_img_xl == 0 %} hdt-slider--round{% endif %}{% if section.settings.gap_img == 0 %} mb:hdt-slider--round{% endif %} hdt-ratio--{{ section.settings.image_ratio }} xl:hdt-slides-{{ section.settings.columns }} md:hdt-slides-{{ section.settings.columns | at_most: 3 }} hdt-slides-1" config='{ {% if section.settings.auto_scroll %}"marquee": 2, {% endif %}"loop": false, "pauseOnHover": false, "autoHeight": true, "ntCenter": true, "slidesToScroll": "auto", "dragFree": true{% if section.settings.auto_scroll %}, "breakpoints": { "(min-width: 1025px)": { "loop": true, "dragFree": true } }{% endif %} }'>
+          <div class="hdt-slider__viewport{% if section.settings.slide_width == 50 or section.settings.slide_width == 100 %} mb:hdt-slider__viewport--hidden{% endif %}"><div class="hdt-slider__container">{%- content_for 'blocks' -%}</div></div>
+          <hdt-slider-nav class="hdt-slider-nav--back-next hdt-slider-nav hdt-slider-nav--soh hdt-slider-nav--solid{% if section.settings.full_width %} hdt-slider-nav--full-overlay{% endif %}{% if section.settings.slide_width == 50 or section.settings.slide_width == 100 %} hdt-block{% endif %}{% if section.settings.auto_scroll %} lg:hdt-hidden{% else %} lg:hdt-block{% endif %}" aria-controls="Slider-{{ section.id }}">
+            <button type="button" name="previous" aria-label="{{ 'accessibility.go_prev_slide' | t | escape }}" class="hdt-icon--rtl hdt-icon--hover__sidex hdt-btn--inner">
+              <span circle-bg-wrap class="hdt-inner-btn">
+                {{- 'icon-back.svg' | inline_asset_content -}}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </span>
+            </button>
+            <button type="button" name="next" aria-label="{{ 'accessibility.go_next_slide' | t | escape }}" class="hdt-icon--rtl hdt-icon--hover__sidex hdt-btn--inner" reverse-ani>
+              <span circle-bg-wrap class="hdt-inner-btn">
+                {{- 'icon-next.svg' | inline_asset_content -}}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </span>
+            </button>
+          </hdt-slider-nav>
+        </hdt-slider>
+      </hdt-gallery-modal>
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.gallery",
+  "tag": "section",
+  "class": "hdt-section",
+  "enabled_on": {
+    "templates": ["*"],
+    "groups": ["footer"]
+  },
+  "blocks": [{ "type": "_section-header-gallery" }, {"type": "_gallery_item"}],
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:settings.make_full_width",
+      "default": false
+    },
+    {
+      "type": "color_scheme", 
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "options": [
+        {
+          "value": "portrait",
+          "label": "t:options.portrait"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.landscape"
+        }
+      ],
+      "default": "square",
+      "label": "t:settings.image_ratio"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "label": "t:settings.number_image_desktop",
+      "info": "t:info.automatic_optimized_mb",
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "corner_radius_unit",
+      "options": [
+        {
+          "value": "px",
+          "label": "t:options.pixel"
+        },
+        {
+          "value": "%",
+          "label": "t:options.percent"
+        }
+      ],
+      "default": "px",
+      "label": "t:settings.corner_radius_unit"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.radius_img",
+      "visible_if": "{{ section.settings.corner_radius_unit == 'px' }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "corner_radius_percent",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.radius_img",
+      "visible_if": "{{ section.settings.corner_radius_unit == '%' }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "gap_img_xl",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.gap_img_xl",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "gap_img",
+      "min": 0,
+      "max": 15,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.gap_img",
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "image_action",
+      "options": [
+        {
+          "value": "link",
+          "label": "t:options.go_to_link"
+        },
+        {
+          "value": "modal",
+          "label": "t:options.open_modal"
+        }
+      ],
+      "default": "modal",
+      "label": "t:settings.image_action"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_scroll",
+      "label": "t:settings.dk_auto_scroll",
+      "info": "t:info.dk_auto_scroll",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "slide_width",
+      "label": "t:settings.item_width_mb",
+      "info": "t:info.slide_width_mb",
+      "min": 50,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 85
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.gallery",
+      "category": "t:categories.storytelling",
+      "blocks": [
+        {
+          "type": "_section-header-gallery",
+          "static": true,
+          "id": "header",
+          "blocks": [
+            {
+              "type": "heading",
+              "settings": {
+                "heading": "Gallery",
+                "heading_size": "h4",
+                "heading_tag": "h2",
+                "uppercase": false
+              }
+            }
+          ]
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+        {
+          "type": "_gallery_item",
+        },
+      ]
+    }
+  ]
+}
+{% endschema %}

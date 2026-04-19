@@ -1,0 +1,376 @@
+{%- liquid
+assign index = 0
+assign limit_product = 5
+assign limit_article = 5
+assign sizes = settings.page_width | minus: 360 | divided_by: 3 | minus: 20
+assign tab_header = ''
+assign tab_content = ''
+-%}
+
+{%- if predictive_search and predictive_search.performed -%}
+  {%- assign results_size = predictive_search.resources.queries.size | plus: predictive_search.resources.products.size | plus: predictive_search.resources.collections.size | plus: predictive_search.resources.pages.size | plus: predictive_search.resources.articles.size -%}
+  {%- if results_size == 0 -%}
+    {%- capture predictive_search_terms_strong -%}
+      <strong>{{ predictive_search.terms }}</strong>
+    {%- endcapture -%}
+    <div class="hdt-empty-results-wrap">
+      <span class="hdt-empty-icon">{{ 'icon-magnifier-x.svg' | inline_asset_content }}</span>
+      <p class="hdt-predictive-search-status hdt-search--empty-title hdt-text-center hdt-grid" role="status"><span class="hdt-text-xl">
+        {{- 'search.no_results_html' | t: terms: predictive_search_terms_strong }}</span><span>{{ 'search.no_results_description' | t -}}</span>
+      </p>
+    </div>
+  {%- else -%}
+    <div class="hdt-predictive-search-groups-container{% if predictive_search.resources.queries.size > 0 %} hdt-psg-container--suggestions{% endif %}">
+      <div id="predictive-search-results-groups-wrapper" class="hdt-predictive-search-groups-wrapper{% if predictive_search.resources.queries.size > 0 %} hdt-predictive-search-groups-wrapper--suggestions{% endif %}">
+        {%- if predictive_search.resources.queries.size > 0 -%}
+          <div class="hdt-predictive-search__result-group hdt-grid md:hdt-block">
+            <p id="predictive-search-queries" class="hdt-predictive-search__heading"> {{- 'search.suggestions' | t -}}</p>
+            <ul id="predictive-search-results-queries-list" class="hdt-predictive-search__results-list" role="group" aria-labelledby="predictive-search-queries">
+              {%- for query in predictive_search.resources.queries -%}
+                <li id="predictive-search-option-query-{{ forloop.index }}" class="hdt-predictive-search__list-item" role="option" aria-selected="false">
+                  <a href="{{ query.url }}" class="hdt-predictive-search__item hdt-link">
+                    <div class="hdt-predictive-search__item-content">
+                      <p class="hdt-predictive-search__item-heading hdt-predictive-search__item-query-result" aria-label="{{ query.text }}">{{ query.styled_text }}</p>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+        {%- assign sizes = sizes | append: 'px' -%}
+        <hdt-tabs-carousel class="hdt-predictive-search__result-tabs" role="tablist" disable-keydown>
+          {%- if predictive_search.resources.products.size > 0 -%}
+            {%- capture tab_header -%}
+              <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-products-list" id="predictive-search-products" aria-selected="true">{{- 'search.products' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              <div role="tabpanel" class="hdt-predictive-search__results-list" aria-labelledby="predictive-search-products" id="predictive-search-results-products-list">
+                <div class="hdt-psr-inner">
+                  {%- for product in predictive_search.resources.products limit: limit_product -%}
+                    {%- assign featured_media = product.featured_media | default: settings.placeholder_img -%}
+                    <div id="predictive-search-option-product-{{ forloop.index }}" class="hdt-predictive-search__list-item hdt-sd-pr-item" role="option" aria-selected="false">
+                      <a href="{{ product.url }}" class="hdt-predictive-search__item hdt-predictive-search__item--link-with-thumbnail hdt-hover-line-wrap">
+                        {%- if featured_media != blank -%}
+                          <div class="hdt-predictive-search__image hdt-sd-pr-img">
+                            {{- featured_media | image_url: width: featured_media.width | image_tag: loading: 'lazy', widths: '80,114,120,150,200,250', sizes: '(min-width: 768px) 114px, 80px', class: 'hdt-card-product__media--main' -}}
+                          </div>
+                        {%- endif -%}
+                        <div class="hdt-predictive-search__item-content hdt-sd-pr-info">
+                          {%- if product.vendor.size > 0 -%}
+                            <div class="hdt-ps-vendor"><span class="sr-only">{{ 'accessibility.vendor' | t }}</span><span class="hdt-s-text2 hdt-text-xs hdt-uppercase">{{ product.vendor | escape }}</span></div>
+                          {%- endif -%}
+                          <p class="hdt-predictive-search__item-heading"><span class="hdt-hover-line">{{ product.title | escape }}</span></p>
+                          {%- render 'card-price', product: product -%}
+                        </div>
+                      </a>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          {%- if predictive_search.resources.collections.size > 0 -%}
+            {%- assign widths = '100,200,300,400,500,600,700' -%}
+            {%- capture tab_header -%}
+              {{- tab_header -}} <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-collections-list" id="predictive-search-collections" aria-selected="{% if index == 0 %}true{% else %}false{% endif %}">{{- 'search.collections' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              {{- tab_content -}}
+              <div role="tabpanel" class="hdt-predictive-search__results-list hdt-psrl--collections" aria-labelledby="predictive-search-collections" id="predictive-search-results-collections-list"{% if index > 0 %} hidden{% endif %}>
+                <div class="hdt-psr-inner--card hdt-hidden">
+                  <ul class="hdt-collection-list hdt-row-grid hdt-collection-card--overlay-blur xl:hdt-grid-cols-3 md:hdt-grid-cols-3 hdt-grid-cols-2 hdt-ratio--square" role="list">
+                    {%- for collection in predictive_search.resources.collections limit: 6 -%}
+                      <li class="hdt-collection-list__item">
+                        <a href="{{ collection.url }}" class="hdt-collection-list__link">
+                          <div class="hdt-collection-list__image-wrapper">
+                            <div class="hdt-collection-list__image hdt-ratio hdt-collection-card-rounded{% if collection.featured_image == blank %} hdt-collection-list__no-image{% endif %}">
+                              {%- liquid
+                              if collection.featured_image != blank
+                                echo collection.featured_image | image_url: width: collection.featured_image.width | image_tag: sizes: sizes, widths: widths, class: 'hdt-zoom-img'
+                              endif
+                              -%}
+                            </div>
+                          </div>
+                          <div class="hdt-collection-list__title hdt-collection-card__title hdt-h6 hdt-btn--flip-after" data-hover="{{ collection.title | escape }}"><span>{{ collection.title | escape }}</span></div>
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>  
+                <div class="hdt-psr-inner--card">
+                  <ul class="hdt-collection-list hdt-row-grid hdt-collection-card--overlay-blur hdt-grid-cols-2 hdt-ratio--square" role="list">
+                    {%- for collection in predictive_search.resources.collections limit: 6 -%}
+                      <li class="hdt-collection-list__item hdt-collection-card">
+                        <hdt-tilt-card max-tilt="8" class="hdt-cl-tilted-card">
+                          <div class="hdt-cl-tilted-card-inner">
+                            <a href="{{ collection.url }}" class="hdt-collection-card-inner hdt-oh hdt-rounded-f hdt-collection-card-rounded">
+                              <div class="hdt-collection-card__media hdt-ratio">
+                                {%- liquid
+                                  if collection.featured_image != blank
+                                     echo collection.featured_image | image_url: width: collection.featured_image.width | image_tag: sizes: sizes, widths: widths
+                                  else
+                                    capture current
+                                    cycle 1, 2 , 3, 4
+                                    endcapture
+                                    echo 'collection-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                                  endif
+                                -%}
+                              </div>
+                              <div class="hdt-collection-card__content hdt-place-self-end-center xl:hdt-place-self-end-center hdt-hide-bg-content">
+                                <div class="hdt-collection-card__title hdt-h6"><span>{{ collection.title | escape }}</span></div>
+                              </div>
+                            </a>
+                          </div>
+                        </hdt-tilt-card>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          {%- if predictive_search.resources.pages.size > 0 -%}
+            {%- capture tab_header -%}
+              {{- tab_header -}} <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-pages-list" id="predictive-search-pages" aria-selected="{% if index == 0 %}true{% else %}false{% endif %}">{{- 'search.pages' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              {{- tab_content -}}
+              <div role="tabpanel" class="hdt-predictive-search__results-list" aria-labelledby="predictive-search-pages" id="predictive-search-results-pages-list"{% if index > 0 %} hidden{% endif %}>
+                {%- for page in predictive_search.resources.pages limit: 5 -%}
+                <div id="predictive-search-option-page-{{ forloop.index }}" class="hdt-predictive-search__list-item" role="option" aria-selected="false">
+                  <a href="{{ page.url }}" class="hdt-predictive-search__item hdt-link">
+                    <div class="hdt-predictive-search__item-content">
+                      <p class="hdt-predictive-search__item-heading">{{ page.title | escape }}</p>
+                    </div>
+                  </a>
+                </div>
+                {%- endfor -%}
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          {%- if predictive_search.resources.articles.size > 0 -%}
+            {%- capture tab_header -%}
+              {{- tab_header -}} <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-articles-list" id="predictive-search-articles" aria-selected="{% if index == 0 %}true{% else %}false{% endif %}">{{- 'search.articles' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              {{- tab_content -}}
+              <div role="tabpanel" class="hdt-predictive-search__results-list hdt-psrl--articles" aria-labelledby="predictive-search-articles" id="predictive-search-results-articles-list"{% if index > 0 %} hidden{% endif %}>
+                {%- for article in predictive_search.resources.articles limit: limit_article -%}
+                <div id="predictive-search-option-article-{{ forloop.index }}" class="hdt-predictive-search__list-item hdt-sd-pr-item" role="option" aria-selected="false">
+                  <a href="{{ article.url }}" class="hdt-predictive-search__item hdt-predictive-search__item--link-with-thumbnail hdt-hover-line-wrap">
+                    {%- if article.image != blank -%}
+                      <div class="hdt-predictive-search__image hdt-sd-pr-img">
+                        {{- article.image | image_url: width: article.image.width | image_tag: loading: 'lazy', widths: '80,114,120,150,200,250', sizes: '(min-width: 768px) 114px, 80px' -}}
+                      </div>
+                    {%- endif -%}
+                    <div class="hdt-predictive-search__item-content hdt-sd-pr-info">
+                      <p class="hdt-predictive-search__item-heading hdt-hover-line">{{ article.title | escape }}</p>
+                      <div class="hdt-article-card__meta hdt-flex hdt-text-sm">
+                        <span class="hdt-article-card__meta--icon">{{ 'icon-clock.svg' | inline_asset_content }}</span><span>{{ article.published_at | time_tag: "%d %B %Y" }}</span>
+                      </div>
+                      <div class="hdt-readmore-wrap">
+                        <p class="hdt-link-underline">
+                        <span>{{ 'blogs.article.read_more' | t | escape }}</span><span class="sr-only">{{ article.title | escape }}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                {%- endfor -%}
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          <hdt-slider class="hdt-slider hdt-slider--predictive-search hdt-slider__active-true hdt-relative" config='{ "autoHeight": false, "ntCenter": false, "loop": false, "slidesToScroll": 1, "dragFree": false, "classNames": false }'>
+            <div class="hdt-slider__viewport">
+              <div class="hdt-slider__container" role="tablist">
+                {{- tab_header -}}
+              </div>
+            </div>
+          </hdt-slider>
+          {{- tab_content -}}
+        </hdt-tabs-carousel>
+      </div>
+      <div class="hdt-predictive-search__search-for-button">
+        <button circle-bg-wrap aria-selected="false" role="option" type="submit" class="hdt-btn hdt-btn--size-s hdt-btn--with-icon" form="predictive-search-form">
+          {{- 'search.view_all_results' | t -}}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </button>
+      </div>
+    </div>
+  {%- endif -%}
+  <span hidden search-live-region-count>
+    {% liquid
+      if predictive_search and predictive_search.performed
+        if results_size == 0
+          echo 'search.no_results' | t: terms: predictive_search.terms
+          echo 'search.no_results_description' | t
+        else
+          echo 'search.results_with_count' | t: count: results_size | append: ': '
+          if predictive_search.resources.queries.size > 0
+            assign count = predictive_search.resources.queries.size | plus: predictive_search.resources.collections.size
+            echo 'search.results_suggestions_with_count' | t: count: count | append: ', '
+          endif
+          if predictive_search.resources.pages.size > 0
+            assign count = predictive_search.resources.pages.size | plus: predictive_search.resources.articles.size
+            echo 'search.results_pages_with_count' | t: count: count | append: ', '
+          endif
+          if predictive_search.resources.products.size > 0
+            echo 'search.results_products_with_count' | t: count: predictive_search.resources.products.size
+          endif
+        endif
+      endif
+   %}
+  </span>
+
+{%- elsif search and search.performed -%}
+  {%- if search.results_count == 0 -%}
+    {%- capture predictive_search_terms_strong -%}
+      <strong>{{ search.terms }}</strong>
+    {%- endcapture -%}
+    <div class="hdt-empty-results-wrap">
+      <span class="hdt-empty-icon">{{ 'icon-magnifier-x.svg' | inline_asset_content }}</span>
+      <p class="hdt-predictive-search-status hdt-search--empty-title hdt-text-center hdt-grid" role="status"><span class="hdt-text-xl">
+        {{- 'search.no_results_html' | t: terms: predictive_search_terms_strong }}</span><span>{{ 'search.no_results_description' | t -}}</span>
+      </p>
+    </div>
+  {%- else -%}
+    {%- paginate search.results by 25 -%}
+    <div class="hdt-predictive-search-groups-container">
+      <div id="predictive-search-results-groups-wrapper" class="hdt-predictive-search-groups-wrapper">
+        {%- liquid
+        assign results_product = search.results | where: 'object_type', 'product'
+        if search.types.size == 1 and search.types[0] == 'article'
+          assign results_article = search.results
+        elsif search.types contains 'article'
+          assign results_article = search.results | where: 'object_type', 'article'
+        endif
+        if search.types.size == 1 and search.types[0] == 'page'
+          assign results_page = search.results
+        elsif search.types contains 'page'
+          assign results_page = search.results | where: 'object_type', 'page'
+        endif
+        -%}
+        <hdt-tabs-carousel class="hdt-predictive-search__result-tabs" role="tablist" disable-keydown>
+          {%- if results_product.size > 0 -%}
+            {%- capture tab_header -%}
+              <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-products-list" id="predictive-search-products" aria-selected="true">{{- 'search.products' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              <div role="tabpanel" class="hdt-predictive-search__results-list" aria-labelledby="predictive-search-products" id="predictive-search-results-products-list">
+                <div class="hdt-psr-inner">
+                  {%- for product in results_product limit: limit_product -%}
+                    {%- assign featured_media = product.featured_media | default: settings.placeholder_img -%}
+                    <div id="predictive-search-option-product-{{ forloop.index }}" class="hdt-predictive-search__list-item hdt-sd-pr-item" role="option" aria-selected="false">
+                      <a href="{{ product.url }}" class="hdt-predictive-search__item hdt-predictive-search__item--link-with-thumbnail hdt-hover-line-wrap">
+                        {%- if featured_media != blank -%}
+                          <div class="hdt-predictive-search__image hdt-sd-pr-img">
+                            {{- featured_media | image_url: width: featured_media.width | image_tag: loading: 'lazy', widths: '80,114,120,150,200,250', sizes: '(min-width: 768px) 114px, 80px', class: 'hdt-card-product__media--main' -}}
+                          </div>
+                        {%- endif -%}
+                        <div class="hdt-predictive-search__item-content hdt-sd-pr-info">
+                          {%- if product.vendor.size > 0 -%}
+                            <div class="hdt-ps-vendor"><span class="sr-only">{{ 'accessibility.vendor' | t }}</span><span class="hdt-s-text2 hdt-text-xs hdt-uppercase">{{ product.vendor | escape }}</span></div>
+                          {%- endif -%}
+                          <p class="hdt-predictive-search__item-heading"><span class="hdt-hover-line">{{ product.title | escape }}</span></p>
+                          {%- render 'card-price', product: product -%}
+                        </div>
+                      </a>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          {%- if results_page.size > 0 -%}
+            {%- capture tab_header -%}
+              {{- tab_header -}} <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-pages-list" id="predictive-search-pages" aria-selected="{% if index == 0 %}true{% else %}false{% endif %}">{{- 'search.pages' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              {{- tab_content -}}
+              <div role="tabpanel" class="hdt-predictive-search__results-list" aria-labelledby="predictive-search-pages" id="predictive-search-results-pages-list"{% if index > 0 %} hidden{% endif %}>
+                {%- for page in results_page limit: 5 -%}
+                <div id="predictive-search-option-page-{{ forloop.index }}" class="hdt-predictive-search__list-item" role="option" aria-selected="false">
+                  <a href="{{ page.url }}" class="hdt-predictive-search__item hdt-link">
+                    <div class="hdt-predictive-search__item-content">
+                      <p class="hdt-predictive-search__item-heading">{{ page.title | escape }}</p>
+                    </div>
+                  </a>
+                </div>
+                {%- endfor -%}
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          {%- if results_article.size > 0 -%}
+            {%- capture tab_header -%}
+              {{- tab_header -}} <div class="hdt-slider__slide"><button role="tab" type="button" class="focus-inset hdt-predictive-search__heading" aria-controls="predictive-search-results-articles-list" id="predictive-search-articles" aria-selected="{% if index == 0 %}true{% else %}false{% endif %}">{{- 'search.articles' | t -}}</button></div>
+            {%- endcapture -%}
+            {%- capture tab_content -%}
+              {{- tab_content -}}
+              <div role="tabpanel" class="hdt-predictive-search__results-list hdt-psrl--articles" aria-labelledby="predictive-search-articles" id="predictive-search-results-articles-list"{% if index > 0 %} hidden{% endif %}>
+                {%- for article in results_article limit: limit_article -%}
+                <div id="predictive-search-option-article-{{ forloop.index }}" class="hdt-predictive-search__list-item hdt-sd-pr-item" role="option" aria-selected="false">
+                  <a href="{{ article.url }}" class="hdt-predictive-search__item hdt-predictive-search__item--link-with-thumbnail hdt-hover-line-wrap">
+                    {%- if article.image != blank -%}
+                      <div class="hdt-predictive-search__image hdt-sd-pr-img">
+                        {{- article.image | image_url: width: article.image.width | image_tag: loading: 'lazy', widths: '80,114,120,150,200,250', sizes: '(min-width: 768px) 114px, 80px' -}}
+                      </div>
+                    {%- endif -%}
+                    <div class="hdt-predictive-search__item-content hdt-sd-pr-info">
+                      <p class="hdt-predictive-search__item-heading hdt-hover-line">{{ article.title | escape }}</p>
+                      <div class="hdt-article-card__meta hdt-flex hdt-text-sm">
+                        <span class="hdt-article-card__meta--icon">{{ 'icon-clock.svg' | inline_asset_content }}</span><span>{{ article.published_at | time_tag: "%d %B %Y" }}</span>
+                      </div>
+                      <div class="hdt-readmore-wrap">
+                        <p class="hdt-link-underline">
+                        <span>{{ 'blogs.article.read_more' | t | escape }}</span><span class="sr-only">{{ article.title | escape }}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                {%- endfor -%}
+              </div>
+            {%- endcapture -%}
+            {%- assign index = 1 -%}
+          {%- endif -%}
+          <hdt-slider id="Slider-{{ section.id }}" class="hdt-slider hdt-slider--predictive-search hdt-slider__active-true hdt-relative" config='{ "autoHeight": false, "ntCenter": false, "loop": false, "slidesToScroll": 1, "dragFree": false, "classNames": false }'>
+            <div class="hdt-slider__viewport">
+              <div class="hdt-slider__container" role="tablist">
+                {{- tab_header -}}
+              </div>
+            </div>
+          </hdt-slider>
+          {{- tab_content -}}
+        </hdt-tabs-carousel>
+      </div>
+      <div class="hdt-predictive-search__search-for-button">
+        <button circle-bg-wrap aria-selected="false" role="option" type="submit" class="hdt-btn hdt-btn--size-s hdt-btn--with-icon" form="predictive-search-form">
+          {{- 'search.view_all_results' | t -}}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </button>
+      </div>
+    </div>
+    {%- endpaginate -%}
+  {%- endif -%}
+  <span hidden search-live-region-count>
+    {% liquid
+      if search and search.performed
+        if search.results_count == 0
+          echo 'search.no_results' | t: terms: search.terms
+          echo 'search.no_results_description' | t
+        else
+          echo 'search.results_with_count' | t: count: search.results_count
+        endif
+      endif
+   %}
+  </span>
+
+{%- endif -%}
+

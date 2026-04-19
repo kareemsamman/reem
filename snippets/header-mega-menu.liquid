@@ -1,0 +1,246 @@
+{%- doc -%}
+@description
+  Renders a megamenu for the header.
+  [links]
+
+@param {object} [block]
+@param {string} [type] - shop, card, images
+
+@example
+  {%- render 'header-mega-menu', block: block, type: type -%}
+{%- enddoc -%}
+
+{%- if block.settings.title != blank -%}
+[split94]
+
+{%- assign has_mega_rich = false -%}
+{%- assign has_mega_collection = false -%}
+{%- if type == 'shop' -%}
+  {%- assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq -%}
+  {%- capture pr_size -%}
+    max(16rem, calc(0.4 * min(36vw, 55rem)))
+  {%- endcapture -%}
+  {%- capture collection_list -%}
+    {%- if block.settings.collection_list != blank -%}
+    <div reveal ref="el-minus" class="hdt-mega-menu__rich hdt-mega-menu__rich--collections">
+      {%- for collection in block.settings.collection_list -%}
+        <a circle-bg-wrap href="{{ collection.url }}" class="hdt-mega-menu__rich--collections-item hdt-btn-effhover">
+          {%- assign cl_image = collection.metafields.theme.menu_image | default: collection.featured_image -%}
+          {%- if cl_image != '' -%}
+            <span class="hdt-cl-item--img hdt-shrink-0">{{ cl_image | image_url: width: cl_image.width | image_tag: loading: 'lazy', sizes: '64px', widths: '64,128', class: 'hdt-media-cover' }}</span>
+          {%- endif -%}
+          <span class="hdt-cl-item--title hdt-text-6xl">{{ collection.title | escape }}</span>
+          <span class="hdt-cl-item--icon hdt-shrink-0">{{ 'icon-circle-arrow.svg' | inline_asset_content }}</span>
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </a>
+      {%- endfor -%}
+      {%- if block.settings.cl_button_label != '' -%}
+        <div class="hdt-cl-link-wrap">
+          <a class="hdt-link-underline hdt-font-medium"{% if block.settings.cl_button_link != blank %} href="{{ block.settings.cl_button_link }}"{% endif %}>{{ block.settings.cl_button_label }}</a>
+        </div>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+  {%- endcapture -%}
+  {%- capture product_list -%}
+    {%- if block.settings.product_list != blank -%}
+    <div reveal ref="el-minus" class="hdt-mega-menu__rich hdt-mega-menu__rich--products" count="{{ block.settings.product_list.count }}">
+        <div class="hdt-pr-list-header">
+          <p class="hdt-pr-heading hdt-h5">{{ block.settings.pr_heading }}</p>
+          <hdt-slider-nav class="hdt-slider-nav hdt-slider-nav--solid" aria-controls="Slider-products-{{ block.id }}">
+            <button class="hdt-btn--inner" circle-bg-wrap type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+              <span circle-bg-wrap class="hdt-inner-btn">
+                {{ 'icon-nav-prev.svg' | inline_asset_content }}
+                <hdt-circle-bg></hdt-circle-bg>
+              </span>
+            </button>
+            <button class="hdt-btn--inner" circle-bg-wrap type="button" name="next" disabled="" aria-label="{{ 'accessibility.slider.next_slide' | t }}">
+              <span circle-bg-wrap class="hdt-inner-btn">
+                {{ 'icon-nav-next.svg' | inline_asset_content }}
+                <hdt-circle-bg></hdt-circle-bg>
+              </span>
+            </button>
+          </hdt-slider-nav>
+        </div>
+        <hdt-slider id="Slider-products-{{ block.id }}" autoheight class="hdt-slider" config='{ "active": true, "autoHeight": true, "ntCenter": false, "loop": false, "align": "center", "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(max-width: 1023px)": { "active": false } } }'>
+          <div class="hdt-slider__viewport">
+            <div class="hdt-slider__container">
+              {%- for product in block.settings.product_list -%}
+              {%- render 'product-card', product_card: product, swatch_list: swatch_list, section_id: block.id, image_ratio: block.settings.pr_image_ratio, sizes: pr_size, show_vendor: block.settings.show_vendor, class_card: 'hdt-slider__slide' -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        </hdt-slider>
+        {%- if block.settings.pr_btn_label != '' -%}
+        <div class="hdt-pr-btn-wrap">
+          <a circle-bg-wrap class="hdt-btn hdt-btn-solid hdt-btn--size-s{% if block.settings.show_icon_button %} hdt-btn--with-icon{% endif %}" {% if block.settings.pr_btn_link != blank %} href="{{ block.settings.pr_btn_link }}"{% endif %}>
+            {{- block.settings.pr_btn_label -}}
+            {%- if block.settings.show_icon_button %}{{ 'icon-' | append: block.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{% endif -%}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </a>
+        </div>
+        {%- endif -%}
+    </div>
+    {%- endif -%}
+  {%- endcapture -%}
+  {%- liquid
+  if collection_list != blank
+    assign has_mega_rich = true
+    assign has_mega_collection = true
+  elsif product_list != blank
+    assign has_mega_rich = true
+  endif
+  -%}
+{%- elsif type == 'card' -%}
+  {%- capture card -%}
+    {%- assign count_card_item = 0 -%}
+    {%- capture card_items -%}
+      {%- for i in (1..4) -%}
+        {%- liquid
+        assign image_index = 'image_' | append: i
+        assign title_index = 'title_' | append: i
+        assign link_index = 'link_' | append: i
+        assign link_text_index = 'btn_' | append: i
+        assign image = block.settings[image_index]
+        assign title = block.settings[title_index]
+        assign link = block.settings[link_index]
+        assign link_text = block.settings[link_text_index]
+        -%}
+        {%- if image != blank or title != blank -%}
+          {%- assign count_card_item = count_card_item | plus: 1 -%}
+          {%- if link != blank -%}
+          <a href="{{ link }}" class="hdt-slider__slide hdt-mega-menu__rich--card-item">
+          {%- else -%}
+          <div class="hdt-slider__slide hdt-mega-menu__rich--card-item">
+          {%- endif -%}
+            <div circle-bg-wrap class="hdt-inner-megamenu-card-item">
+              <div class="hdt-media-wrapper hdt-ratio hdt-ratio--square">
+                {%- liquid
+                  if image != blank
+                    assign widths = '135,200,300,400,' | append: image.width
+                    assign sizes = '135px'
+                    echo image | image_url: width: image.width | image_tag: loading: 'lazy', sizes: sizes, widths: widths, class: 'hdt-zoom-img'
+                  else
+                    assign current = forloop.index
+                    echo 'collection-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-zoom-img'
+                  endif
+                -%}
+              </div>
+              <div class="hdt-megamenu-card-info hdt-relative hdt-oh">
+                <p class="hdt-h6">{{ title }}</p>
+                <span class="hdt-link-card hdt-font-medium">{{ link_text }}</span>
+                <hdt-circle-bg mousemove="4"></hdt-circle-bg>
+              </div>
+            </div>
+          {%- if link != blank -%}
+          </a>
+          {%- else -%}
+          </div>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if card_items != blank -%}
+    <div reveal ref="el-minus" class="hdt-mega-menu__rich hdt-mega-menu__rich--{{ type }}" size="{{ count_card_item }}" style="--number-item: {{ count_card_item }}">
+      <hdt-slider id="Slider-cards-{{ block.id }}" autoheight class="hdt-slider" config='{ "active": true, "autoHeight": true, "ntCenter": false, "loop": false, "align": "center", "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(max-width: 1023px)": { "active": false } } }'>
+        <div class="hdt-slider__viewport">
+          <div class="hdt-slider__container">{{- card_items -}}</div>
+          {%- unless block.settings.menu_card_btn_lable != '' -%}
+          <hdt-slider-progress controls="Slider-cards-{{ block.id }}"><span class="hdt-slider-progress_bar"></span></hdt-slider-progress>
+          {%- endunless -%}
+        </div>
+      </hdt-slider>
+      {%- if block.settings.menu_card_btn_lable != '' -%}
+        <div class="hdt-wrap-viewall">
+        <a circle-bg-wrap href="{{ block.settings.menu_card_btn_link }}" class="hdt-btn hdt-btn-solid hdt-btn--size-s{% if block.settings.show_icon_btn %} hdt-btn--with-icon{% endif %}">
+          <span>{{ block.settings.menu_card_btn_lable }}</span>
+          {%- if block.settings.show_icon_btn -%}<span>{{ 'icon-' | append: block.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}</span>{%- endif -%}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </a>
+        <hdt-slider-nav class="hdt-slider-nav hdt-slider-nav--solid hdt-relative" aria-controls="Slider-cards-{{ block.id }}">
+          <button class="hdt-btn--inner" circle-bg-wrap type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+            <span circle-bg-wrap class="hdt-inner-btn">
+              {{ 'icon-nav-prev.svg' | inline_asset_content }}
+              <hdt-circle-bg></hdt-circle-bg>
+            </span>
+          </button>
+          <button class="hdt-btn--inner" circle-bg-wrap type="button" name="next" disabled="" aria-label="{{ 'accessibility.slider.next_slide' | t }}">
+            <span circle-bg-wrap class="hdt-inner-btn">
+              {{ 'icon-nav-next.svg' | inline_asset_content }}
+              <hdt-circle-bg></hdt-circle-bg>
+            </span>
+          </button>
+        </hdt-slider-nav>
+      </div>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+
+  {%- endcapture -%}
+  {%- liquid
+  if card != blank
+    assign has_mega_rich = true
+  endif
+  -%}
+{%- else -%}
+  {%- capture images -%}
+    <div reveal ref="el-minus" class="hdt-mega-menu__rich hdt-mega-menu__rich--{{ type }}">
+        <p class="hdt-h5">Mega menu: {{ type }}</p>
+    </div>
+  {%- endcapture -%}
+  {%- liquid
+  if images != blank
+    assign has_mega_rich = true
+  endif
+  -%}
+{%- endif -%}
+
+<div class="focus-none hdt-mega-menu__content{% if has_mega_rich %} hdt-mega-menu__content--{{ type }} hdt-mega-menu__content-has-rich{% if has_mega_collection %} hdt-mega-menu__content-has-collection{% endif %}{% endif %}{% if block.settings.hightlight_lastmenu %} hdt-lastmenu-hightlight{% endif %} hdt-scrollbar [class]" [style] index="[{{ block.settings.title | escape }}]" {{ block.shopify_attributes }}>
+  <hdt-menu-cols class="hdt-block hdt-mega-menu__wrap">
+    {%- if type == 'shop' -%}
+
+      {%- liquid
+        if block.settings.position_collections == 'left'
+          echo collection_list
+        endif
+        if block.settings.position_products == 'left'
+          echo product_list
+        endif
+        echo '[links]'
+        if block.settings.position_products == 'right'
+          echo product_list
+        endif
+        if block.settings.position_collections == 'right'
+          echo collection_list
+        endif
+      -%}
+
+    {%- elsif type == 'card' -%}
+
+      {%- liquid
+        if block.settings.position == 'left'
+          echo card
+        endif
+        echo '[links]'
+        if block.settings.position == 'right'
+          echo card
+        endif
+      -%}
+
+    {%- else -%}
+
+      {%- liquid
+        if block.settings.position == 'left'
+          echo images
+        endif
+        echo '[links]'
+        if block.settings.position == 'right'
+          echo images
+        endif
+      -%}
+
+    {%- endif -%}
+  </hdt-menu-cols>
+</div>
+{%- endif -%}

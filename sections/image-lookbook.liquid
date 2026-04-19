@@ -1,0 +1,389 @@
+{%- if section.blocks.size > 0 -%}
+{%- capture lookbook_items -%}
+    {%- content_for 'blocks' -%}
+{%- endcapture -%}
+{%- liquid
+if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+    assign reveal = 'reveal'
+else
+    assign reveal = ''
+endif
+assign lookbook_items_arr = lookbook_items | split: '[split94]'
+-%}
+
+<hdt-media-lookbook {% if reveal == 'reveal' %}reveal-on-scroll{% endif %} color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__media-lookbook hdt-s-gradient hdt-section-spacing{% if section.settings.show_separator %} hdt-section-separator{% endif %}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-container">
+        {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+        <div class="hdt-section-title hdt-text-left xl:hdt-hidden">
+            {%- if section.settings.subheading != blank -%}
+                <p class="hdt-theme-block hdt-text-block rte hdt-text-{{ section.settings.text_size }}">{{ section.settings.subheading }}</p>
+            {%- endif -%}
+            {%- if section.settings.heading != blank -%}
+            <{{ section.settings.heading_tag }} class="hdt-{{ section.settings.heading_size }} hdt-heading">{{ section.settings.heading }}</{{ section.settings.heading_tag }}>
+            {%- endif -%}
+        </div>
+        {%- endif -%}
+        <div class="hdt-tab-lookbook-media{% if section.blocks.size <= 1 %} hdt-tab-lookbook__notablist{% endif %}">
+            {%- if section.blocks.size > 1 -%}
+            <hdt-tab-player-list class="hdt-tab-nav hdt-list-imagetab" aria-controls="hdt-tab-{{ section.id }}"{% if section.settings.auto_switch and section.blocks.size > 1 %} autoplay="{{ section.settings.speed_rotate }}000"  style="--hdt-remaining: {{ section.settings.speed_rotate }}000ms"{% endif %} reveal-on-scroll>
+                {%- for block in section.blocks -%}
+                <button type="button" aria-label="{{ 'accessibility.go_to_tab' | t: index: forloop.index }}" aria-current="{% if forloop.first == true %}true{% else %}false{% endif %}" class="hdt-tab-title hdt-text-sm hdt-uppercase" {{ block.shopify_attributes }}>
+                    {%- liquid
+                    assign even_number = forloop.index0 | times: 2
+                    echo lookbook_items_arr[even_number] | split: '[split94-2]' | first
+                    -%}
+                    <span class="hdt-progress-circle">{{ 'icon-progress-imgtab.svg' | inline_asset_content }}</span>
+                </button>
+                {%- endfor -%}
+            </hdt-tab-player-list>
+            {%- endif -%}
+            <div id="imgs-hdt-tab-{{ section.id }}" class="hdt-tab-image-holder hdt-ratio--adapt_image md:hdt-ratio--adapt_image" style="--pin-btn-primary-color: {{ section.settings.primary_color }}; --pin-btn-secondary-color: {{ section.settings.secondary_color }};">
+                {%- liquid
+                for block in section.blocks
+                    assign even_number = forloop.index0 | times: 2
+                    echo lookbook_items_arr[even_number] | split: '[split94-2]' | last
+                endfor
+                -%}
+            </div>
+            <div class="hdt-tabs-lookbook-product hdt-hidden@mobile">
+                {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+                <div class="hdt-section-title hdt-text-left hdt-hidden@tablet">
+                    {%- if section.settings.subheading != blank -%}
+                        <p {{ reveal }} class="hdt-theme-block hdt-text-block rte hdt-text-{{ section.settings.text_size }}">{{ section.settings.subheading }}</p>
+                    {%- endif -%}
+                    {%- if section.settings.heading != blank -%}
+                    <{{ section.settings.heading_tag }} {{ reveal }} class="hdt-{{ section.settings.heading_size }} hdt-heading">{{ section.settings.heading }}</{{ section.settings.heading_tag }}>
+                    {%- endif -%}
+                </div>
+                {%- endif -%}
+                <div id="hdt-tab-{{ section.id }}" class="hdt-tab-content-wrapper">
+                    {%- liquid
+                    for block in section.blocks
+                        assign odd_number = forloop.index0 | times: 2 | plus: 1
+                        echo lookbook_items_arr[odd_number]
+                    endfor
+                    -%}
+                </div>
+            </div>
+        </div>
+    </div>
+</hdt-media-lookbook>
+{%- endif -%}
+
+  {% schema %}
+  {
+    "name": "t:names.image_lookbook",
+    "tag": "section",
+    "class": "hdt-section",
+    "disabled_on": {
+      "groups": ["*"]
+    },
+    "max_blocks": 5,
+    "settings": [
+        {
+            "type": "checkbox",
+            "id": "reveal_on_scroll",
+            "label": "t:settings.reveal_on_scroll",
+            "info": "t:info.reveal_on_scroll",
+            "default": true,
+            "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+        },
+        {
+            "type": "color_scheme",
+            "id": "color_scheme",
+            "label": "t:settings.color_scheme",
+            "default": "scheme-1"
+        },
+        {
+            "type": "checkbox",
+            "id": "auto_switch",
+            "label": "t:settings.tab_auto_rotate",
+            "default": true
+        },
+        {
+          "type": "range",
+          "id": "speed_rotate",
+          "label": "t:settings.tab_speed_rotate",
+          "visible_if": "{{ section.settings.auto_switch }}",
+          "min": 3,
+          "max": 15,
+          "default": 5,
+          "unit": "s"
+        },
+        {
+            "type": "checkbox",
+            "id": "show_separator",
+            "label": "t:settings.show_separator_line",
+            "default": false
+        },
+        {
+            "type": "header",
+            "content": "t:content.section_header"
+        },
+        {
+            "type": "text",
+            "id": "subheading",
+            "label": "t:settings.text",
+            "default": "t:text_defaults.subtext"
+        },
+        {
+            "type": "select",
+            "id": "text_size",
+            "label": "t:settings.text_size",
+            "options": [
+              {
+                "value": "base",
+                "label": "t:options.text_base"
+              },
+              {
+                "value": "lg",
+                "label": "t:options.text_lg"
+              },
+              {
+                "value": "xl",
+                "label": "t:options.text_xl"
+              },
+              {
+                "value": "2xl",
+                "label": "t:options.text_2xl"
+              },
+            ],
+            "default": "2xl"
+        },
+        {
+            "type": "inline_richtext",
+            "id": "heading",
+            "label": "t:settings.heading",
+            "default": "t:text_defaults.image_lookbook_heading",
+        },
+        {
+            "type": "select",
+            "id": "heading_size",
+            "options": [
+              {
+                "value": "h0",
+                "label": "t:options.heading_2extra_large"
+              },
+              {
+                "value": "h1",
+                "label": "t:options.heading_extra_large"
+              },
+              {
+                "value": "h2",
+                "label": "t:options.heading_large"
+              },
+              {
+                "value": "h3",
+                "label": "t:options.heading_medium"
+              },
+              {
+                "value": "h4",
+                "label": "t:options.heading_small"
+              },
+              {
+                "value": "h5",
+                "label": "t:options.heading_extra_small"
+              },
+              {
+                "value": "h6",
+                "label": "t:options.heading_2extra_small"
+              }
+            ],
+            "default": "h2",
+            "label": "t:settings.heading_size",
+            "visible_if": "{{ section.settings.heading != blank }}"
+        },
+        {
+            "type": "select",
+            "id": "heading_tag",
+            "label": "t:settings.heading_tag",
+            "info": "t:info.heading_tag",
+            "options": [
+              {
+                "value": "h1",
+                "label": "t:options.h1"
+              },
+              {
+                "value": "h2",
+                "label": "t:options.h2"
+              },
+              {
+                "value": "h3",
+                "label": "t:options.h3"
+              },
+              {
+                "value": "h4",
+                "label": "t:options.h4"
+              },
+              {
+                "value": "h5",
+                "label": "t:options.h5"
+              },
+              {
+                "value": "h6",
+                "label": "t:options.h6"
+              },
+              {
+                "value": "div",
+                "label": "t:options.div"
+              },
+              {
+                "value": "span",
+                "label": "t:options.span"
+              },
+              {
+                "value": "p",
+                "label": "t:options.p"
+              }
+            ],
+            "default": "h2",
+            "visible_if": "{{ section.settings.heading != blank }}"
+        },
+        {
+            "type": "header",
+            "content": "t:content.product_card"
+        },
+        {
+            "type": "select",
+            "id": "pr_image_ratio",
+            "label": "t:settings.image_ratio",
+            "options": [
+                {
+                    "value": "adapt_image",
+                    "label": "t:options.adapt_to_image"
+                },
+                {
+                    "value": "portrait",
+                    "label": "t:options.portrait"
+                },
+                {
+                    "value": "square",
+                    "label": "t:options.square"
+                }
+            ],
+            "default": "adapt_image"
+        },
+        {
+            "type": "checkbox",
+            "id": "show_vendor",
+            "label": "t:settings.show_vendor",
+            "default": true
+        },
+        {
+            "type": "select",
+            "id": "card_style",
+            "label": "t:settings.style",
+            "options": [
+                {
+                    "value": "standard",
+                    "label": "t:options.standard"
+                },
+                {
+                    "value": "card",
+                    "label": "t:options.card"
+                }
+            ],
+            "default": "standard"
+        },
+        {
+            "type": "header",
+            "content": "t:content.hostpot"
+        },
+        {
+            "type": "color",
+            "id": "primary_color",
+            "label": "t:settings.primary_color",
+            "default": "#000"
+        },
+        {
+            "type": "color",
+            "id": "secondary_color",
+            "label": "t:settings.secondary_color",
+            "default": "#fff"
+        },
+        {
+          "type": "header",
+          "content": "t:content.carousel_navigation"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_custom_nav_colors",
+          "label": "t:settings.enable_custom_color",
+          "default": false,
+        },
+        {
+            "type": "color",
+            "id": "nav_background",
+            "label": "t:settings.background",
+            "default": "#ffffff",
+            "visible_if": "{{ section.settings.enable_custom_nav_colors }}"
+        },
+        {
+            "type": "color",
+            "id": "nav_color",
+            "label": "t:settings.color",
+            "default": "#000000",
+            "visible_if": "{{ section.settings.enable_custom_nav_colors }}"
+        },
+        {
+            "type": "header",
+            "content": "t:content.section_padding"
+        },
+        {
+            "type": "range",
+            "id": "padding_top_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top",
+            "default": 100
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom",
+            "default": 100
+        },
+        {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top_mb",
+            "default": 60
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom_mb",
+            "default": 60
+        }
+    ],
+    "blocks": [
+        {
+        "type": "_lookbook-item"
+        }
+    ],
+    "presets": [
+        {
+            "name": "t:names.image_lookbook",
+            "category": "t:categories.hotspot",
+            "blocks": [
+                {"type": "_lookbook-item"},
+                {"type": "_lookbook-item"}
+            ]
+        }
+    ]
+  }
+  {% endschema %}

@@ -1,0 +1,27 @@
+{%- assign media_size = product.media.size -%}
+{%- paginate product.variants by 250 -%}
+[
+{%- for variant in product.variants -%}
+  {%- capture options -%}
+    {%- for option in variant.options -%}
+      "option{{ forloop.index0 }}": {{ option.id }}{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- liquid
+  if variant.inventory_management == 'shopify' and variant.inventory_quantity <= 0 and variant.available
+    assign is_pre_order = true
+  else
+    assign is_pre_order = false
+  endif
+  -%}
+  {"id":"{{ variant.id }}",{% if is_pre_order %}"isPreOrder": true,{% endif %}{% if variant.featured_media != blank and media_size > 1 %}"mid": {{ variant.featured_media.id }},{% endif %}"available": {{- variant.available }}, {{- options -}} }{% unless forloop.last %},{% endunless -%}
+{%- endfor -%}
+]
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Variants",
+  "class": "hdt-section"
+}
+{% endschema %}

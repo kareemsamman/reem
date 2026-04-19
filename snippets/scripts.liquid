@@ -1,0 +1,33 @@
+<script type="importmap">
+  {
+    "imports": {
+      "@theme/libs": "{{ 'libs.js' | asset_url }}",
+      "@theme/events": "{{ 'events.js' | asset_url }}",
+      "@theme/utilities": "{{ 'utilities.js' | asset_url }}",
+      "@theme/global": "{{ 'global.js' | asset_url }}",
+      "@theme/m": "{{ 'm.js' | asset_url }}",
+      "@theme/m-dom": "{{ 'm-dom.js' | asset_url }}",
+      "@theme/m-utils": "{{ 'm-utils.js' | asset_url }}",
+      "@theme/floating": "{{ 'floating.js' | asset_url }}",
+      "@theme/zoom-psw": "{{ 'zoom-psw.js' | asset_url }}",
+      "@theme/psw": "{{ 'es-psw.js' | asset_url }}",
+      "@theme/focus": "{{ 'focus.js' | asset_url }}"
+    }
+  }
+</script>
+<link rel="modulepreload" href="{{ 'libs.js' | asset_url }}">
+<link rel="modulepreload" href="{{ 'events.js' | asset_url }}">
+<link rel="modulepreload" href="{{ 'utilities.js' | asset_url }}">
+<link rel="modulepreload" href="{{ 'global.js' | asset_url }}">
+{%- assign arr_page_type = 'collection, search, blog, list-collections' | split: ', ' -%}
+{%- if arr_page_type contains request.page_type %}<link rel="modulepreload" href="{{ 'facets.js' | asset_url }}">{% endif -%}
+<script type="module" src="{{ 'libs.js' | asset_url }}"></script>
+<script type="module" src="{{ 'global.js' | asset_url }}"></script>
+<script type="module" src="{{ 'custom.js' | asset_url }}"></script>
+<link rel="modulepreload" href="{{ 'm.js' | asset_url }}">
+<link rel="modulepreload" href="{{ 'm-dom.js' | asset_url }}" fetchpriority="low">
+<link rel="modulepreload" href="{{ 'm-utils.js' | asset_url }}" fetchpriority="low">
+<link rel="modulepreload" href="{{ 'floating.js' | asset_url }}" fetchpriority="low">
+<link rel="modulepreload" href="{{ 'zoom-psw.js' | asset_url }}" fetchpriority="low">
+<link rel="modulepreload" href="{{ 'es-psw.js' | asset_url }}" fetchpriority="low">
+<link rel="modulepreload" href="{{ 'focus.js' | asset_url }}" fetchpriority="low">

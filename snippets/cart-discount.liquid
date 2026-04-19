@@ -1,0 +1,60 @@
+{%- doc -%}
+  Renders a cart discount form.
+  @param {boolean} [show_heading] - show or hide the heading above the discount form
+  @param {object} [section] - Section settings object
+  @param {object} [discount_codes] - Array of discount codes applied to the cart
+  @param {string} [class] - Additional classes to add to the cart-discount-component wrapper
+
+  @example
+  {%- render 'cart-discount', show_heading: false -%}
+{%- enddoc -%}
+
+{%- liquid
+  unless discount_codes
+    assign discount_codes = cart.cart_level_discount_applications | where: 'type', 'discount_code' | map: 'title'
+    assign items_allocations = cart.items | where: 'line_level_discount_allocations'
+    for item in items_allocations
+      for allocation in item.line_level_discount_allocations
+        if allocation.discount_application.type == 'discount_code'
+          assign discount_codes = item.line_level_discount_allocations | slice: forloop.index0 | map: 'discount_application' | map: 'title' | concat: discount_codes
+        endif
+      endfor
+    endfor
+    assign discount_codes = discount_codes | uniq
+  endunless
+
+  # Evaluate the boolean expression for the disclosure state
+  # if discount_codes.size == 0
+  #   assign disclosure_expanded = false
+  # else
+  #   assign disclosure_expanded = true
+  # endif
+-%}
+
+<cart-discount-component data-section-id="{{ section.id }}" class="hdt-cart__discount{{ class }}">
+  {%- if show_heading %}<label class="hdt-discount-heading hdt-s-text hdt-font-medium hdt-text-lg" for="cartDiscount-{{ section.id }}">{{ 'cart.discount' | t }}</label>{% endif -%}
+  <form class="hdt-cart-discount__form">
+    <div class="hdt-field hdt-field--discount hdt-field-gr-has-btn">
+      <input id="cartDiscount-{{ section.id }}" class="cart-discount__input hdt-field__input" type="text" name="discount" placeholder="{{ 'cart.discount_placeholder' | t }}">
+      <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn--size-s hdt-btn--with-icon hdt-cart-discount__button">
+        <span>{{- 'cart.apply_discount' | t -}}</span>
+        {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+      </button>
+    </div>
+  </form>
+  <div class="hdt-cart-discount__error" role="alert" ref="cartDiscountError" hidden>
+    {{- 'icon-error.svg' | inline_asset_content -}}
+    <small class="hdt-cart-discount__error-text" hidden ref="cartDiscountErrorDiscountCode">{{ 'cart.discount_code_error' | t }}</small>
+    <small class="hdt-cart-discount__error-text" hidden ref="cartDiscountErrorShipping">{{ 'cart.shipping_discount_error' | t }}</small>
+  </div>
+  {%- if discount_codes.size > 0 -%}
+  <ul class="hdt-cart-discount__codes">
+    {%- for discount_code in discount_codes -%}
+      <li class="hdt-cart-discount__pill" data-discount-code="{{ discount_code | escape }}" aria-label="{{ 'accessibility.discount_applied' | t: code: discount_code | escape }}">
+        <wrapp-discount-remove><button type="button" class="hdt-cart-discount__pill-remove hdt-flex" aria-label="{{ 'cart.remove_discount' | t: code: discount_code | escape }}">{{- 'icon-discount.svg' | inline_asset_content -}}<span class="hdt-cart-discount__pill-code">{{ discount_code }}</span>{{- 'icon-close.svg' | inline_asset_content -}}</button></wrapp-discount-remove>
+      </li>
+    {%- endfor -%}
+  </ul>
+  {%- endif -%}
+</cart-discount-component>

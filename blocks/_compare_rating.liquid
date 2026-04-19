@@ -1,0 +1,71 @@
+{%- liquid
+  assign product = closest.product
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign block_slot = section.id | append: block_index
+  assign index = section.settings.product_list | find_index: 'id', product.id
+  assign is_even = index | modulo: 2
+  if is_even == 0
+      assign row_label = 'hdt-row-even'
+  else
+      assign row_label = 'hdt-row-odd'
+  endif
+
+  if block.id contains section.blocks.last.first.id and section.settings.show_btn_detail == false
+    assign row_last = ' hdt-row-last'
+  else
+    assign row_last = ''
+  endif
+-%}
+{%- if index == 0 and section.settings.layout == 'table' -%}
+    <div class="hdt-compare-col hdt-col-first{{ row_last }}" data-title="{{ block.settings.title | capitalize | escape }}" slot="{{ block_slot }}"></div>
+{%- endif -%}
+<div class="hdt-compare-col {{ row_label }}{{ row_last }}" data-title="{{ block.settings.title | escape }}" slot="{{ block_slot }}">
+    {%- if product.metafields.reviews.rating.value != blank -%}
+      {%- liquid
+      assign rating_value = product.metafields.reviews.rating.value.rating | default: 0 | plus: 0
+      assign scale_max = product.metafields.reviews.rating.value.scale_max | default: 5 | plus: 0
+      assign avg_rating = rating_value | divided_by: scale_max | times: 5
+      assign rating_decimal = 0
+      assign decimal = avg_rating | modulo: 1
+      if decimal >= 0.3 and decimal <= 0.7
+          assign rating_decimal = 0.5
+      elsif decimal > 0.7
+          assign rating_decimal = 1
+      endif
+      -%}
+      <div class="hdt-rating" aria-label="{{ 'accessibility.star_reviews_info' | t: rating_value: rating_value, rating_max: scale_max }}" style="--color-rating: {{ block.settings.color_rating }}">
+      <span aria-hidden="true" class="hdt-rating-star" style="--rating: {{ avg_rating | floor }}; --rating-max: 5; --rating-decimal: {{ rating_decimal }};"></span>
+      {%- if rating_value > 0 and scale_max == 5 %}<span aria-hidden="true" class="hdt-rating-text hdt-font-semibold">{{- rating_value -}}</span>{% endif -%}
+      </div><!--{{ block_slot }}:visible -->
+    {%- endif -%}
+</div>
+
+{% schema %}
+  {
+    "name": "t:names.rating",
+    "tag": null,
+    "settings": [
+      {
+          "type": "paragraph",
+          "content": "t:content.rating_paragraph"
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "t:settings.title",
+        "default": "t:names.rating"
+      },
+      {
+          "type": "color",
+          "id": "color_rating",
+          "label": "t:settings.rating_color",
+          "default": "#FC9B2C"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.rating"
+      }
+    ]
+  }
+{% endschema %}

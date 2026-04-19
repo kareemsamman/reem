@@ -1,0 +1,305 @@
+{%- liquid
+    assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+    if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+        assign reveal = 'reveal'
+    else
+        assign reveal = ''
+    endif
+
+    if section.settings.product_list != blank
+        assign products_to_display = section.settings.product_list.count
+        assign product_list = section.settings.product_list
+    else
+        assign items = collections[section.settings.collection]
+        assign all_products_count = items.all_products_count | default: 8
+        assign products_to_display = all_products_count | at_most: section.settings.products_to_show
+        assign product_list = items.products
+    endif
+
+    assign columns_mobile_int = 2
+    assign max_columns_to_show = columns_mobile_int | at_least: section.settings.columns_desktop
+    if section.index == 1
+    assign lazy_load = 'eager'
+    else
+    assign lazy_load = 'lazy'
+    endif
+
+    assign show_mobile_slider = false
+    assign col_percent = 50
+    if products_to_display > 0
+    assign show_mobile_slider = true
+    assign col_percent = 45
+    endif
+
+    assign show_tablet_slider = false
+    assign fix_col_table = '0px'
+    if products_to_display > 2
+    assign show_tablet_slider = true
+    assign fix_col_table = 'min(8vw, 100px)'
+    endif
+
+    assign fix_col_desktop = 0
+    assign show_desktop_slider = false
+    if products_to_display > section.settings.columns_desktop
+    assign show_desktop_slider = true
+    assign fix_col_desktop = 'min(8vw, 125px)'
+    endif
+-%}
+
+{%- capture mobile_sizes -%}
+(min-width: 768px) calc({{ col_percent }}vw - 30px - {{ settings.spacing_grid_horizontal | append: 'px' }}), calc({{ section.settings.slide_width }}vw - 15px - {{ settings.spacing_grid_horizontal | divided_by: 2 | append: 'px' }})
+{%- endcapture -%}
+{%- capture sizes -%}
+    {%- if section.settings.full_width -%}
+        (min-width: 1440px) calc((100vw - {{ fix_col_desktop }})/{{ section.settings.columns_desktop | plus: 1 }}), (min-width: 992px) calc((100vw - {{ fix_col_table }}) / 3), {{ mobile_sizes -}}
+    {%- else -%}
+        (min-width: 1150px) calc((min(100vw, {{ settings.page_width }}px) - {{ fix_col_desktop }} - 100px) / {{ section.settings.columns_desktop | plus: 1 }}), (min-width: 992px) calc((100vw - {{ fix_col_table }} - 60px) / 3), {{ mobile_sizes -}}
+    {%- endif -%}
+{%- endcapture -%}
+{%- capture sizescounter -%}
+    {%- if section.settings.full_width -%}
+        (min-width: 1440px) calc((100vw - {{ fix_col_desktop }})/{{ section.settings.columns_desktop | plus: 1 }}), (min-width: 992px) calc((100vw - {{ fix_col_table }}) / 3), {{ mobile_sizes -}}
+    {%- else -%}
+        (min-width: 1150px) calc((min(100vw, {{ settings.page_width }}px) - {{ fix_col_desktop }} - 100px) / {{ section.settings.columns_desktop | plus: 1 }}), (min-width: 992px) calc((100vw - {{ fix_col_table }} - 60px) / 3), {{ mobile_sizes -}}
+    {%- endif -%}
+{%- endcapture -%}
+
+{%- capture countdown_card -%}
+    {%- content_for 'block', type: '_countdown_offer_card', id: 'countdown_offer', sizes: sizescounter -%}
+{%- endcapture -%}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__products-with-countdown hdt-slider__overflow mb:hdt-slider__overflow hdt-section-spacing hdt-s-gradient hdt-products-slider__{{ show_mobile_slider }} md:hdt-products-slider__{{ show_tablet_slider }} xl:hdt-products-slider__{{ show_desktop_slider }}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px; --col-xl: {{ section.settings.columns_desktop | plus: 1 }};" >
+    <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %}">
+        <div {% if reveal == 'reveal' %}reveal-on-scroll{% endif %} class="hdt-products-w-countdown-wrapper">
+            {{- countdown_card -}}
+            <hdt-slider-reveal style="--slide-size-set-mb: {{ section.settings.slide_width }}%" data-sizes={{ products_to_display }}{% if reveal == 'reveal' %} reveal-on-scroll="true"{% endif %} id="Slider-{{ section.id }}" class="hdt-slider hdt-slider__products hdt-relative hdt-slider__active-{{ show_mobile_slider }} md:hdt-slider__active-{{ show_tablet_slider }} xl:hdt-slider__active-{{ show_desktop_slider }} xl:hdt-slides-{{ section.settings.columns_desktop }}  md:hdt-slides-2 hdt-slides-1 hdt-slide-spacing-x" config='{ "active": {{ show_tablet_slider }}, "autoHeight": false, "ntCenter": true, "loop": false, "align": "center", "slidesToScroll": "auto", "breakpoints": { "(min-width: 576px)": { "active": {{ show_mobile_slider }} }, "(min-width: 992px)": { "active": {{ show_tablet_slider }} },  "(min-width: 1400px)": { "active": {{ show_desktop_slider }} } } }'>
+                <div class="hdt-slider__viewport">
+                    <div class="hdt-slider__container">
+                        {%- liquid
+                            echo countdown_card
+                            if product_list != blank
+                                for product in product_list limit: products_to_display
+                                if lazy_load == 'eager' and forloop.index > max_columns_to_show
+                                    assign lazy_load = 'lazy'
+                                endif
+                                unless settings.remove_collection_url
+                                    assign product_url = product.url | within: items
+                                endunless
+                                content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, swatch_list: swatch_list, section_id: section.id, image_ratio: section.settings.pr_image_ratio, sizes: sizes, show_vendor: section.settings.show_vendor, card_style: section.settings.card_style, class_card: 'hdt-slider__slide', product_url: product_url, lazy_load: lazy_load
+                                endfor
+                            else
+                                for i in (1..products_to_display)
+                                capture current
+                                cycle 1, 2 , 3, 4
+                                endcapture
+                                render 'product-card-placeholder', index_image: current, card_style: section.settings.card_style, image_ratio: section.settings.pr_image_ratio, class_card: 'hdt-slider__slide'
+                                endfor
+                            endif
+                        -%}
+                    </div>
+                </div>
+                {%- if section.settings.slide_width == 50 or section.settings.slide_width == 100 -%}
+                <hdt-slider-dots aria-controls="Slider-{{ section.id }}" class="md:hdt-hidden hdt-slider-dots hdt-slider-dots__progressbar" class="no-js-hidden" hidden></hdt-slider-dots>
+                {%- endif -%}
+            </hdt-slider-reveal>
+        </div>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.products_with_countdown",
+        "class": "hdt-section",
+        "disabled_on": {
+            "groups": ["*"]
+        },
+        "blocks": [
+            {"type": "_countdown_offer_card"}
+        ],
+        "settings": [
+            {
+                "type": "collection",
+                "id": "collection",
+                "label": "t:settings.collection"
+            },
+            {
+                "type": "product_list",
+                "id": "product_list",
+                "label": "t:settings.products",
+                "info": "t:info.product_countdown_list"
+            },
+            {
+                "type": "range",
+                "id": "products_to_show",
+                "label": "t:settings.products_to_show",
+                "min": 2,
+                "max": 25,
+                "step": 1,
+                "default": 7,
+                "visible_if": "{{ section.settings.product_list == blank }}"
+            },
+            {
+                "type": "range",
+                "id": "columns_desktop",
+                "label": "t:settings.columns_desktop",
+                "min": 1,
+                "max": 3,
+                "step": 1,
+                "default": 3,
+            },
+            {
+                "type": "range",
+                "id": "slide_width",
+                "label": "t:settings.slide_width_mb",
+                "info": "t:info.slide_width_mb",
+                "min": 50,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "default": 85
+            },
+            {
+                "type": "header",
+                "content": "t:content.product_card"
+            },
+            {
+                "type": "select",
+                "id": "pr_image_ratio",
+                "label": "t:settings.image_ratio",
+                "options": [
+                    {
+                        "value": "adapt_image",
+                        "label": "t:options.adapt_to_image"
+                    },
+                    {
+                        "value": "portrait",
+                        "label": "t:options.portrait"
+                    },
+                    {
+                        "value": "square",
+                        "label": "t:options.square"
+                    }
+                ],
+                "default": "adapt_image"
+            },
+            {
+                "type": "checkbox",
+                "id": "show_vendor",
+                "label": "t:settings.show_vendor",
+                "default": true
+            },
+            {
+                "type": "select",
+                "id": "card_style",
+                "label": "t:settings.style",
+                "options": [
+                    {
+                        "value": "standard",
+                        "label": "t:options.standard"
+                    },
+                    {
+                        "value": "card",
+                        "label": "t:options.card"
+                    }
+                ],
+                "default": "standard"
+            },
+            {
+                "type": "header",
+                "content": "t:content.appearance"
+            },
+            {
+                "type": "checkbox",
+                "id": "reveal_on_scroll",
+                "label": "t:settings.reveal_on_scroll",
+                "info": "t:info.reveal_on_scroll",
+                "default": true,
+                "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "full_width",
+                "label": "t:settings.make_full_width",
+                "default": true
+            },
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 60
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.products_with_countdown",
+                "category": "t:categories.products",
+                "blocks": [
+                    {
+                        "type": "_countdown_offer_card",
+                        "id": "countdown_offer",
+                        "static": true,
+                        "blocks": [
+                            {
+                                "type":"heading",
+                                "settings": {
+                                    "heading_size": "h4"
+                                }
+                            },
+                            {
+                                "type":"countdown_timer_inline",
+                                "settings": {
+                                    "transparent_background": false
+                                }
+                            },
+                            {
+                                "type": "_button"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

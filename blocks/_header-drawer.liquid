@@ -1,0 +1,240 @@
+{%- liquid
+capture social_html
+  if block.settings.show_social
+    render 'social-links', size: 'medium', class: 'hdt-social-links--menu hdt-s-text hdt-scrollbar', use_scroll_hint: true
+  endif
+endcapture
+capture account
+  if block.settings.show_account
+  render 'shopify-account', type: 'drawer', icon: 'icon-menu-mb-user.svg'
+  endif
+endcapture
+if localization.available_countries.size > 1
+  assign show_country_selector = block.settings.enable_country_selector
+else
+  assign show_country_selector = false
+endif
+if  localization.available_languages.size > 1
+  assign show_language_selector = block.settings.enable_language_selector
+else
+  assign show_language_selector = false
+endif
+if block.settings.submenu_type == 'drilldown'
+  assign menu_drawer = 'menu-drawer'
+  assign size = 'hdt-text-base'
+else
+  assign menu_drawer = ''
+  assign size = 'hdt-text-lg'
+endif
+-%}
+
+{%- capture button_selector -%}
+  {%- if show_country_selector or show_language_selector -%}
+    <div class="hdt-localization-selector-wrap hdt-flex hdt-align-center hdt-justify-between">
+      {%- if show_country_selector -%}
+      <button type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-GlobalCountry" class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-label="{{ 'localization.country_aria_label' | t }}">
+        {%- if block.settings.show_country_flag %}<img src="{{ localization.country | image_url: width: 44 }}" alt="{{ localization.country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">{% endif -%}
+        <span>{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}</span>
+        {{- 'icon-carret.svg' | inline_asset_content -}}
+      </button>
+      {%- endif -%}
+      {%- if show_language_selector -%}
+      <button type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-GlobalLanguage" class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-label="{{ 'localization.language_aria_label' | t }}">
+        {%- if show_country_selector -%}
+          <span>{{ localization.language.iso_code | upcase }}</span>
+        {%- else -%}
+          <span>{{ localization.language.endonym_name | capitalize }}</span>
+        {%- endif -%}
+        {{- 'icon-carret.svg' | inline_asset_content -}}
+      </button>
+      {%- endif -%}
+      </div>
+  {%- endif -%}
+{%- endcapture -%}
+{%- capture arrow -%}
+  <svg class="hdt-icon hdt-icon-arrow-menu hdt-icon--rtl" width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M13.3636 4.38268H2.17243L5.54074 1.07456C5.60152 1.0169 5.65 0.947935 5.68335 0.871683C5.7167 0.79543 5.73425 0.713418 5.73499 0.630431C5.73572 0.547444 5.71962 0.465144 5.68762 0.388334C5.65563 0.311524 5.60837 0.241741 5.54862 0.183058C5.48887 0.124375 5.41782 0.077967 5.33961 0.0465414C5.26141 0.0151159 5.17761 -0.000697537 5.09311 2.35982e-05C5.00862 0.000744733 4.92511 0.0179862 4.84747 0.0507418C4.76983 0.0834974 4.69961 0.131111 4.64091 0.190805L0.18632 4.56581C0.0670196 4.68301 0 4.84195 0 5.00768C0 5.17341 0.0670196 5.33235 0.18632 5.44955L4.64091 9.82456C4.76093 9.93841 4.92168 10.0014 5.08853 9.99998C5.25539 9.99855 5.415 9.93282 5.53298 9.81694C5.65097 9.70106 5.7179 9.5443 5.71935 9.38043C5.7208 9.21656 5.65666 9.05868 5.54074 8.9408L2.17243 5.63268H13.3636C13.5324 5.63268 13.6943 5.56683 13.8136 5.44962C13.933 5.33241 14 5.17344 14 5.00768C14 4.84192 13.933 4.68295 13.8136 4.56574C13.6943 4.44853 13.5324 4.38268 13.3636 4.38268Z" fill="currentColor"/>
+  </svg>
+{%- endcapture -%}
+
+<hdt-drawer color-scheme="{{ block.settings.color_scheme }}" {{ block.shopify_attributes }}>
+  <dialog id="MenuDrawer" ref="dialog" class="hdt-dialog hdt-drawer hdt-menu-drawer-{{ block.settings.submenu_type }} hdt-menu-drawer-style2- hdt-dialog-drawer--menu{% if block.settings.drawer_indent %} hdt-drawer--indent{% endif %}{% if block.settings.drawer_blur %} hdt-drawer--blur{% endif %}" pos="left" scroll-lock>
+    <div class="hdt-drawer_wrapper">
+      <div class="hdt-drawer__header">
+        {%- if block.settings.logo != blank -%}
+          {%- capture sizes %}{{ block.settings.logo_width }}px{% endcapture -%}
+          {%- capture widths %}{{ block.settings.logo_width }}, {{ block.settings.logo_width | times: 1.5 | round }}, {{ block.settings.logo_width | times: 2 }}{% endcapture -%}
+          {%- liquid
+          assign logo_alt = block.settings.logo.alt | default: shop.name | escape
+          assign logo_height = block.settings.logo_width | divided_by: block.settings.logo.aspect_ratio | round
+          assign style = '--logo-width: [94]px' | replace_last: '[94]', block.settings.logo_width
+          echo block.settings.logo | image_url: width: 400 | image_tag: class: 'header__logo-drawer', widths: widths, height: logo_height, width: block.settings.logo_width, alt: logo_alt, sizes: sizes, loading: 'lazy', style: style
+          -%}
+        {%- else -%}
+        <span> </span>
+        {%- endif -%}
+        <button class="hdt-s-text hdt-close-dialog-btn" aria-controls="MenuDrawer" aria-label="{{ 'accessibility.close' | t | escape }}">
+          {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </button>
+      </div>
+      <hdt-scroll-hint class="hdt-drawer__inner hdt-scrollbar">
+        <ul class="hdt-menu-drawer-list">
+        {%- for link in block.settings.menu.links -%}
+          {%- if link.links != blank -%}
+            <li>
+              <hdt-accordion {{ menu_drawer }} only-click-icon class="hdt-contents">
+              <details {% if link.child_active and false %} open{% endif %}>
+                  <summary data-url="{{ link.url }}" class="hdt-menu-drawer-item hdt-text-2xl hdt-font-medium hdt-menu-drawer-item--lv1" aria-expanded="{% if link.child_active and false %}true{% else %}false{% endif %}" {% if link.current %} aria-current="page"{% endif %}><span class="hdt-nav-link">{{ link.title | escape }}</span><span class="hdt-nav-opener" accordion-icon><span class="hdt-pe-none">{{ 'icon-menu-caret.svg' | inline_asset_content }}</span></span></summary>
+                  <ul role="list">
+                    {%- if menu_drawer == 'menu-drawer' %}<li><hdt-menu-back-btn class="hdt-contents"><button class="hdt-menu-drawer-item hdt-menu-drawer-item-back hdt-w-full hdt-text-2xl hdt-font-medium hdt-menu-drawer-item--lv2"><span class="hdt-nav-link hdt-pe-none hdt-truncate"><span class="hdt-truncate">{{ link.title | escape }}</span></span><span class="hdt-nav-opener hdt-pe-none">{{ arrow }}</span></button></hdt-menu-back-btn></li>{% endif -%}
+                    {%- for childlink in link.links -%}
+                      {%- if childlink.links != blank -%}
+                        <hdt-accordion {{ menu_drawer }} {{ menu_drawer }}--child only-click-icon class="hdt-contents">
+                        <details {% if childlink.child_active and false %} open{% endif %}>
+                            <summary data-url="{{ childlink.url }}" class="hdt-menu-drawer-item {{ size }} hdt-font-medium hdt-menu-drawer-item--lv2" aria-expanded="{% if childlink.child_active and false %}true{% else %}false{% endif %}" {% if childlink.current %} aria-current="page"{% endif %}><span class="hdt-nav-link">{{ childlink.title | escape }}</span><span class="hdt-nav-opener" accordion-icon><span class="hdt-pe-none">{{ 'icon-menu-caret.svg' | inline_asset_content }}</span></span></summary>
+                            <ul role="list">
+                              {%- if menu_drawer == 'menu-drawer' %}<li><hdt-menu-back-btn class="hdt-contents"><button class="hdt-menu-drawer-item hdt-menu-drawer-item-back hdt-w-full hdt-text-2xl hdt-font-medium"><span class="hdt-nav-link hdt-pe-none hdt-truncate"><span class="hdt-truncate">{{ childlink.title | escape }}</span></span><span class="hdt-nav-opener hdt-pe-none">{{ arrow }}</span></button></hdt-menu-back-btn></li>{% endif -%}
+                              {%- for grandchildlink in childlink.links -%}
+                              <li><a href="{{ grandchildlink.url }}" class="hdt-menu-drawer-item hdt-text-base hdt-font-medium hdt-nav-link"{% if grandchildlink.current %} aria-current="page"{% endif %}><span>{{ grandchildlink.title | escape }}</span></a></li>
+                              {%- endfor -%}
+                            </ul>
+                        </details>
+                        </hdt-accordion>
+                      {%- else -%}
+                        <li><a class="hdt-menu-drawer-item {{ size }} hdt-font-medium hdt-menu-drawer-item--lv2 hdt-nav-link" href="{{ childlink.url }}">{{ childlink.title }}</a></li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+              </details>
+              </hdt-accordion>
+            </li>
+          {%- else -%}
+            <li><a class="hdt-menu-drawer-item hdt-nav-link hdt-text-2xl hdt-font-medium hdt-menu-drawer-item--lv1" href="{{ link.url }}">{{ link.title }}</a></li>
+          {%- endif -%}
+        {%- endfor -%}
+        </ul>
+      </hdt-scroll-hint>
+      {%- if button_selector != blank or account != blank or social_html != blank -%}
+      <div class="hdt-drawer__footer">
+          {%- if social_html != blank and button_selector != blank or account != blank -%}
+            <div class="hdt-drawer__footer-top{% if button_selector != blank %} hdt-flex hdt-flex-wrap hdt-align-center hdt-justify-between{% endif %}">
+              {{- account -}} {{- button_selector -}}
+            </div>
+            <div class="hdt-drawer__footer-botom hdt-drawer__footer-social">{{- social_html -}}</div>
+          {%- elsif social_html != blank -%}
+            <div class="hdt-drawer__footer-botom hdt-drawer__footer-social">{{- social_html -}}</div>
+          {%- else -%}
+            <div class="hdt-drawer__footer-botom{% if button_selector != blank %} hdt-flex hdt-flex-wrap hdt-align-center hdt-justify-between{% endif %}">{{- account -}} {{- button_selector -}}</div>
+          {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+  </dialog>
+</hdt-drawer>
+
+{% schema %}
+{
+  "name": "Drawer menu",
+  "tag": null,
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-5"
+    },
+    {
+      "type": "checkbox",
+      "id": "drawer_indent",
+      "label": "t:settings.indent",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "drawer_blur",
+      "label": "t:settings.blur",
+      "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:settings.menu"
+    },
+    {
+      "type": "select",
+      "id": "submenu_type",
+      "label": "Submenu type",
+      "info": "Slide is best for complex, multi-level structures. Collapsible is recommended for shorter, simpler menus.",
+      "default": "drilldown",
+      "options": [
+        { "value": "drilldown", "label": "Slide" },
+        { "value": "accordion", "label": "Collapsible" }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:settings.logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 20,
+      "max": 200,
+      "step": 2,
+      "default": 30,
+      "unit": "px",
+      "label": "t:settings.logo_width"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "default": true,
+      "label": "t:settings.social_media_links",
+      "info": "t:info.social_media_links"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "default": true,
+      "label": "Account"
+    },
+    {
+      "type": "header",
+      "content": "t:content.localization"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "default": false,
+      "label": "t:settings.country_region",
+      "info": "t:info.country_selector"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_flag",
+      "default": true,
+      "label": "t:settings.flag",
+      "visible_if": "{{ block.settings.enable_country_selector }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "default": false,
+      "label": "t:settings.language_selector",
+      "info": "t:info.language_selector"
+    },
+  ]
+  /*,
+  "blocks": [
+    {
+      "type": "_header_drawer_product"
+    },
+    {
+      "type": "_header_drawer_collection"
+    }
+  ]*/
+}
+{% endschema %}

@@ -1,0 +1,57 @@
+<hdt-safe-sticky {% unless block.settings.inherit_color_scheme %}color-scheme="{{ block.settings.color_scheme }}" {% endunless %}class="hdt-product__info-wrapp hdt-s-gradient{% unless block.settings.show_border %} hdt-no-border{% endunless %}" {{ block.shopify_attributes }}{% if block.settings.inherit_color_scheme == false or block.settings.show_border %} style="--pd-block: {{ block.settings.padding_block }}px; --pd-inline: {{ block.settings.padding_inline }}px"{% endif %}>
+    <div id="product-zoom-{{ section.id }}" class="hdt-produc-zoom--wrapp"> </div>
+    <div id="product-info-{{ section.id }}" class="hdt-product__info-container">
+      {%- content_for 'blocks' -%}
+    </div>
+</hdt-safe-sticky>
+
+{% schema %}
+  {
+    "name": "t:names.product_info",
+    "tag": null,
+    "blocks": [{"type": "@app"},{"type": "_product-title"},{"type": "_price"},{"type": "_variant-picker"},{"type": "_buy-buttons"},{"type": "_vendor_ratting"},{"type": "_badges"},{"type": "_description"},{"type": "_inventory"},{"type": "_sku"},{"type": "_tax"},{"type": "_share"},{"type": "_liquid"}, {"type": "_payment-terms"},{"type": "_accordion"},{"type": "_pickup-availability"},{"type": "_icon_with_text_pr"},{"type": "_popup"}, {"type": "_separator"},{"type": "_complementary"},{"type": "_line-item-property"},{"type": "_product_deal_countdown"},{"type": "_external"}, {"type": "_pr-hightlights"}],
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "inherit_color_scheme",
+        "label": "t:settings.inherit_color_scheme",
+        "default": true
+      },
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-1",
+        "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_border",
+        "label": "t:settings.show_border",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "padding_block",
+        "label": "t:settings.padding_block",
+        "min": 15,
+        "max": 60,
+        "step": 1,
+        "default": 20,
+        "unit": "px",
+        "visible_if": "{{ block.settings.inherit_color_scheme == false or block.settings.show_border }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_inline",
+        "label": "t:settings.padding_inline",
+        "min": 15,
+        "max": 60,
+        "step": 1,
+        "default": 22,
+        "unit": "px",
+        "visible_if": "{{ block.settings.inherit_color_scheme == false or block.settings.show_border }}"
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,163 @@
+{%- liquid
+    assign product = section.settings.product | default: product
+    if settings.pick_mode == 'no' and product.variants_count > 1
+      assign selected_variant = product.selected_variant
+    elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+      assign selected_variant = product.selected_variant | default: product.variants.first
+    else
+      assign selected_variant = product.selected_or_first_available_variant
+    endif
+  -%}
+
+  <div class="hdt-product-info__item hdt-product-info__item--box" data-type="pickup-availability" data-need-update {{ block.shopify_attributes }}>
+    {%- if product != blank and selected_variant != blank-%}
+    {%- liquid
+      assign pick_up_availabilities = selected_variant.store_availabilities | where: 'pick_up_enabled', true
+      assign drawer_id = 'drawer-pickup-availability-' | append: block.id
+    -%}
+
+    {%- if pick_up_availabilities.size > 0 -%}
+    <div class="hdt-pickup-availability hdt-rounded-sm">
+      {%- capture icon_tick -%}
+        {{- 'icon-checked-square-fill.svg' | inline_asset_content -}}
+      {%- endcapture -%}
+      {%- capture icon_tick_fill -%}
+        {{- 'icon-checked-square-fill.svg' | inline_asset_content -}}
+      {%- endcapture -%}
+      {%- capture icon_xmark -%}
+        {{- 'icon-cancel.svg' | inline_asset_content -}}
+      {%- endcapture -%}
+      {%- capture btn_map -%}
+        <a circle-bg-wrap href="https://maps.google.com?daddr=nathan" class="hdt-pickup-availability-map-link hdt-btn hdt-btn-outline hdt-btn--with-icon  hdt-btn--size-s" target="_blank" rel="noopener" aria-describedby="a11y-new-window-external-message">
+          {{- 'products.product.pickup_availability.check_map' | t -}}
+          {{- 'icon-arrow-circle-45deg-outline.svg' | inline_asset_content -}}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </a>
+      {%- endcapture -%}
+      <div class="hdt-pickup-availability__preview">
+        {%- liquid
+          assign closest_location = pick_up_availabilities.first
+          if closest_location.available
+            echo icon_tick
+          else
+            echo icon_xmark
+          endif
+        -%}
+
+        <div class="hdt-pickup-availability__info hdt-flex hdt-flex-col">
+          {%- if closest_location.available -%}
+            <div class="hdt-pickup-availability__info--text">
+              <p class="hdt-caption-large hdt-s-text hdt-font-medium">{{ 'products.product.pickup_availability.pick_up_available_at_html' | t: location_name: closest_location.location.name }}</p>
+              <p class="hdt-caption hdt-s-text hdt-text-sm">{{ closest_location.pick_up_time }}</p>
+            </div>
+            <button class="hdt-btn-link hdt-link-noline-icon hdt-btn--size-s hdt-btn--with-icon" aria-controls="{{ drawer_id }}" aria-expanded="false">
+              <span class="hdt-relative hdt-oh">
+              {%- if pick_up_availabilities.size == 1 -%}
+                {{- 'products.product.pickup_availability.view_store_info' | t -}}
+              {%- else -%}
+                {{- 'products.product.pickup_availability.check_other_stores' | t -}}
+              {%- endif -%}
+              {{- 'icon-slide.svg' | inline_asset_content -}}
+              </span>
+              <span class="hdt-shrink-0">{{- 'icon-circle-arrow-pk.svg' | inline_asset_content -}}</span>
+            </button>
+          {%- else -%}
+            <p class="hdt-caption-large hdt-s-text">{{ 'products.product.pickup_availability.pick_up_unavailable_at_html' | t: location_name: closest_location.location.name }}</p>
+            {%- if pick_up_availabilities.size > 1 -%}
+                <button class="hdt-btn-link hdt-btn--size-s hdt-link-noline-icon hdt-btn--with-icon" aria-controls="{{ drawer_id }}" aria-expanded="false">
+                    <span class="hdt-relative hdt-oh">{{- 'products.product.pickup_availability.check_other_stores' | t -}}{{- 'icon-slide.svg' | inline_asset_content -}}</span>
+                    <span class="hdt-shrink-0">{{- 'icon-circle-arrow-pk.svg' | inline_asset_content -}}</span>
+                </button>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      </div>
+      <hdt-drawer class="hdt-contents">
+        <dialog id="{{ drawer_id }}" class="hdt-dialog hdt-drawer{% if settings.drawer_indent %} hdt-drawer--indent{% endif %}{% if settings.drawer_blur %} hdt-drawer--blur{% endif %} hdt-drawer-pickup-availability hdt-s-text" color-scheme="{{ settings.drawer_color_scheme }}" pos="right" scroll-lock>
+            <div class="hdt-drawer_wrapper">
+              <div class="hdt-drawer__header hdt-s-text">
+                <p class="hdt-pickup--drawer-title hdt-h5">{{- 'products.product.pickup_availability.pick_up_drawer_heading' | t -}}</p>
+                <button class="hdt-close-dialog-btn" aria-controls="{{ drawer_id }}" aria-label="{{ 'accessibility.close' | t | escape }}">
+                  {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+                  {{- 'icon-close.svg' | inline_asset_content -}}
+                </button>
+              </div>
+              <div class="hdt-drawer__inner">
+                <div class="hdt-pickup-availability-product">
+                  {%- assign image = selected_variant.featured_media | default: product.featured_media -%}
+                  {%- if image != blank -%}
+                  <div class="hdt-pickup-availability__media hdt-rounded-xs">{{ image | image_url: width: 160 | image_tag: loading: 'lazy', sizes: '(max-width: 479px) 90px, 120px', widths: '60,80,120,160' }}</div>
+                  {%- endif -%}
+                  <div class="hdt-pickup-availability__infos">
+                    <h3 class="hdt-pickup-availability__title hdt-text-base">{{ product.title | escape }}</h3>
+                    {%- unless product.has_only_default_variant -%}
+                    {%- assign variant_options = selected_variant.options -%}
+                    <p class="hdt-pickup-availability__variant hdt-text-sm hdt-font-medium">
+                      {%- for product_option in product.options_with_values -%}
+                        <span>{{ product_option.name | escape }}:&nbsp;{{ variant_options[forloop.index0] | escape }}</span>
+                        {%- unless forloop.last -%}<span class="hdt-line-vertical"></span>{%- endunless -%}
+                      {%- endfor -%}
+                    </p>
+                    {%- endunless -%}
+                  </div>
+                </div>
+                <hdt-scroll-hint class="hdt-scrollbar hdt-pickuplist-wrapper">
+                  <ul class="hdt-pickup-availability-list" role="list">
+                  {%- for availability in pick_up_availabilities -%}
+                    <li class="hdt-pickup-availability-list__item hdt-rounded">
+                      <h3 class="hdt-h6">{{ availability.location.name | escape }}</h3>
+                      <p class="hdt-pickup-availability__preview hdt-caption-large{% if availability.available %} hdt-pickup-availability__preview--success{% else %} hdt-pickup-availability__preview--error{% endif %}">
+                        {%- if availability.available -%}
+                          {{ icon_tick_fill }} {{ 'products.product.pickup_availability.pick_up_available' | t }}, {{ availability.pick_up_time | downcase }}
+                        {%- else -%}
+                          {{ 'icon_warning-pk.svg' | inline_asset_content }} {{ 'products.product.pickup_availability.pick_up_unavailable' | t }}
+                        {%- endif -%}
+                      </p>
+                      {%- assign address = availability.location.address -%}
+                      <address class="hdt-pickup-availability-address">
+                        {%- capture formatted_address -%}
+                          {{ address | format_address }}
+                        {%- endcapture -%}
+                        <div class="hdt-line-address hdt-flex hdt-align_center">
+                          {{- 'icon-map-pickup.svg' | inline_asset_content -}}
+                          {{- formatted_address | replace: '<br>', ', ' -}}
+                        </div>
+                        {%- if address.phone.size > 0 -%}
+                          <div class="hdt-line-address hdt-flex hdt-align_center">
+                            {{- 'icon-phone-pickup.svg' | inline_asset_content -}}
+                            <a class="hdt-link  hdt-btn--size-s" href="tel:{{ address.phone }}">{{ address.phone }}</a>
+                          </div>
+                        {%- endif -%}
+                        {%- capture link_address %}{{ address.street | escape }} {{ address.province | escape }} {{ address.country | escape }}{% endcapture -%}
+                        {{- btn_map | replace_first: 'nathan', link_address -}}
+                      </address>
+                    </li>
+                  {%- endfor -%}
+                  </ul>
+                </hdt-scroll-hint>
+              </div>
+            </div>
+        </dialog>
+      </hdt-drawer>
+    </div>
+    {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {% schema %}
+  {
+    "name": "t:names.pickup_availability",
+    "tag": null,
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "t:content.pickup_availability"
+      },
+    ],
+    "presets": [
+      {
+        "name": "t:names.pickup_availability",
+      }
+    ]
+  }
+  {% endschema %}

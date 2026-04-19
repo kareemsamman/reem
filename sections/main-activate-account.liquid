@@ -1,0 +1,122 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-activate-account hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container">
+    <div class="hdt-sign-wrap">
+      <div id="activate-account" class="hdt-sign-part hdt-sign-part--activate">
+        <div class="hdt-section__header">
+          <h1 class="hdt-heading hdt-h1">{{ 'customer.activate_account.title' | t }}</h1>
+          <p class="hdt-s-text">{{ 'customer.activate_account.subtext' | t }}</p>
+        </div>
+        <div class="hdt-customer-form-wrap">
+          {%- form 'activate_customer_password', class: 'hdt-customer-form hdt-activate-form hdt-form--move-text hdt-text-center' -%}
+            {%- if form.errors -%}
+              <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm">
+                <p class="hdt-form-alert__title hdt-h6">{{ 'icon-error.svg' | inline_asset_content }} {{ 'customer.activate_account.error_message' | t }}</p>
+                <ul>
+                  {%- for field in form.errors -%}
+                    <li>
+                      {%- if field == 'form' -%}
+                        {{- form.errors.messages[field] -}}
+                      {%- else -%}
+                        <a href="#input--{{ section.id }}--{{ field }}">{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
+            <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+              <div class="hdt-field hdt-field--with-icon__end{% if form.errors contains 'password' %} hdt-field--with-error{% endif %}">
+                <input type="password" name="customer[password]" id="input--{{ section.id }}--password" class="hdt-input hdt-field__input" autocomplete="new-password" {% if form.errors contains 'password' %} aria-invalid="true" aria-describedby="password-error"{% endif %} placeholder="{{ 'customer.activate_account.password' | t }}">
+                <label for="input--{{ section.id }}--password" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.activate_account.password' | t | escape }}</span></label>
+                <hdt-show-password input-id="input--{{ section.id }}--password" class="hdt-show-pw hdt-field-icon hdt-field-icon--end">{{ 'icon-eye-open.svg' | inline_asset_content }}{{ 'icon-eye-slash.svg' | inline_asset_content }}</hdt-show-password>
+                {%- if form.errors contains 'password' -%}
+                  <small id="password-error" class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ form.errors.translated_fields.password | capitalize }}  {{ form.errors.messages.password }}</span></small>
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+              <div class="hdt-field hdt-field--with-icon__end{% if form.errors contains 'password_confirmation' %} hdt-field--with-error{% endif %}">
+                <input type="password" name="customer[password_confirmation]" id="input--{{ section.id }}--password_confirmation" class="hdt-input hdt-field__input" autocomplete="new-password" {% if form.errors contains 'password_confirmation' %} aria-invalid="true" aria-describedby="password_confirmation-error"{% endif %} placeholder="{{ 'customer.activate_account.password_confirmation' | t }}">
+                <label for="input--{{ section.id }}--password_confirmation" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.activate_account.password_confirmation' | t | escape }}</span></label>
+                <hdt-show-password input-id="input--{{ section.id }}--password_confirmation" class="hdt-show-pw hdt-field-icon hdt-field-icon--end">{{ 'icon-eye-open.svg' | inline_asset_content }}{{ 'icon-eye-slash.svg' | inline_asset_content }}</hdt-show-password>
+                {%- if form.errors contains 'password_confirmation' -%}
+                  <small id="password_confirmation-error" class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ form.errors.translated_fields.password_confirmation | capitalize }}  {{ form.errors.messages.password_confirmation }}</span></small>
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="hdt-cus-actions hdt-group-button-block hdt-has-btn-link hdt-flex-block">
+              <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-solid hdt-btn--size-l">
+                <span>{{ 'customer.activate_account.submit' | t }}</span>
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </button>
+              <button type="reset" class="hdt-cancel-activate-btn hdt-btn-link hdt-btn--size-m">
+                <span class="hdt-relative hdt-truncate">
+                  {{- 'customer.activate_account.cancel' | t -}}{{- 'icon-slide.svg' | inline_asset_content -}}
+                </span>
+              </button>
+            </div>
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.account_activation",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,199 @@
+{%- liquid
+  assign col_mobile = section.blocks.size | at_most: 2
+  assign show_mobile_slider = false
+  if section.blocks.size > col_mobile
+    assign show_mobile_slider = true
+  endif
+  assign col_md = section.blocks.size | at_most: 2
+  assign show_md_slider = false
+  if section.blocks.size > col_md
+    assign show_md_slider = true
+  endif
+  if section.blocks.size > 0
+    assign overlay_space = 50.0 | divided_by: section.blocks.size | at_most: 12.0
+    assign img_w = 150.0 | divided_by: section.blocks.size | plus: overlay_space
+  else
+    assign overlay_space = 0
+    assign img_w = 0
+  endif
+-%}
+{%- capture slider_class -%}
+  hdt-height--adapt_image hdt-slides-{{ col_mobile }} hdt-slider__active-{{ show_mobile_slider }} md:hdt-slides-{{ col_md }} md:hdt-slider__active-{{ show_md_slider }} xl:hdt-slider__active-false hdt-slider--hover-{{ section.settings.hover_effect }}
+{%- endcapture -%}
+
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__images-wto hdt-section-spacing hdt-s-gradient{% if section.settings.enable_backdrop_overlay %} hdt-wto-with-backdrop-overlay{% endif %}" style="{% if section.settings.enable_backdrop_overlay %}--color-overlay-opacity: {{ section.settings.overlay_opacity }}%;{% endif %}--item-height: {{ section.settings.item_height }}px; --img-w: {{ img_w }}vw; --overlay-space: {{ overlay_space }}%; --content-align: {{ section.settings.content_pos }}; --section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container{% if section.settings.full_width %}-xl hdt-slider__overflow hdt-container-spacing{% endif %}{% if show_md_slider %} mb:hdt-slider__overflow{% endif %}">
+    {%- content_for 'block', type: '_section_header', id: 'section_header' -%}
+    {%- if section.blocks.size > 0 -%}
+      <hdt-slider id="Slider-{{ section.id }}" autoheight class="hdt-slider hdt-slider--images-wto {{ slider_class }}" config='{"loop": false, "pauseOnHover": true, "ntCenter": true, "slidesToScroll": "auto", "dragFree": true, "breakpoints": { "(min-width: 768px)": { "active": {{ show_md_slider }} }, "(min-width: 1150px)": { "active": false } } }'>
+        <div class="hdt-slider__viewport"><div class="hdt-slider__container">{%- content_for 'blocks' -%}</div></div>
+      </hdt-slider>
+    {%- endif -%}
+  </div>
+</div>
+
+
+{% schema %}
+  {
+    "name": "t:names.images_with_text_overlay",
+    "tag": "section",
+    "class": "hdt-section",
+    "disabled_on": {
+      "groups": ["*"]
+    },
+    "blocks": [{"type": "_section_header"}, {"type": "_image_with_text_overlay"}],
+    "max_blocks": 6,
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "full_width",
+        "label": "t:settings.make_full_width",
+        "default": true
+      },
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-1"
+      },
+      {
+        "type": "range",
+        "id": "item_height",
+        "min": 200,
+        "max": 600,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.min_height",
+        "default": 400
+      },
+      {
+        "type": "select",
+        "id": "content_pos",
+        "label": "t:settings.content_position",
+        "options": [
+          {
+            "value": "start",
+            "label": "t:options.top"
+          },
+          {
+            "value": "end",
+            "label": "t:options.bottom"
+          },
+        ],
+        "default": "start"
+      },
+      {
+        "type": "select",
+        "id": "hover_effect",
+        "label": "t:settings.hover_effect",
+        "options": [
+          {
+            "value": "zoom",
+            "label": "t:options.zoom_image"
+          },
+          {
+            "value": "blur",
+            "label": "t:options.overlay_blur"
+          },
+        ],
+        "default": "zoom"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_backdrop_overlay",
+        "label": "t:settings.hover_backdrop_overlay",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "overlay_opacity",
+        "label": "t:settings.overlay_opacity",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "default": 20,
+        "visible_if": "{{ section.settings.enable_backdrop_overlay }}"
+      },
+      {
+        "type": "header",
+        "content": "t:content.section_padding"
+      },
+      {
+        "type": "range",
+        "id": "padding_top_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top",
+        "default": 60
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom",
+        "default": 60
+      },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top_mb",
+        "default": 40
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom_mb",
+        "default": 40
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.images_with_text_overlay",
+        "category": "t:categories.banners",
+        "blocks": [
+          {
+              "type": "_section_header",
+              "static": true,
+              "id": "section_header",
+              "blocks": [
+                  {
+                      "type": "heading",
+                      "settings": {
+                          "heading": "Shop by activity"
+                      }
+                  },
+              ]
+          },
+          {
+            "type": "_image_with_text_overlay"
+          },
+          {
+            "type": "_image_with_text_overlay"
+          },
+          {
+            "type": "_image_with_text_overlay"
+          },
+          {
+            "type": "_image_with_text_overlay"
+          },
+          {
+            "type": "_image_with_text_overlay"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

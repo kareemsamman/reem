@@ -1,0 +1,256 @@
+{%- liquid
+  assign shrink_on_sroll = section.settings.shrink_on_sroll
+  assign shrink_on_sroll_mb = section.settings.shrink_on_sroll_mb
+  assign media_overlay_opacity = 100 | minus: section.settings.media_overlay_opacity
+-%}
+
+<div id="Section-{{ section.id }}" class="hdt-section-scroll-hero-media-grid" style="--overlay-opacity: {{ media_overlay_opacity }}%; --total-media: {{ section.blocks.size }};">
+  <hdt-scroll-hero-media color-scheme="{{ section.settings.color_scheme }}" class="hdt-scroll-hero-media">
+    {%- if shrink_on_sroll or shrink_on_sroll_mb -%}
+      <hdt-shrink-on-sroll mobile="{{ shrink_on_sroll_mb }}"{% if section.settings.reverse_shrink %} data-expand="true" data-expand-remove-round="true"{% if section.settings.reverse_shrink_at_end %} data-expand-from-bottom="true"{% endif %}{% endif %} class="hdt-shrink-on-sroll hdt-shrink-on-sroll--smg">
+      <div class="hdt-shrink-on-sroll-inner">
+    {%- endif -%}
+    <div class="hdt-scroll-hero-media__first hdt-grid">
+      <div class="hdt-scroll-hero-media__media hdt-grid-1x1">
+        {%- render 'bg-media', section: section -%}
+      </div>
+      {%- if section.settings.heading != blank or section.settings.caption != blank -%}
+        <div class="hdt-scroll-hero-media__content hdt-grid-1x1 hdt-place-self-center hdt-text-center rte">
+          {%- if section.settings.caption != blank %}<p class="hdt-font-bold hdt-text-sm hdt-uppercase hdt-s-text">{{ section.settings.caption }}</p>{% endif -%}
+          {%- if section.settings.heading != blank -%}
+              <h2 class="hdt-h0 hdt-heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          {%- if section.settings.description != blank -%}
+            <div class="hdt-shm-description hdt-s-text">{{ section.settings.description }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+    <div class="hdt-scroll-hero-media__items hdt-relative hdt-oh">{%- content_for 'blocks' -%}</div>
+    {%- content_for 'block', type: '_scrolling_secondary_media', id: 'scrolling_secondary_media' -%}
+    {%- if shrink_on_sroll or shrink_on_sroll_mb -%}
+      </div>
+      </hdt-shrink-on-sroll>
+    {%- endif -%}
+  </hdt-scroll-hero-media>
+</div>
+
+{%- schema -%}
+{
+  "name": "t:names.scrolling_hero_media_grid",
+  "class": "hdt-section hdt-section-scolling-hero-media",
+  "disabled_on": {
+    "groups": ["*"]
+  },
+  "max_blocks": 8,
+  "blocks": [
+    { "type": "_reveal_media" },
+    { "type": "_scrolling_secondary_media" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "background_type",
+      "label": "t:settings.background_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "color",
+          "label": "t:options.color"
+        },
+        {
+          "value": "image",
+          "label": "t:options.image"
+        }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "t:settings.background",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_gradient",
+      "label": "t:settings.background_gradient",
+      "info": "t:info.background_gradient",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "t:settings.background_image",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image_mb",
+      "label": "t:settings.background_image_mb",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "background_overlay",
+      "label": "t:settings.background_overlay",
+      "visible_if": "{{ section.settings.background_type == 'image' }}",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "color_overlay",
+      "label": "t:settings.color_overlay",
+      "default": "#0000001a",
+      "alpha": true,
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:settings.overlay_type",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.background_type == 'image'}}"
+    },
+    {
+      "type": "select",
+      "id": "gradient_direction",
+      "label": "t:settings.gradient_direction",
+      "options": [
+        {
+          "value": "to top",
+          "label": "t:options.up"
+        },
+        {
+          "value": "to bottom",
+          "label": "t:options.down"
+        }
+      ],
+      "default": "to top",
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.overlay_style == 'gradient' and section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "t:settings.caption",
+      "default": "Caption"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "t:settings.description"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.shrink_animation"
+    },
+    {
+      "type": "checkbox",
+      "id": "shrink_on_sroll",
+      "label": "t:settings.shrink_on_sroll",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "shrink_on_sroll_mb",
+      "label": "t:settings.shrink_on_sroll_mb",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "reverse_shrink",
+      "label": "t:settings.reverse_shrink",
+      "default": false,
+      "visible_if": "{{ section.settings.shrink_on_sroll }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "reverse_shrink_at_end",
+      "label": "t:settings.reverse_shrink_at_end",
+      "default": true,
+      "visible_if": "{{ section.settings.shrink_on_sroll and section.settings.reverse_shrink }}"
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.scrolling_hero_media_grid",
+      "category": "t:categories.storytelling",
+      "blocks": [
+        {
+          "type": "_scrolling_secondary_media",
+          "static": true,
+          "id": "scrolling_secondary_media",
+          "blocks": [
+            {
+              "type": "_scrolling_hero_content",
+              "static": true,
+              "id": "scrolling_hero_content",
+              "blocks": [
+                {"type": "heading"},
+                {"type": "text"}
+              ]
+            },
+          ]
+        },
+        {
+          "type": "_reveal_media", 
+          "settings": {
+            "end_pos": "random_top_left",
+          },
+        },
+        {
+          "type": "_reveal_media", 
+          "settings": {
+            "end_pos": "random_top_right",
+          },
+        },
+        {
+          "type": "_reveal_media", 
+          "settings": {
+            "end_pos": "random_bottom_right",
+          },
+        },
+        {
+          "type": "_reveal_media", 
+          "settings": {
+            "end_pos": "random_bottom_left",
+          },
+        }
+      ]
+    }
+  ]
+}
+{%- endschema -%}

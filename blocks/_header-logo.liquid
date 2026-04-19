@@ -1,0 +1,77 @@
+{%- doc -%}
+@description
+string, number, boolean, object
+Render a logo for header
+
+@param {boolean} enable_header_transparent
+@param {object} [logo_transparent]
+{%- enddoc -%}
+
+{%- if request.page_type == 'index' and block.settings.enable_h1_tag -%}
+<h1 class="hdt-header__logo"><a href="{{ routes.root_url }}">
+{%- else -%}
+<a href="{{ routes.root_url }}" class="hdt-header__logo">
+{%- endif -%}
+  {%- if block.settings.logo != blank -%}
+    <div class="header__logo-img-wrapper hdt-grid" style="--logo-width: {{ block.settings.logo_width }}px; --logo-width-mobile: {{ block.settings.logo_width_mb }}px;">
+      {%- capture sizes %}(min-width: 768px) {{ block.settings.logo_width }}px, {{ block.settings.logo_width_mb }}px{% endcapture -%}
+      {%- capture widths %}{{ block.settings.logo_width }}, {{ block.settings.logo_width | times: 1.5 | round }}, {{ block.settings.logo_width | times: 2 }}{% endcapture -%}
+      {%- liquid
+      assign logo_alt = block.settings.logo.alt | default: shop.name | escape
+      assign logo_height = block.settings.logo_width | divided_by: block.settings.logo.aspect_ratio | round
+      if enable_header_transparent and logo_transparent != blank
+        assign logo_alt = logo_transparent.alt | default: logo_alt
+        echo logo_transparent | image_url: width: 600 | image_tag: class: 'header__logo-img header__logo-img--transparent hdt-grid-1x1 hdt-place-self-center', widths: widths, height: logo_height, width: block.settings.logo_width, alt: logo_alt, sizes: sizes, preload: true
+      endif
+      echo block.settings.logo | image_url: width: 600 | image_tag: class: 'header__logo-img hdt-grid-1x1 hdt-place-self-center', widths: widths, height: logo_height, width: block.settings.logo_width, alt: logo_alt, sizes: sizes, preload: true
+      -%}
+    </div>
+  {%- else -%}
+    <span class="hdt-header__heading hdt-h6">{{ shop.name }}</span>
+  {%- endif -%}
+{%- if request.page_type == 'index' and block.settings.enable_h1_tag -%}
+</a></h1>
+{%- else -%}
+</a>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Logo",
+  "tag": null,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:settings.logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 20,
+      "max": 300,
+      "step": 4,
+      "default": 28,
+      "unit": "px",
+      "label": "t:settings.logo_width"
+    },
+    {
+      "type": "range",
+      "id": "logo_width_mb",
+      "min": 20,
+      "max": 200,
+      "step": 2,
+      "default": 28,
+      "unit": "px",
+      "label": "t:settings.logo_width_mb"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_h1_tag",
+      "default": true,
+      "label": "t:settings.enable_h1_tag.",
+      "info": "t:info.enable_h1_tag"
+    }
+  ]
+}
+{% endschema %}

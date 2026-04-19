@@ -1,0 +1,22 @@
+<div class="hdt-media-content hdt-place-self-center hdt-text-center" style="--overlap-content-mw: {{ block.settings.max_width_content }}px">
+    <div class="hdt-media-content-wrapp">{% content_for 'blocks' %}</div>    
+</div>
+{% schema %}
+    {
+        "name": "t:names.banner_content",
+        "tag":null,
+        "blocks": [{"type": "label"}, {"type": "heading"}, {"type": "text"}, {"type": "group-button"}, {"type": "spacer"}],
+        "settings": [
+            {
+              "type": "range",
+              "id": "max_width_content",
+              "label": "t:settings.max_width_content",
+              "min": 300,
+              "max": 900,
+              "step": 10,
+              "unit": "px",
+              "default": 680,
+            }
+        ],
+    }
+{% endschema %}

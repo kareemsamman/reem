@@ -1,0 +1,141 @@
+<!doctype html>
+  {%- liquid
+    assign iso_code = request.locale.iso_code
+    assign config_rtl = settings.right_to_left | default: 'enable-with-list'
+    assign is_rtl = false
+    assign dir = 'ltr'
+    if config_rtl == 'enable-with-list'
+      assign iso_code_ck = iso_code | split: '-' | first | append: ';' | prepend: ';'
+      assign lis_rtl = ';ae;ar;arc;bqi;ckb;dv;fa;glk;ha;he;kwh;ks;ku;mzn;nqo;pnb;ps;sd;ug;ur;yi;'
+      if lis_rtl contains iso_code_ck
+        assign is_rtl = true
+        assign dir = 'rtl'
+      endif
+    elsif config_rtl == 'enable'
+      assign is_rtl = true
+      assign dir = 'rtl'
+    endif -%}
+
+<html class="dir--{{ dir }} use--zoom-image hdt-scrollbar hdt-scroll-area hdt-btn-effect--{{ settings.button_hover_effect }}" lang="{{ request.locale.iso_code }}" dir="{{ dir }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/{% if settings.favicon.src contains '.png' %}png{% else %}jpeg{% endif %}" href="{{ settings.favicon | image_url: width: 96, height: 96 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- endif -%}
+    {%- comment -%} This a way to wait for main content to load when navigating to a new page so that the view transitions can work consistently <link rel="expect" href="#MainContent" blocking="render" id="view-transition-render-blocker"> {%- endcomment -%}
+    <link rel="preconnect" href="https://cdn.shopify.com">
+    {%- unless settings.type_header_font.system? and settings.type_body_font.system? -%}
+      <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+    {%- endunless -%}
+
+    <title>
+      {%- if request.page_type == 'list-collections' -%}
+        {{ 'general.meta.list_collections' | t | escape }}
+      {%- else -%}
+        {{ page_title }}
+        {%- if current_tags %} &ndash; {{ 'general.meta.tag' | t }} "{{ current_tags | join: ', ' }}"{% endif -%}
+        {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t }} {{ current_page }}{% endif -%}
+        {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+      {%- endif -%}
+    </title>
+
+    {%- if page_description %}<meta name="description" content="{{ page_description | escape }}">{% endif %}
+
+    {%- liquid
+      render 'social-meta-tags'
+      render 'schema-json-ld'
+      render 'css-variables', is_rtl: is_rtl
+      render 'scripts'
+      render 'js-variables'
+    -%}
+
+    {{ content_for_header }}
+
+
+{% style %}
+  @font-face {
+    font-family: 'MADE Canvas';
+    src: url('https://cdn.shopify.com/s/files/1/0730/2030/9785/files/MADE_Canvas_Light_PERSONAL_USE.woff2?v=1776626922') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MADE Canvas';
+    src: url('https://cdn.shopify.com/s/files/1/0730/2030/9785/files/MADE_Canvas_Regular_PERSONAL_USE.woff2?v=1776626922') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MADE Canvas';
+    src: url('https://cdn.shopify.com/s/files/1/0730/2030/9785/files/MADE_Canvas_Black_PERSONAL_USE.woff2?v=1776626922') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --font-heading-family: 'MADE Canvas', sans-serif !important;
+    --font-body-family: 'MADE Canvas', sans-serif !important;
+  }
+
+  body,
+  .hdt-s-text,
+  p, span, a, li, div, button, input, textarea, select, label {
+    font-family: 'MADE Canvas', sans-serif !important;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  .hdt-heading,
+  .hdt-h1, .hdt-h2, .hdt-h3, .hdt-h4, .hdt-h5, .hdt-h6 {
+    font-family: 'MADE Canvas', sans-serif !important;
+  }
+{% endstyle %}
+
+<link rel="preload" href="https://cdn.shopify.com/s/files/1/0730/2030/9785/files/MADE_Canvas_Regular_PERSONAL_USE.woff2?v=1776626922" as="font" type="font/woff2" crossorigin>
+
+
+  </head>
+
+  <body class="hdt-page-type-{{ request.page_type }}">
+    <a class="skip-to-content-link hdt-btn sr-only" href="#MainContent">{{ 'accessibility.skip_to_text' | t }}</a>
+    <div id="hdt-cart-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div><div class="hdt-page-backdrop"></div>
+
+    {%- sections 'header-group' -%}
+    <script>
+      (() => {
+        const html = document.documentElement,
+        header = document.querySelector('.hdt-section-header--main');
+
+        function calculateHeaderGroupHeight() {
+          let totalHeight = 0;
+          document.querySelectorAll('.shopify-section-group-header-group:not(.hdt-section-header--main)').forEach((section)=> totalHeight += section.offsetHeight);
+          html.style.setProperty('--header-group-height', `${totalHeight}px`);
+        }
+        window.addEventListener("resize", calculateHeaderGroupHeight);
+
+        calculateHeaderGroupHeight();
+
+        html.style.setProperty('--header-height', `${header.clientHeight.toFixed(2)}px`);
+      })();
+    </script>
+
+    <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {%- sections 'footer-group' -%}
+    {%- liquid
+      sections 'overlay-group'
+      render 'system-bottom'
+      render 's-dom-temp'
+    -%}
+  </body>
+</html>

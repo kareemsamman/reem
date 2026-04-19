@@ -1,0 +1,38 @@
+{%- comment -%}
+  Renders share article.
+  Accepts:
+  - id: {String} (required)
+  - class: {String} (optional)
+  - share_url: {String} url to be added to the input the user will get/copy. (required)
+  - share_title (required)
+  - share_image (optional)
+
+  Usage:
+  {%- render 'share-article', id: block.id, share_url: share_url, share_title: -%}
+{%- endcomment -%}
+
+{%- liquid
+    assign share_title = share_title | url_param_escape
+    if share_image
+      assign preview_image = share_image | image_url: width: 1024, height: 1024
+    endif
+    assign target = '_blank'
+    assign share_url = request.origin | append: share_url
+  -%}
+<div class="hdt-article-share-wrap hdt-share-buttons">
+  <wrapp-hdt-share-btn class="hdt-contents" hidden><button class="hdt-share-button hdt-s-text hdt-font-semibold"><span>{{ 'general.social.shares.share_btn' | t }}</span></button></wrapp-hdt-share-btn>
+  <div class="hdt-share-desktop hdt-hidden md:hdt-inline-flex">
+    <span class="hdt-font-semibold hdt-label-share">{{ 'general.social.shares.share_btn' | t }} :</span>
+    <div class="hdt-share-button__links">
+        <a aria-label="{{ 'general.social.shares.share_on_facebook' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="https://www.facebook.com/sharer/sharer.php?u={{ share_url }}" target="{{ target }}" class="hdt-social--facebook hdt-hover-spring">{{ 'icon-facebook.svg' | inline_asset_content }}</a>
+        <a aria-label="{{ 'general.social.shares.share_on_twitter' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="http://twitter.com/share?text={{ share_title }}&amp;url={{ share_url }}" target="{{ target }}" class="hdt-social--twitter hdt-hover-spring">{{ 'icon-x.svg' | inline_asset_content }}</a>
+    {%- if preview_image != blank -%}
+        <a aria-label="{{ 'general.social.shares.share_on_pinterest' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="http://pinterest.com/pin/create/button/?url={{ share_url }}&amp;media=http:{{ preview_image }}&amp;description={{ share_title }}" target="{{ target }}" class="hdt-social--pinterest hdt-hover-spring">{{ 'icon-pinterest.svg' | inline_asset_content }}</a>
+        <a aria-label="{{ 'general.social.shares.share_on_tumblr' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" data-content="http:{{ preview_image }}" href="//tumblr.com/widgets/share/tool?canonicalUrl={{ share_url }}" target="{{ target }}" class="hdt-social--tumblr hdt-hover-spring">{{ 'icon-tumblr.svg' | inline_asset_content }}</a>
+    {%- endif -%}
+        <a aria-label="{{ 'general.social.shares.share_on_telegram' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" target="{{ target }}" class="hdt-social--telegram hdt-hover-spring" href="https://telegram.me/share/url?url={{ share_url }}">{{ 'icon-telegram.svg' | inline_asset_content }}</a>
+        <a aria-label="{{ 'general.social.shares.share_on_whatsapp' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" target="{{ target }}" class="hdt-social--whatsapp hdt-hover-spring" href="https://wa.me/?text={{ share_title }}&#x20;{{ share_url }}">{{ 'icon-whatsapp.svg' | inline_asset_content }}</a>
+        <a aria-label="{{ 'general.social.shares.share_on_email' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="mailto:?subject={{ share_title }}&amp;body={{ share_url }}" target="{{ target }}" class="hdt-social--email hdt-hover-spring">{{ 'icon-send-email.svg' | inline_asset_content }}</a>
+    </div>
+  </div>
+</div>

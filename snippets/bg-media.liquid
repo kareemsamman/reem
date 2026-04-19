@@ -1,0 +1,80 @@
+{%- doc -%}
+@description
+Render a background media
+
+@param {object} section
+
+@example
+{%- render 'bg-media', section: section -%}
+
+{%- enddoc -%}
+
+{%- if section.settings.background_type != 'none' -%}
+    {%- liquid
+    if section.index == 1
+        assign loading = 'eager'
+        assign lazyload = false
+    else
+        assign loading = 'lazy'
+        assign lazyload = true
+    endif
+    assign image_behavior = section.settings.image_behavior | default: 'none'
+    if image_behavior != 'none' and section.settings.bg_image != blank
+        assign tag = 'hdt-effect-img'
+        assign eff = ' eff="' | append: section.settings.image_behavior | append: '"'
+    else
+        assign tag = 'div'
+        assign eff = ''
+    endif
+    -%}
+    {%- capture bg_color -%}
+    {%- if section.settings.background_type == 'color' -%}
+      style="--gradient-bg: {% if section.settings.bg_gradient != empty %}{{ section.settings.bg_gradient }}{% else %}rgba({{ section.settings.bg_color.rgba }}){% endif %};"
+    {%- endif -%}
+    {%- endcapture -%}
+
+    <{{ tag }} class="hdt-custom-background hdt-s-background"{{ eff }} {{ bg_color }}>
+    {%- if section.settings.background_type == 'media' or section.settings.background_type == 'image' -%}
+        {%- if section.settings.background_media == 'image' or section.settings.background_type == 'image' -%}
+            {%- liquid
+                if section.settings.bg_image != blank
+                    assign append_w = section.settings.bg_image.width | default: 4000
+                    assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: append_w
+                    echo '<picture class="hdt-media-wrapper">'
+                    if section.settings.bg_image_mb != blank and section.settings.bg_image_mb != section.settings.bg_image
+                        assign append_w_mb = section.settings.bg_image_mb.width | default: 1000
+                        assign widths_mb = '200,400,600,800,1000,' | append: append_w_mb
+                        assign srcset = section.settings.bg_image_mb | image_url: width: section.settings.bg_image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+                        unless srcset contains 'src='
+                        echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+                        endunless
+                    endif
+                    echo section.settings.bg_image | image_url: width: section.settings.bg_image.width | image_tag: loading: loading, sizes: '100vw', widths: widths, is: 'img-effect'
+                    echo '</picture>'
+                else
+                    echo '<div class="hdt-media-wrapper">'
+                    echo 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                    echo '</div>'
+                endif
+            -%}
+        {%- elsif section.settings.background_media == 'video' -%}
+            {%- liquid
+            if section.settings.video != blank
+                if lazyload
+                echo '<hdt-video duration autoplay type="html5" data-loop="true" is--lazy>'
+                else
+                echo '<hdt-video duration autoplay type="html5" data-loop="true">'
+                endif
+                render 'video', video: section.settings.video, show_image: true, image: section.settings.image_video, sizes: '100vw', hidden_poster: true, lazyload: true, widths: '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200'
+                echo '</hdt-video>'
+            else
+                echo 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+            endif
+            -%}
+        {%- endif -%}
+        {%- if section.settings.background_overlay -%}
+            <div class="hdt-background-overlay hdt-overlaytype--{{ section.settings.overlay_style }}" style="--color-bg-overlay: {{ section.settings.color_overlay | default: 'rgb(0 0 0 / 0.25)' }}; --overlay-direction: {{ section.settings.gradient_direction }}; --overlay-color--end: {{ section.settings.color_overlay | color_modify: 'alpha', 0 | default: 'rgb(0 0 0 / 0)'  }}"></div>
+        {%- endif -%}
+    {%- endif -%}
+    </{{ tag }}>
+{%- endif -%}

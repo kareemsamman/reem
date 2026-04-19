@@ -1,0 +1,4 @@
+    <svg part="hdt-close-icon-progress" aria-hidden="true" class="hdt-icon hdt-icon-progress" width="10" height="10" viewBox="0 0 70 70">
+    <path part="hdt-path-progress__circle" class="hdt-progress__circle" d="m35,2.5c17.955803,0 32.5,14.544199 32.5,32.5c0,17.955803 -14.544197,32.5 -32.5,32.5c-17.955803,0 -32.5,-14.544197 -32.5,-32.5c0,-17.955801 14.544197,-32.5 32.5,-32.5z"></path>
+    <path part="hdt-path-progress__path" class="hdt-progress__path" d="m35,2.5c17.955803,0 32.5,14.544199 32.5,32.5c0,17.955803 -14.544197,32.5 -32.5,32.5c-17.955803,0 -32.5,-14.544197 -32.5,-32.5c0,-17.955801 14.544197,-32.5 32.5,-32.5z" pathLength="1"></path>
+    </svg>

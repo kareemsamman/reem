@@ -1,0 +1,273 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-login hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container">
+    <div class="hdt-sign-wrap hdt-s-text">
+      <div tabindex="-1" id="recover" class="focus-none"> </div>
+      <div tabindex="-1" id="login" class="focus-none"> </div>
+      <div id="hdt-recover" class="hdt-sign-part">
+        {%- if section.settings.reset_password_heading != blank or section.settings.reset_password_description != blank -%}
+          <div class="hdt-section__header">
+            {%- if section.settings.reset_password_heading != blank -%}
+              <h1 class="hdt-heading hdt-h1">{{ section.settings.reset_password_heading | escape }}</h1>
+            {%- endif -%}
+            {%- if section.settings.reset_password_description != blank -%}
+              <div class="hdt-customer-form-description rte">{{ section.settings.reset_password_description }}</div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        <div class="hdt-customer-form-wrap">
+          {%- form 'recover_customer_password', class: 'hdt-customer-form hdt-reset-password-form hdt-form--move-text' -%}
+            {%- assign recover_success = form.posted_successfully? -%}
+            {%- if form.errors -%}
+              <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm"><span>{{ 'icon-error.svg' | inline_asset_content }} {{ form.errors.messages.form }}</span></div>
+            {%- endif -%}
+            <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1" style="--subtext-width: 5rem">
+              <div class="hdt-field hdt-field--with-icon hdt-field--with-subtext">
+                <input type="email" name="email" id="input--{{ section.id }}--recover-email" class="hdt-input hdt-field__input hdt-input--recover-email" autocomplete="email" autocorrect="off" autocapitalize="off" {% if form.errors %} aria-invalid="true" aria-describedby="RecoverEmail-email-error" autofocus {% endif %} placeholder="{{ 'customer.login_page.email' | t }}">
+                <label for="input--{{ section.id }}--recover-email" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.login_page.email' | t | escape }}</span></label>
+              </div>
+            </div>
+            <div class="hdt-group-button-block hdt-has-btn-link hdt-flex-block">
+              <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-solid hdt-btn--reset-pw hdt-btn--size-l hdt-btn--with-icon">
+                <span>{{ 'customer.recover_password.reset_password' | t }}</span>
+                {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </button>
+              <a href="#login" class="hdt-btn-link hdt-btn--size-m">
+                <span class="hdt-relative hdt-truncate">{{ 'customer.login_page.cancel' | t }}{{- 'icon-slide.svg' | inline_asset_content -}}</span>      
+              </a>
+            </div>
+          {%- endform -%}
+        </div>
+      </div>
+      <div id="hdt-login" class="hdt-sign-part">
+        {%- if section.settings.heading != blank or section.settings.description != blank -%}
+          <div class="hdt-section__header">
+            {%- if section.settings.heading != blank -%}
+              <h1 class="hdt-heading hdt-h1">{{ section.settings.heading | escape }}</h1>
+            {%- endif -%}
+            {%- if section.settings.description != blank -%}
+              <div class="hdt-customer-form-description rte">{{ section.settings.description }}</div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        <div class="hdt-customer-form-wrap">
+          {%- if recover_success == true -%}
+            <div class="hdt-form__alert hdt-form__alert--success hdt-rounded-sm"><span>{{ 'icon-success.svg' | inline_asset_content }} {{ 'customer.recover_password.success' | t }}</span></div>
+          {%- endif -%}
+          {%- form 'customer_login', class: 'hdt-customer-form hdt-login-form hdt-form--move-text', novalidate: 'novalidate' -%}
+            {%- if form.errors -%}
+              <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm">
+                <p class="hdt-form-alert__title hdt-h6">{{ 'icon-error.svg' | inline_asset_content }} {{ 'customer.login_page.error_message' | t }}</p>
+                <ul>
+                  {%- for field in form.errors -%}
+                    <li>{{- form.errors.messages[field] -}}</li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
+            {%- if shop.features.login_with_shop_classic_customer_accounts? -%}
+              {%- liquid
+                if section.settings.enable_shop_login_button == false
+                  assign hide_shop_login_button = true
+                endif
+              -%}
+              <section class="hdt-sign-in-with-sp" name="sign-in-with-shop-provider">
+                {{- shop | login_button: hide_button: hide_shop_login_button -}}
+                {%- unless hide_shop_login_button -%}
+                  <p class="hdt-sp-sep hdt-s-text hdt-text-center">{{ 'customer.login_page.alternate_provider_separator' | t }}</p>
+                {%- endunless -%}
+              </section>
+            {%- endif -%}
+            <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+              <div class="hdt-field">
+                <input type="email" name="customer[email]" id="input--{{ section.id }}--email" class="hdt-input hdt-field__input hdt-input--email" autocomplete="email" autocorrect="off" autocapitalize="off"{% if form.errors contains 'form' %} aria-invalid="true"{% endif %} placeholder="{{ 'customer.login_page.email' | t }}">
+                <label for="input--{{ section.id }}--email" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.login_page.email' | t | escape }}</span></label>
+              </div>
+            </div>
+            {%- if form.password_needed -%}
+              <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1" style="--subtext-width: 12rem">
+                <div class="hdt-field">
+                  <input type="password" name="customer[password]" id="input--{{ section.id }}--password" class="hdt-input hdt-field__input hdt-input--password" autocomplete="current-password"{% if form.errors contains 'form' %} aria-invalid="true"{% endif %} placeholder="{{ 'customer.login.password' | t }}">
+                  <label for="input--{{ section.id }}--password" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.login.password' | t | escape }}</span></label>
+                  <hdt-show-password input-id="input--{{ section.id }}--password" class="hdt-show-pw hdt-field-icon hdt-field-icon--end hdt-hover-bg-zoom-b">{{ 'icon-eye-open.svg' | inline_asset_content }}{{ 'icon-eye-slash.svg' | inline_asset_content }}</hdt-show-password>
+                </div>
+              </div>
+            {%- endif -%}
+            <a href="#recover" class="hdt-forgot-pw hdt-truncate hdt-link-underline">{{ 'customer.login.forgot_password' | t }}</a>
+            <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-solid hdt-btn--size-l hdt-btn-full-width hdt-btn--with-icon">
+              {{- 'customer.login.sign_in' | t -}}
+              {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+            <p class="hdt-caption hdt-text-center">{{ 'customer.login.ask_create' | t }} <a href="{{ routes.account_register_url }}" class="hdt-link-underline">{{ 'customer.login.sign_up' | t }}</a></p>
+          {%- endform -%}
+        </div>
+      </div>
+      {%- if shop.checkout.guest_login -%}
+        <hr class="hdt-login-sep">
+        <div id="guest-login" class="hdt-sign-part--guest hdt-text-center">
+          <h2 class="hdt-heading hdt-h6">{{ 'customer.login_page.guest_title' | t }}</h2>
+          {%- form 'guest_login' -%}
+            <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-solid hdt-btn--size-l hdt-btn-full-width hdt-btn--with-icon">
+              {{ 'customer.login_page.guest_continue' | t }}
+              {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+          {%- endform -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.login",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.login_form"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.login"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "t:settings.description",
+      "default": "t:text_defaults.login_description"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shop_login_button",
+      "label": "t:settings.enable_shop_login_button",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:content.reset_password_form"
+    },
+    {
+      "type": "text",
+      "id": "reset_password_heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.reset_password"
+    },
+    {
+      "type": "richtext",
+      "id": "reset_password_description",
+      "label": "t:settings.description",
+      "default": "t:text_defaults.reset_password_description"
+    },
+    {
+      "type": "header",
+      "content": "t:content.button"
+    },
+    {
+        "type": "checkbox",
+        "id": "icon_button",
+        "label": "t:settings.show_btn_icon",
+        "default": true
+    },
+    {
+        "type": "select",
+        "label": "t:settings.icon_button",
+        "id": "icon_btn_custom",
+        "options": [
+            {
+                "value": "angle-right",
+                "label": "t:options.ic_angle_right"
+            },
+            {
+                "value": "angles-right",
+                "label": "t:options.ic_angles_right"
+            },
+            {
+                "value": "arrow-45deg",
+                "label": "t:options.ic_arrow_45deg"
+            },
+            {
+              "value": "arrow-45deg-2",
+              "label": "t:options.ic_arrow_45deg_2"
+            },
+            {
+                "value": "arrow-right-2",
+                "label": "t:options.ic_arrow_right"
+            },
+            {
+                "value": "arrow-circle-45deg-fill",
+                "label": "t:options.ic_circle_arrow_45deg"
+            },
+            {
+                "value": "arrow-circle-45deg-outline",
+                "label": "t:options.ic_circle_arrow_45deg_outline"
+            },
+            {
+                "value": "arrow-circle-right-fill",
+                "label": "t:options.ic_circle_arrow_right"
+            },
+            {
+                "value": "arrow-circle-right-outline",
+                "label": "t:options.ic_circle_arrow_right_outline"
+            },
+        ],
+        "visible_if": "{{ section.settings.icon_button == true }}",
+        "default": "arrow-circle-45deg-fill",
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

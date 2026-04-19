@@ -1,0 +1,26 @@
+{%- liquid
+  assign product = closest.product
+  if request.visual_preview_mode and product == blank
+    assign product = collections.all.products.first
+  endif
+-%}
+<div class="hdt-product-info__item hdt-product__title hdt-s-text hdt-product-info__item--text" data-type="title" {{ block.shopify_attributes }}>
+    {%- if section.settings.product or section.id contains 'main-qv' -%}
+    {%- assign onboarding_title = 'onboarding.product_title' | t -%}
+    <h2 class="hdt-h4"><a href="{{ section.settings.product.url }}">{{ section.settings.product.title | default: product.title | default: onboarding_title }}</a></h2>
+    {%- else -%}
+    <h1 class="hdt-h4">{{ product.title }}</h1>
+    {%- endif -%}
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.product_title",
+    "tag": null,
+    "presets": [
+      {
+        "name": "t:names.product_title",
+      }
+    ]
+  }
+  {% endschema %}

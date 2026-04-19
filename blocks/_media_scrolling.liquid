@@ -1,0 +1,97 @@
+{%- liquid
+  if section.index == 1
+    assign loading = 'eager'
+  else
+    assign loading = 'lazy'
+  endif
+  assign media_overlay_opacity = 100 | minus: block.settings.media_overlay_opacity
+-%}
+<div class="hdt-scroll-media-with-text__media hdt-pe-none" style="--overlay-opacity: {{ media_overlay_opacity }}%;" {{ block.shopify_attributes }}>
+  {%- if block.settings.media_type == 'image' -%}
+    {%- liquid
+      if block.settings.image != blank
+        assign append_w = block.settings.image.width | default: 4000
+        assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3400,3600,3800,' | append: append_w
+        echo '<picture class="hdt-media-wrapper">'
+        if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+          assign append_w_mb = block.settings.image_mb.width | default: 1000
+          assign widths_mb = '200,400,600,800,1000,1200,' | append: append_w_mb
+          assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+          unless srcset contains 'src='
+            echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+          endunless
+        endif
+        echo block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: 'calc(100vw + 50px)', widths: widths
+        echo '</picture>'
+      else
+        echo '<div class="hdt-media-wrapper">'
+        echo 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+        echo '</div>'
+      endif
+    -%}
+  {%- else -%}
+    <div class="hdt-media-wrapper">
+      {%- if block.settings.video != blank -%}
+        <hdt-video notInView autoplay type="html5" is--lazy>
+          {%- render 'video', video: block.settings.video, show_image: true, image: block.settings.cover_image, sizes: 'calc(100vw + 50px)', hidden_poster: true, lazyload: true, widths: '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3400,3600,3800' -%}
+        </hdt-video>
+      {%- else -%}
+        {{- 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder' -}}
+      {%- endif  -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.media",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "t:settings.media_type",
+      "options": [
+        {
+          "value": "image",
+          "label": "t:options.image"
+        },
+        {
+          "value": "video",
+          "label": "t:options.video"
+        }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:settings.image",
+      "info": "t:info.image_3200",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mb",
+      "label": "t:settings.image_mb",
+      "info": "t:info.image_mb",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "t:settings.video",
+      "visible_if": "{{ block.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "range",
+      "id": "media_overlay_opacity",
+      "label": "t:settings.media_overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "default": 0
+    },
+  ]
+}
+{% endschema %}

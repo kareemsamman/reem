@@ -1,0 +1,153 @@
+
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__basic-custom hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-{{ section.settings.section_width }} hdt-closest-block hdt-text-{{ section.settings.alignment }}" {% if section.settings.section_width == 'container-custom' %} style="--max-w-container: {{ section.settings.max_width }}px"{% endif %}>{% content_for 'blocks' %}</div>
+</div>
+
+{% schema %}
+  {
+    "name": "t:names.basic_custom",
+    "tag": "section",
+    "class": "hdt-section",
+    "disabled_on": {
+      "groups": [
+        "*"
+      ]
+    },
+    "settings": [
+        {
+            "type": "select",
+            "id": "section_width",
+            "options": [
+            {
+                "value": "container",
+                "label": "t:options.container"
+            },
+            {
+                "value": "container-xl",
+                "label": "t:options.full_width"
+            },
+            {
+                "value": "container-custom",
+                "label": "t:options.custom"
+            }
+            ],
+            "default": "container",
+            "label": "t:settings.section_width"
+        },
+        {
+            "type": "range",
+            "id": "max_width",
+            "min": 400,
+            "max": 1400,
+            "step": 20,
+            "unit": "px",
+            "label": "t:settings.max_custom_width",
+            "default": 860,
+            "visible_if": "{{ section.settings.section_width == 'container-custom' }}"
+        },
+        {
+            "type": "text_alignment",
+            "id": "alignment",
+            "label": "t:settings.alignment",
+            "default": "center"
+        },
+        {
+            "type": "color_scheme",
+            "id": "color_scheme",
+            "label": "t:settings.color_scheme",
+            "default": "scheme-1"
+        },
+        {
+            "type": "header",
+            "content": "t:content.section_padding"
+        },
+        {
+            "type": "range",
+            "id": "padding_top_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top",
+            "default": 100
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom",
+            "default": 100
+        },
+        {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top_mb",
+            "default": 60
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom_mb",
+            "default": 60
+        }
+    ],
+    "blocks": [
+      { "type": "@theme"},
+      { "type": "@app" }
+    ],
+    "presets": [
+      {
+        "name": "t:names.basic_custom",
+        "category": "t:categories.layout",
+        "blocks": [
+          {
+            "type": "heading",
+            "settings": {
+              "heading": "Heading",
+              "heading_size": "h2",
+              "heading_tag": "h2",
+              "uppercase": false
+            }
+          },
+          {
+            "type": "text",
+            "settings": {
+              "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
+              "text_size": "base",
+              "hide_mobile": false
+            }
+          },
+          {
+            "type": "group-button",
+            "settings": {
+              "stack_buttons": false
+            },
+            "blocks": [
+              {
+                "type": "_button",
+                "settings": {
+                  "button_label": "Button label",
+                  "button_link": "",
+                  "open_in_new_tab": false,
+                  "button_size": "m",
+                  "button_style": "solid",
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

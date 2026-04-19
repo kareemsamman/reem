@@ -1,0 +1,21 @@
+<div class="hdt-product-info__item hdt-product__liquid hdt-product-info__item--text rte" data-type="liquid" data-need-update {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>
+
+{% schema %}
+{
+  "name": "t:names.custom_liquid",
+  "tag": null,
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "t:settings.liquid_code",
+      "info": "t:info.liquid_code",
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.custom_liquid",
+    }
+  ]
+}
+{% endschema %}

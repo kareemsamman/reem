@@ -1,0 +1,78 @@
+{
+  "name": "t:names.footer_group",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "newsletter": {
+          "type": "newsletter",
+          "settings": {
+            "heading": "Sign up now",
+            "heading_size": "h4",
+            "heading_size_custom": 50,
+            "heading_size_custom_mb": 30,
+            "heading_tag": "h2",
+            "description": "<p>Stay in the loop, with exclusive offers and product previews.</p>",
+            "show_icon": true,
+            "icon_btn_custom": "arrow-circle-45deg-fill",
+            "image_width": 30,
+            "show_as_accordion": false,
+            "open_accordion": false
+          }
+        },
+        "link_list_LFQQE3": {
+          "type": "link_list",
+          "settings": {
+            "menu": "footer",
+            "heading": "Help",
+            "max_width": 300,
+            "show_as_accordion": true,
+            "open_accordion": false
+          }
+        },
+        "link_list_ixFa3m": {
+          "type": "link_list",
+          "settings": {
+            "menu": "about-us",
+            "heading": "About us",
+            "max_width": 220,
+            "show_as_accordion": true,
+            "open_accordion": false
+          }
+        }
+      },
+      "block_order": [
+        "newsletter",
+        "link_list_LFQQE3",
+        "link_list_ixFa3m"
+      ],
+      "settings": {
+        "color_scheme": "scheme-4",
+        "full_width": false,
+        "show_separator_line": false,
+        "heading_uppercase": false,
+        "enable_ft_sticky": false,
+        "show_social": true,
+        "display_social": "newsletter",
+        "enable_country_selector": true,
+        "show_country_name": true,
+        "show_country_flag": true,
+        "enable_language_selector": true,
+        "display_localization": "newsletter",
+        "enable_follow_on_shop": true,
+        "display_shop": "newsletter",
+        "show_powerby_shopify": true,
+        "show_policy": false,
+        "payment_enable": true,
+        "padding_top_xl": 48,
+        "padding_bottom_xl": 16,
+        "padding_top": 48,
+        "padding_bottom": 16
+      }
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

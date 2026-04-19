@@ -1,0 +1,124 @@
+{%- capture date %}{{ block.settings.year }}/{{ block.settings.month }}/{{ block.settings.day }} {{ block.settings.hour }}:{{ block.settings.minute }}{% endcapture -%}
+{%- assign date_at_time = date | date: format: 'date_at_time' -%}
+<div can-reveal class="hdt-coundown-box-wrap hdt-theme-block hide-cd-elapsed"{% if request.visual_preview_mode %} data-shopify-visual-preview{% endif %} {{ block.shopify_attributes }}>
+  <hdt-countdown class="hdt-countdown hdt-countdown--end-{{ block.settings.action_elapsed }} hdt-coundtdown-box{% if block.settings.transparent_background %} hdt-no-background{% endif %}" aria-label="{{ 'accessibility.countdown_expired' | t: date_at_time: date_at_time }}" config='{"datetime": "{{ date | date: '%Y-%m-%dT%T' }}", "actionElapsed": "{{ block.settings.action_elapsed }}", "hasZero": false }' {{ block.shopify_attributes }}>      
+      <hdt-countdown-item is="days" can-reveal>
+        <div class="hdt-countdown-timer-numbers hdt-h2"><hdt-countdown-number num="0" eff hide-countdown-num>0</hdt-countdown-number><hdt-countdown-number num="0" eff>0</hdt-countdown-number><hdt-countdown-number num="0" eff>0</hdt-countdown-number></div><span part="tmp_num">00</span>
+        <hdt-countdown-text singular="{{ 'countdown_timmer.day' | t | escape }}" class="hdt-countdown__text hdt-grid hdt-text-base hdt-s-text">{{ 'countdown_timmer.day_plural' | t }}</hdt-countdown-text>
+      </hdt-countdown-item>
+      <div class="hdt-countdown-timer-divider"></div>
+      <hdt-countdown-item is="hours" can-reveal>
+        <div class="hdt-countdown-timer-numbers hdt-h2"><hdt-countdown-number limit="3" num="0" eff>0</hdt-countdown-number><hdt-countdown-number num="0" eff>0</hdt-countdown-number></div><span part="tmp_num">00</span>
+        <hdt-countdown-text singular="{{ 'countdown_timmer.hr' | t | escape }}" class="hdt-countdown__text hdt-grid hdt-text-base hdt-s-text">{{ 'countdown_timmer.hr_plural' | t }}</hdt-countdown-text>
+      </hdt-countdown-item>
+      <div class="hdt-countdown-timer-divider"></div>
+      <hdt-countdown-item is="minutes" numbers="00" can-reveal>
+        <div class="hdt-countdown-timer-numbers hdt-h2"><hdt-countdown-number num="0" limit="6" eff>0</hdt-countdown-number><hdt-countdown-number num="0" eff>0</hdt-countdown-number></div><span part="tmp_num">00</span>
+        <hdt-countdown-text singular="{{ 'countdown_timmer.min' | t | escape }}" class="hdt-countdown__text hdt-grid hdt-text-base hdt-s-text">{{ 'countdown_timmer.min_plural' | t }}</hdt-countdown-text>
+      </hdt-countdown-item>
+      <div class="hdt-countdown-timer-divider"></div>
+      <hdt-countdown-item is="seconds" numbers="00" can-reveal>
+        <div class="hdt-countdown-timer-numbers hdt-h2"><hdt-countdown-number num="0" limit="6" eff>0</hdt-countdown-number><hdt-countdown-number num="0" eff>0</hdt-countdown-number></div><span part="tmp_num">00</span>
+        <hdt-countdown-text singular="{{ 'countdown_timmer.sec' | t | escape }}" class="hdt-countdown__text hdt-grid hdt-text-base hdt-s-text">{{ 'countdown_timmer.sec_plural' | t }}</hdt-countdown-text>
+      </hdt-countdown-item>
+  </hdt-countdown>
+  {%- if block.settings.action_elapsed == 'hide_cd_show_mess' %}<div class="hdt-countdown-mess rte hdt-s-text hdt-text-lg hdt-uppercase" hidden>{{ block.settings.message }}</div>{% endif -%}
+</div>
+{% schema %}
+    {
+        "name": "t:names.countdown_timer_box",
+        "tag": null,
+        "settings": [
+            {
+                "type": "paragraph",
+                "content": "t:content.coundown_timer"
+            },
+            {
+                "type": "paragraph",
+                "content": "t:content.timezone_help"
+            },
+            {
+                "type": "range",
+                "id": "year",
+                "min": 2026,
+                "max": 2050,
+                "step": 1,
+                "label": "t:settings.year",
+                "default": 2028
+            },
+            {
+                "type": "range",
+                "id": "month",
+                "min": 1,
+                "max": 12,
+                "step": 1,
+                "label": "t:settings.month",
+                "default": 4
+            },
+            {
+                "type": "range",
+                "id": "day",
+                "min": 1,
+                "max": 31,
+                "step": 1,
+                "label": "t:settings.day",
+                "default": 19
+            },
+            {
+                "type": "range",
+                "id": "hour",
+                "min": 0,
+                "max": 23,
+                "step": 1,
+                "label": "t:settings.hour",
+                "default": 0
+            },
+            {
+                "type": "range",
+                "id": "minute",
+                "min": 0,
+                "max": 59,
+                "step": 1,
+                "label": "t:settings.minute",
+                "default": 0
+            },
+            {
+                "type": "radio",
+                "id": "action_elapsed",
+                "options": [
+                  {
+                    "value": "zero",
+                    "label": "t:options.leave_timer_at_zero"
+                  },
+                  {
+                    "value": "hide",
+                    "label": "t:options.hide_timer"
+                  },
+                  {
+                    "value": "hide_cd_show_mess",
+                    "label": "t:options.hide_cd_show_mess"
+                  }
+                ],
+                "default": "zero",
+                "label": "t:settings.action_elapsed"
+            },
+            {
+                "type": "inline_richtext",
+                "id": "message",
+                "label": "t:settings.timer_end_message",
+                "default": "t:text_defaults.timer_end_message"
+            },
+            {
+              "type": "checkbox",
+              "id": "transparent_background",
+              "default": true,
+              "label": "t:settings.transparent_background"
+            }
+        ],
+        "presets": [
+          {
+            "name": "t:names.countdown_timer_box",
+          }
+        ]
+    }
+{% endschema %}

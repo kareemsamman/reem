@@ -1,0 +1,413 @@
+{%- liquid
+  if section.index == 1
+    assign fetch_priority = 'high'
+    assign loading = 'eager'
+  else
+    assign fetch_priority = 'auto'
+    assign loading = 'lazy'
+  endif
+  if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+    assign reveal = 'reveal'
+  else
+    assign reveal = ''
+  endif
+  if section.settings.image_ratio == 'portrait'
+    assign image_ratio = '4/5'
+  elsif section.settings.image_ratio == 'square'
+    assign image_ratio = '1/1'
+  endif
+-%}
+  
+  <div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__round-collections hdt-section-spacing hdt-s-gradient{% if section.settings.hide_desktop %} hdt-section__collection-list--hide-md{% endif %}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-container{% if section.settings.full_width %}-xl hdt-slider__overflow hdt-container-spacing{% endif %}">
+      {%- if section.settings.caption != blank or section.settings.heading != blank or section.settings.description != blank -%}
+      <div class="hdt-section__header{% if section.settings.header_center %} hdt-text-center{% endif %}">
+        {%- if section.settings.caption != blank %}<p class="hdt-caption hdt-text-sm hdt-uppercase hdt-s-text">{{ section.settings.caption }}</p>{% endif -%}
+        {%- if section.settings.heading != blank %}<{{ section.settings.heading_tag }} class="hdt-{{ section.settings.heading_size }} hdt-heading">{{ section.settings.heading }}</{{ section.settings.heading_tag }}>{% endif -%}
+        {%- if section.settings.description != blank %}<div class="hdt-description hdt-text-base rte hdt-s-text">{{ section.settings.description }}</div>{% endif -%}
+      </div>
+      {%- endif -%}
+      <div class="hdt-collection-list hdt-collection-card--rounded-full">
+        <hdt-slider-reveal {% if reveal == 'reveal' %}reveal-on-scroll{% endif %} id="Slider-{{ section.id }}" autoheight class="hdt-slider hdt-height--adapt_image" config='{ "autoHeight": true, "ntCenter": {{ section.settings.header_center }}, "variableWidths": true, "loop": false, "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(min-width: 768px)": {  "active": true } } }'>
+          <div class="hdt-slider__viewport">
+            <div class="hdt-slider__container hdt-text-center">
+              {%- for block in section.blocks -%}
+                {%- liquid
+                  assign collection = block.settings.collection
+                  assign image = block.settings.image | default: collection.featured_image
+                  assign title = block.settings.title | default: collection.title
+                  assign link = block.settings.link | default: collection.url
+                  assign ratio_class = section.settings.image_ratio
+                -%}
+                <div class="hdt-slider__slide hdt-collection-card hdt-ratio--{{ ratio_class }}" {{ block.shopify_attributes }}>
+                  {%- if link != blank -%}
+                  <a href="{{ link }}" class="hdt-collection-card-inner hdt-oh hdt-rounded-f hdt-collection-card-rounded hdt-hover-line-wrap" {{ reveal }}{% unless image_ratio %} style="--aspect-ratioapt-origin: {{ image.aspect_ratio | default: 1 }}"{% endunless %}>
+                  {%- else -%}
+                  <div class="hdt-collection-card-inner hdt-oh hdt-rounded-f hdt-collection-card-rounded" {{ reveal }}{% unless image_ratio %} style="--aspect-ratioapt-origin: {{ image.aspect_ratio | default: 1 }}"{% endunless %}>
+                  {%- endif -%}
+                      <div class="hdt-collection-card__media hdt-ratio" calc-nav>
+                        {%- liquid
+                          if image != blank
+                            echo image | image_url: width: image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: '120px', widths: '120,240', class: 'hdt-zoom-img', alt: '', aria_hidden: 'true'
+                          else
+                            capture current
+                            cycle 1, 2 , 3, 4
+                            endcapture
+                            echo 'collection-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-zoom-img'
+                          endif
+                        -%}
+                      </div>
+                      <div class="hdt-collection-card__content hdt-place-self-end-center xl:hdt-place-self-end-center hdt-hide-bg-content">
+                        {%- if block.settings.badge_text != blank -%}
+                          <span class="hdt-badge hdt-badge--collection hdt-uppercase hdt-text-xs{% if block.settings.badge_shaking %} hdt-badge--shaking-x hdt-shaking-x--center hdt-ani-infinite{% endif %}" style="--badge-color: {{ block.settings.bagde_color }}; --badge-bg-color: {{ block.settings.bagde_background_color }};"><span class="hdt-truncate">{{ block.settings.badge_text | escape }}</span></span>
+                        {%- endif -%}
+                        {%- capture get_title -%}
+                          {%- liquid
+                            if title != blank
+                              echo title
+                            else
+                              echo 'onboarding.collection_title' | t | escape
+                            endif
+                          -%}
+                        {%- endcapture -%}
+                        <div class="hdt-collection-card__title hdt-text-base hdt-font-medium" data-hover="{{ get_title | escape }}"><span class="hdt-line-clamp{% if link != blank %} hdt-hover-line{% endif %}">{{ get_title | escape }}</span></div>
+                      </div>
+                  {%- if link != blank -%}
+                  </a>
+                  {%- else -%}
+                  </div>
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+          <hdt-slider-nav center class="hdt-slider-nav--back-next hdt-slider-nav hdt-slider-nav--soh hdt-slider-nav--solid" aria-controls="Slider-{{ section.id }}">
+            <button class="hdt-btn--inner" type="button" name="previous" aria-label="{{ 'accessibility.go_prev_slide' | t | escape }}" class="hdt-icon--hover__sidex">
+              <span circle-bg-wrap class="hdt-inner-btn">
+                {{- 'icon-back.svg' | inline_asset_content -}}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </span>
+            </button>
+            <button class="hdt-btn--inner" type="button" name="next" aria-label="{{ 'accessibility.go_next_slide' | t | escape }}" class="hdt-icon--hover__sidex" reverse-ani>
+              <span circle-bg-wrap class="hdt-inner-btn">
+              {{- 'icon-next.svg' | inline_asset_content -}}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+              </span>
+            </button>
+          </hdt-slider-nav>
+          <hdt-slider-dots aria-controls="Slider-{{ section.id }}" class="hdt-slider-dots hdt-slider-dots--round-collections hdt-slider-dots__progressbar"></hdt-slider-dots>
+        </hdt-slider-reveal>
+      </div>
+    </div>
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.round_collections",
+    "tag": "section",
+    "class": "hdt-section",
+    "disabled_on": {
+      "groups": [
+        "*"
+      ]
+    },
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "reveal_on_scroll",
+        "label": "t:settings.reveal_on_scroll",
+        "info": "t:info.reveal_on_scroll",
+        "default": true,
+        "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+      },
+      {
+        "type": "checkbox",
+        "id": "full_width",
+        "label": "t:settings.make_full_width",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "hide_desktop",
+        "label": "t:settings.hide_desktop",
+        "default": false
+      },
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-1"
+      },
+      {
+        "type": "header",
+        "content": "t:content.section_header"
+      },
+      {
+        "type": "text",
+        "id": "caption",
+        "label": "t:settings.caption"
+      },
+      {
+        "type": "inline_richtext",
+        "id": "heading",
+        "label": "t:settings.heading",
+        "default": "t:text_defaults.collections"
+      },
+      {
+        "type": "select",
+        "id": "heading_size",
+        "options": [
+          {
+            "value": "h2",
+            "label": "t:options.heading_large"
+          },
+          {
+            "value": "h3",
+            "label": "t:options.heading_medium"
+          },
+          {
+            "value": "h4",
+            "label": "t:options.heading_small"
+          },
+          {
+            "value": "h5",
+            "label": "t:options.heading_extra_small"
+          },
+          {
+            "value": "h6",
+            "label": "t:options.heading_2extra_small"
+          }
+        ],
+        "default": "h4",
+        "label": "t:settings.heading_size",
+        "visible_if": "{{ section.settings.heading != blank }}"
+      },
+      {
+        "type": "select",
+        "id": "heading_tag",
+        "label": "t:settings.heading_tag",
+        "info": "t:info.heading_tag",
+        "options": [
+          {
+            "value": "h1",
+            "label": "t:options.h1"
+          },
+          {
+            "value": "h2",
+            "label": "t:options.h2"
+          },
+          {
+            "value": "h3",
+            "label": "t:options.h3"
+          },
+          {
+            "value": "h4",
+            "label": "t:options.h4"
+          },
+          {
+            "value": "h5",
+            "label": "t:options.h5"
+          },
+          {
+            "value": "h6",
+            "label": "t:options.h6"
+          },
+          {
+            "value": "div",
+            "label": "t:options.div"
+          },
+          {
+            "value": "span",
+            "label": "t:options.span"
+          },
+          {
+            "value": "p",
+            "label": "t:options.p"
+          }
+        ],
+        "default": "h2",
+        "visible_if": "{{ section.settings.heading != blank }}"
+      },
+      {
+        "type": "richtext",
+        "id": "description",
+        "label": "t:settings.description"
+      },
+      {
+        "type": "checkbox",
+        "id": "header_center",
+        "label": "t:settings.align_center",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "t:content.collection_cards"
+      },
+      {
+        "type": "select",
+        "id": "image_ratio",
+        "options": [
+          {
+            "value": "adapt_image",
+            "label": "t:options.adapt_to_image"
+          },
+          {
+            "value": "portrait",
+            "label": "t:options.portrait"
+          },
+          {
+            "value": "square",
+            "label": "t:options.square"
+          }
+        ],
+        "default": "square",
+        "label": "t:settings.image_ratio"
+      },
+      {
+        "type": "header",
+        "content": "t:content.section_padding"
+      },
+      {
+        "type": "range",
+        "id": "padding_top_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top",
+        "default": 60,
+        "visible_if": "{{ section.settings.hide_desktop == false }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom",
+        "default": 60,
+        "visible_if": "{{ section.settings.hide_desktop == false }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top_mb",
+        "default": 40
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom_mb",
+        "default": 40
+      }
+    ],
+    "blocks": [
+      {
+        "type": "collection",
+        "name": "t:names.collection",
+        "settings": [
+          {
+            "type": "collection",
+            "id": "collection",
+            "label": "t:settings.collection"
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "t:settings.image",
+            "info": "t:info.image_collection_240"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "t:settings.title",
+            "info": "t:info.collection_title"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "t:settings.link",
+            "info": "t:info.collection_link"
+          },
+          {
+            "type": "header",
+            "content": "t:content.badge"
+          },
+          {
+            "type": "text",
+            "id": "badge_text",
+            "label": "t:settings.text"
+          },
+          {
+            "type": "color",
+            "id": "bagde_color",
+            "label": "t:settings.color",
+            "default": "#ffffff",
+            "visible_if": "{{ block.settings.badge_text != blank }}"
+          },
+          {
+            "type": "color",
+            "id": "bagde_background_color",
+            "label": "t:settings.background",
+            "default": "#D64949",
+            "visible_if": "{{ block.settings.badge_text != blank }}"
+          },
+          {
+            "type": "checkbox",
+            "id": "badge_shaking",
+            "label": "t:settings.shaking",
+            "default": false,
+            "visible_if": "{{ block.settings.badge_text != blank }}"
+          },
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.round_collections",
+        "category": "t:categories.collections",
+        "blocks": [
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          }
+        ]
+      }
+    ]
+  }
+  {% endschema %}

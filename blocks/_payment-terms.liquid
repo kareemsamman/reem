@@ -1,0 +1,39 @@
+{%- liquid
+  assign product = section.settings.product | default: product
+  assign product_form_installment_id = 'product-form-installment-' | append: block.id
+  if settings.pick_mode == 'no' and product.variants_count > 1
+    assign selected_variant = product.selected_variant
+  elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+    assign selected_variant = product.selected_variant | default: product.variants.first
+  else
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+-%}
+{%- comment %}https://shopify.dev/docs/storefronts/themes/pricing-payments/installments {% endcomment -%}
+
+{%- if product != blank -%}
+<div class="hdt-product-info__item hdt-product-info__payment-terms hdt-product-info__item--text" data-type="payment-terms" data-need-update {{ block.shopify_attributes }}>
+  {%- form 'product', product, id: product_form_installment_id, class: 'hdt-installment' -%}
+    <input type="hidden" name="id" value="{{ selected_variant.id }}">
+    {{- form | payment_terms -}}
+  {%- endform -%}
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.installments_banner",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.payment_term"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.installments_banner"
+    }
+  ]
+}
+{% endschema %}

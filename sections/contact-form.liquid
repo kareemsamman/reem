@@ -1,0 +1,211 @@
+{%- liquid
+  if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+    assign reveal = 'reveal="left"'
+  else
+    assign reveal = ''
+  endif
+-%}
+
+{%- assign form_id = 'ContactForm' | append: section.id -%}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__contact hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px">
+  <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %}"{% if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll %} reveal-on-scroll{% endif %}>
+    <div class="hdt-contact-form-wrap{% if section.settings.layout_two_cols %} hdt-contact-form--two-cols{% endif %}">
+        {%- content_for 'block', type: '_section-header-contact', id: 'section-header-contact' -%}
+        <div class="hdt-form-wrap hdt-form-wrap--contact">
+        <span class="sr-only">{{ 'contact.form.title' | t }}</span>
+        {%- form 'contact', id: form_id, class: 'hdt-form hdt-form--move-text' -%}
+            {%- if form.posted_successfully? -%}
+            <div class="hdt-form__alert hdt-form__alert--success hdt-rounded-sm" tabindex="-1" autofocus><span>{{ 'icon-success.svg' | inline_asset_content }}{{ 'contact.form.post_success' | t }}</span></div>
+            {%- elsif form.errors -%}
+            <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm">
+                <p class="hdt-form-alert__title hdt-h6" role="alert" tabindex="-1" autofocus>{{ 'icon-error.svg' | inline_asset_content }}{{ 'contact.form.error_heading' | t }}</p>
+                <ul role="list">
+                <li><a href="#{{ form_id }}-email" class="link">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</a></li>
+                </ul>
+            </div>
+            {%- endif -%}
+            <div class="hdt-form-row hdt-row-grid md:hdt-grid-cols-2 hdt-grid-cols-1">
+            <div class="hdt-field">
+                <input class="hdt-field__input hdt-input" autocomplete="name" type="text" id="{{ form_id }}-name" name="contact[{{ 'contact.form.name' | t }}]" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" placeholder="{{ 'contact.form.name' | t }}" {{ reveal }}>
+                <label class="hdt-field__label sr-only" for="{{ form_id }}-name"><span class="hdt-truncate">{{ 'contact.form.name' | t }}</span></label>
+            </div>
+            <div class="hdt-field{% if form.errors contains 'email' %} hdt-field--with-error{% endif %}">
+                <input required="required" autocomplete="email" type="email" id="{{ form_id }}-email" class="hdt-field__input hdt-input" name="contact[email]" spellcheck="false" autocapitalize="off"
+                value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" aria-required="true"{% if form.errors contains 'email' %} aria-invalid="true" aria-describedby="{{ form_id }}-email-error"{% endif %} placeholder="{{ 'contact.form.email' | t }} *" {{ reveal }}>
+                <label class="hdt-field__label sr-only" for="{{ form_id }}-email"><span class="hdt-truncate">{{- 'contact.form.email' | t }} <i aria-hidden="true">*</i></span></label>
+                {%- if form.errors contains 'email' -%}
+                <small class="hdt-contact__field-error hdt-form-field__msg hdt-s-text" id="{{ form_id }}-email-error">
+                    <span class="sr-only">{{ 'accessibility.error' | t }}</span>{{ 'icon-error.svg' | inline_asset_content }}<span>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</span>
+                </small>
+                {%- endif -%}
+            </div>
+            </div>
+            {%- content_for 'blocks' -%}
+            <div class="hdt-field">
+            <textarea rows="10" id="{{ form_id }}-body" class="hdt-textarea" name="contact[body]" placeholder="{{ 'contact.form.comment' | t }}" {{ reveal }}>
+                {{- form.body -}}
+            </textarea>
+            </div>
+            <div class="hdt-contact__button hdt-text-center">
+              <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-{{ section.settings.button_stype }} hdt-btn--size-l{% if section.settings.layout_two_cols %} hdt-btn-full-width{% endif %}{% if section.settings.show_button_icon %} hdt-btn--with-icon{% endif %}{% if section.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}" {{ reveal }}>
+                {{- 'contact.form.send_message' | t -}}
+                {%- if section.settings.show_button_icon %}{{ 'icon-circle-arrow.svg' | inline_asset_content }}{% endif -%}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </button>
+            </div>
+        {%- endform -%}
+        </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.contact_form",
+  "tag": "section",
+  "class": "hdt-section",
+  "limit": 1,
+  "max_blocks": 10,
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  },
+  "settings": [
+    {
+        "type": "checkbox",
+        "id": "reveal_on_scroll",
+        "label": "t:settings.reveal_on_scroll",
+        "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:settings.make_full_width",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "layout_two_cols",
+      "label": "t:settings.desktop_layout_split",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "button_stype",
+      "label": "t:settings.button_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.button_solid"
+        },
+        {
+          "value": "outline",
+          "label": "t:options.button_outline"
+        },
+      ],
+      "default": "solid"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button_icon",
+      "label": "t:settings.show_button_icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "btn_uppercase",
+      "label": "t:settings.uppercase",
+      "default": false,
+      "visible_if": "{{ settings.btn_case != 'uppercase' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ],
+  "blocks": [{"type": "_section-header-contact"},{"type": "_custom-inputs"}],
+  "presets": [
+    {
+      "name": "t:names.contact_form",
+      "category": "t:categories.forms",
+      "blocks": [
+        {
+          "type": "_section-header-contact",
+          "static": true,
+          "id": "section-header-contact",
+          "blocks": [
+            {"type": "heading"},
+            {
+              "type": "spacer",
+              "settings": {
+                "space_xl": 30,
+                "space_md": 20,
+                "space": 20
+              },
+            },
+            {"type": "text"},
+            {
+              "type": "spacer",
+              "settings": {
+                "space_xl": 45,
+                "space_md": 26,
+                "space": 26
+              },
+            },
+            {"type": "_icon-with-text"},
+            {"type": "_icon-with-text"},
+            {"type": "_icon-with-text"},
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

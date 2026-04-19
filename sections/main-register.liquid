@@ -1,0 +1,198 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-register hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container">
+    <div class="hdt-sign-wrap hdt-s-text">
+      <div id="signup" class="hdt-sign-part">
+        {%- if section.settings.heading != blank or section.settings.description != blank -%}
+          <div class="hdt-section__header">
+            {%- if section.settings.heading != blank -%}
+              <h1 class="hdt-heading hdt-h1">{{ section.settings.heading | escape }}</h1>
+            {%- endif -%}
+            {%- if section.settings.description != blank -%}
+              <div class="hdt-customer-form-description rte">{{ section.settings.description }}</div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        <div class="hdt-customer-form-wrap">
+          {%- form 'create_customer', class: 'hdt-customer-form hdt-signup-form hdt-form--move-text', novalidate: 'novalidate' -%}
+            {%- if form.errors -%}
+              <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm">
+                <p class="hdt-form-alert__title hdt-h6">{{ 'icon-error.svg' | inline_asset_content }} {{ 'customer.register.error_message' | t }}</p>
+                <ul>
+                  {%- for field in form.errors -%}
+                    <li>
+                      {%- if field == 'form' -%}
+                        {{- form.errors.messages[field] -}}
+                      {%- else -%}
+                        <a href="#input--{{ section.id }}--{{ field }}">{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</a>
+                      {%- endif -%}
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
+            <div class="hdt-form-row hdt-grid-cols-1">
+              <div class="hdt-field">
+                <input type="text" name="customer[first_name]" id="input--{{ section.id }}--first_name" class="hdt-input hdt-field__input" autocomplete="given-name"{% if form.first_name %} value="{{ form.first_name }}"{% endif %} placeholder="{{ 'customer.register.first_name' | t }}">
+                <label for="input--{{ section.id }}--first_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.register.first_name' | t | escape }}</span></label>
+              </div>
+            </div>
+            <div class="hdt-form-row hdt-grid-cols-1">
+              <div class="hdt-field">
+                <input type="text" name="customer[last_name]" id="input--{{ section.id }}--last_name" class="hdt-input hdt-field__input" autocomplete="family-name"{% if form.last_name %} value="{{ form.last_name }}"{% endif %} placeholder="{{ 'customer.register.last_name' | t }}">
+                <label for="input--{{ section.id }}--last_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.register.last_name' | t | escape }}</span></label>
+              </div>
+            </div>
+            <div class="hdt-form-row hdt-grid-cols-1">
+              <div class="hdt-field{% if form.errors contains 'email' %} hdt-field--with-error{% endif %}">
+                <input type="email" name="customer[email]" id="input--{{ section.id }}--email" class="hdt-input hdt-field__input" spellcheck="false" autocapitalize="off" autocomplete="email" aria-required="true"{% if form.errors contains 'email' %} aria-invalid="true" aria-describedby="RegisterForm-email-error"{% endif %} placeholder="{{ 'customer.register.email' | t }}">
+                <label for="input--{{ section.id }}--email" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.register.email' | t | escape }}</span></label>
+                {%- if form.errors contains 'email' -%}
+                  <small id="RegisterForm-email-error" class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ form.errors.translated_fields.email | capitalize }}  {{ form.errors.messages.email }}</span></small>
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="hdt-form-row hdt-grid-cols-1">
+              <div class="hdt-field hdt-field--with-icon__end{% if form.errors contains 'password' %} hdt-field--with-error{% endif %}">
+                <input type="password" name="customer[password]" id="input--{{ section.id }}--password" class="hdt-input hdt-field__input" aria-required="true"{% if form.errors contains 'password' %} aria-invalid="true" aria-describedby="RegisterForm-password-error"{% endif %} placeholder="{{ 'customer.register.password' | t }}">
+                <label for="input--{{ section.id }}--password" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.register.password' | t | escape }}</span></label>
+                <hdt-show-password input-id="input--{{ section.id }}--password" class="hdt-show-pw hdt-field-icon hdt-field-icon--end hdt-hover-bg-zoom-b">{{ 'icon-eye-open.svg' | inline_asset_content }}{{ 'icon-eye-slash.svg' | inline_asset_content }}</hdt-show-password>
+                {%- if form.errors contains 'password' -%}
+                  <small id="RegisterForm-password-error" class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ form.errors.translated_fields.password | capitalize }}  {{ form.errors.messages.password }}</span></small>
+                {%- endif -%}
+              </div>
+            </div>
+            <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn-solid hdt-btn--size-l hdt-btn-full-width hdt-btn--with-icon">
+              {{- 'customer.register.create_account' | t -}}
+              {%- if section.settings.icon_button %}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{% endif -%}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+            <p class="hdt-caption hdt-text-center">{{ 'customer.register.ask_sign_in' | t }} <a href="{{ routes.account_login_url }}" class="hdt-link-underline">{{ 'customer.register.sign_in' | t }}</a></p>
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% schema %}
+{
+  "name": "t:names.registration",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.register"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "t:settings.description",
+      "default": "t:text_defaults.register_description"
+    },
+    {
+        "type": "checkbox",
+        "id": "icon_button",
+        "label": "t:settings.show_btn_icon",
+        "default": true
+    },
+    {
+        "type": "select",
+        "label": "t:settings.icon_button",
+        "id": "icon_btn_custom",
+        "options": [
+            {
+                "value": "angle-right",
+                "label": "t:options.ic_angle_right"
+            },
+            {
+                "value": "angles-right",
+                "label": "t:options.ic_angles_right"
+            },
+            {
+                "value": "arrow-45deg",
+                "label": "t:options.ic_arrow_45deg"
+            },
+            {
+              "value": "arrow-45deg-2",
+              "label": "t:options.ic_arrow_45deg_2"
+            },
+            {
+                "value": "arrow-right-2",
+                "label": "t:options.ic_arrow_right"
+            },
+            {
+                "value": "arrow-circle-45deg-fill",
+                "label": "t:options.ic_circle_arrow_45deg"
+            },
+            {
+                "value": "arrow-circle-45deg-outline",
+                "label": "t:options.ic_circle_arrow_45deg_outline"
+            },
+            {
+                "value": "arrow-circle-right-fill",
+                "label": "t:options.ic_circle_arrow_right"
+            },
+            {
+                "value": "arrow-circle-right-outline",
+                "label": "t:options.ic_circle_arrow_right_outline"
+            },
+        ],
+        "visible_if": "{{ section.settings.icon_button == true }}",
+        "default": "arrow-circle-45deg-fill",
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,84 @@
+{%- capture icon_with_text_blocks -%}{% content_for 'blocks' %}{%- endcapture -%}
+{%- if icon_with_text_blocks != '' -%}
+    <div class="hdt-product-info__item hdt-product-info__item--iwtl hdt-product-info__item--box" {{ block.shopify_attributes }}>
+        {{- icon_with_text_blocks -}}
+    </div>
+{%- endif -%}
+
+{%- schema -%}
+{
+  "name": "t:names.icon_with_text_list",
+  "tag": null,
+  "blocks": [{ "type": "_product-icon-with-text" }],
+  "presets": [
+    {
+      "name": "t:names.icon_with_text_list",
+      "blocks": [
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "atmos",
+            "text": "Dolby Atmos"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "aware",
+            "text": "Aware mode"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "charge",
+            "text": "Rapid charging"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "battery",
+            "text": "Up to 30 hours of battery life"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "isolation",
+            "text": "Passive noise isolation"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "bluetooth",
+            "text": "Bluetooth®"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "cable",
+            "text": "USB-C and 3.5 mm"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "mobile-phone",
+            "text": "Works with Apple and Android"
+          },
+        },
+        { 
+          "type": "_product-icon-with-text",
+          "settings": {
+            "icon": "mic",
+            "text": "Dual microphone array"
+          },
+        }
+      ]
+    }
+  ]
+}
+{%- endschema -%}

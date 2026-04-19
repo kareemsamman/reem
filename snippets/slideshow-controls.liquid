@@ -1,0 +1,40 @@
+<div data-shrink-translate="{{ section.settings.pos }}" data-shrink-translate_mb="" class="hdt-slideshow__controls hdt-slideshow__controls--{{ section.settings.pagination_style }} hdt-text-center md:hdt-text-{{ section.settings.pos }}">
+  {%- if section.settings.pagination_style == 'numbers-arrows' -%}
+    <div class="hdt-slider-control--counter">
+        <hdt-slider-counter class="hdt-slider-counter hdt-slider-fraction hdt-inline-flex hdt-align-center" slider="Slider-{{ section.id }}">
+        <span update-current class="hdt-slider-counter--current">1</span>
+        <span aria-hidden="true" class="hdt-slider-counter--sep"></span>
+        <span class="sr-only">{{ 'accessibility.slider.of' | t }}</span>
+        <span update-total class="hdt-slider-counter--total">{{ section.blocks.size }}</span>
+        </hdt-slider-counter>
+        <hdt-slider-nav class="hdt-slider-nav--back-next" aria-controls="Slider-{{ section.id }}" update-color>
+            <button type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">{{ 'icon-arrow-left.svg' | inline_asset_content }}</button>
+            <button type="button" name="next" aria-label="{{ 'accessibility.slider.next_slide' | t }}">{{ 'icon-arrow-right.svg' | inline_asset_content }}</button>
+        </hdt-slider-nav>
+    </div>
+{%- elsif section.settings.pagination_style == 'pause-play-arrows' -%}
+    <div class="hdt-slider-control--pause-play">
+        <hdt-slider-nav class="hdt-slider-nav--back-next" aria-controls="Slider-{{ section.id }}"{% unless section.settings.auto_rotate %} update-color{% endunless %}>
+            <button type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">{{ 'icon-arrow-left.svg' | inline_asset_content }}</button>
+            <button type="button" name="next" aria-label="{{ 'accessibility.slider.next_slide' | t }}">{{ 'icon-arrow-right.svg' | inline_asset_content }}</button>
+        </hdt-slider-nav>
+        {%- if section.settings.auto_rotate -%}
+          <hdt-slider-play class="hdt-slider-play">
+            <button type="button" class="hdt-pause-play-btn" aria-controls="Slider-{{ section.id }}" aria-label="{{ 'accessibility.slider.pause_play' | t }}">
+                {{- 'icon-play.svg' | inline_asset_content -}}
+                {{- 'icon-pause.svg' | inline_asset_content -}}
+                {{- 'icon-progress.svg' | inline_asset_content -}}
+            </button>
+          </hdt-slider-play>
+        {%- endif -%}
+    </div>
+{%- else -%}
+  <hdt-slider-controls class="hdt-slider-controls" aria-controls="Slider-{{ section.id }}" update-color>
+    {%- for block_ in section.blocks -%}
+      <button class="hdt-point-area--after" type="button" value="{{ forloop.index0 }}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="{{ 'accessibility.go_to_item' | t: index: forloop.index }}">
+        {%- if section.settings.pagination_style == 'dots' -%}{{ 'icon-progress.svg' | inline_asset_content }}{%- endif -%}
+      </button>
+    {%- endfor -%}
+  </hdt-slider-controls>
+  {%- endif -%}
+</div>

@@ -1,0 +1,101 @@
+{%- doc -%}
+  Renders either a country selector, language selector, or both.
+  @param {string} id - The ID
+  @param {boolean} show_country_selector - Whether to show the country selector
+  @param {boolean} show_language_selector - Whether to show the language selector
+  @param {boolean} show_country_selector_mobile - Whether to show the country selector
+  @param {boolean} show_language_selector_mobile - Whether to show the language selector
+
+  @example
+  {%- render 'localization-form', id: 'Region', show_language_selector: true -%}
+{%- enddoc -%}
+
+
+{%- liquid
+  assign popular_countries = localization.available_countries | where: 'popular?' | sort: 'name'
+  assign popular_countries_iso = popular_countries | map: 'iso_code' | uniq
+
+  assign show_country_filter = false
+  if localization.available_countries.size > 12
+    assign show_country_filter = true
+  endif
+
+  assign show_popular_countries = false
+  if localization.available_countries.size > 9 and popular_countries.size > 1
+    assign show_popular_countries = true
+  endif
+  assign localization_form_id = id | append: 'LocalizationForm'
+-%}
+
+<hdt-popover data-auto-close update-pos-when-hover-focus{% if id == 'Header' %} popover-active-min-width="768"{% endif %}>
+  <dialog color-scheme="{{ settings.color_scheme_popover }}" class="hdt-popover hdt-popover-u hdt-popover-u--no-padding hdt-disclosure hdt-disclosure--group hdt-s-text" id="Popover-{{ id }}-Localization" data-country-mobile="{{ show_country_selector_mobile }}" data-country="{{ show_country_selector }}" data-language-mobile="{{ show_language_selector_mobile }}" data-language="{{ show_language_selector }}" scroll-lock>
+    <button ref="closeButton" class="hdt-s-text" aria-controls="Popover-{{ id }}-Localization" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+    <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+    <div class="hdt-popover__arrow"></div>
+    <div class="hdt-popover__body">
+  {%- if show_country_selector or show_country_selector_mobile -%}
+      <div data-country-a class="hdt-popover__header{% unless show_country_filter %} md:hdt-hidden{% endunless %}">
+        <p class="hdt-h5 hdt-country-selector-label hdt-text-sm hdt-uppercase">{{ 'localization.country_label' | t }}</p>
+        {%- if show_country_filter -%}
+        <hdt-country-filter class="hdt-country-filter hdt-form--move-text hdt-block">
+          <div class="hdt-field">
+            <input class="hdt-input hdt-field__input hdt-country-filter__input hdt-input--search" id="{{ id }}country-filter-input" type="search" name="country_filter" value="" placeholder="{{ 'localization.search' | t }}" role="combobox" aria-owns="country-results" aria-controls="country-results" aria-haspopup="listbox" aria-autocomplete="list" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <label class="hdt-field__label sr-only" for="{{ id }}country-filter-input"><span class="hdt-truncate">{{ 'localization.search' | t }}</span></label>
+            <button tabindex="-1" type="reset" class="hdt-country-filter__reset-button hdt-field__button hidden" aria-label="{{ 'localization.search_reset' | t | escape }}" aria-controls="country-results" aria-expanded="false" aria-haspopup="listbox">
+              {{- 'icon-reset.svg' | inline_asset_content -}}
+            </button>
+          </div>
+        </hdt-country-filter>
+        {%- endif -%}
+      </div>
+      <hdt-scroll-hint data-country-a class="hdt-popover__inner hdt-popover__inner--country hdt-scrollbar">
+        {%- if show_country_filter %}<div id="{{ id }}country-search-results" class="sr-only" aria-live="polite"></div>{% endif -%}
+        <localization-form class="hdt-contents"{% if id != 'Global' and localization.available_countries.size > 10 %} get-options{% endif %}{% if id == 'Header' %} on-header{% endif %}>
+          <p class="hdt-country-no-results" hidden>{{ 'localization.no_results' | t }}</p>
+          {%- form 'localization', id: localization_form_id, class: 'localization-form' -%}
+            <div class="hdt-disclosure__list hdt-country-selector__list hdt-grid" id="{{ id }}Country-country-results" role="listbox">
+              {%- if id == 'Global' or localization.available_countries.size <= 10 -%}
+                {%- if show_popular_countries -%}
+                {%- for country in popular_countries -%}
+                  <button type="submit" name="country_code" class="hdt-disclosure__item hdt-flex hdt-align-center" role="option" value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} aria-selected="true" {%- endif -%}>
+                    <img src="{{ country | image_url: width: 44 }}" alt="{{ country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">
+                    <span country>{{- country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})</span>
+                    {%- if country.iso_code == localization.country.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}
+                  </button>
+                {%- endfor -%}
+                {%- endif -%}
+                {%- for country in localization.available_countries -%}
+                  {%- liquid
+                    if show_popular_countries and popular_countries_iso contains country.iso_code
+                      continue
+                    endif
+                  -%}
+                  <button type="submit" name="country_code" class="hdt-disclosure__item hdt-flex hdt-align-center focus-inset-1" role="option" value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} aria-selected="true" {%- endif -%}>
+                    <img src="{{ country | image_url: width: 44 }}" alt="{{ country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">
+                    <span country>{{- country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})</span>
+                    {%- if country.iso_code == localization.country.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}
+                  </button>
+                {%- endfor -%}
+              {%- endif -%}
+            </div>
+          {%- endform -%}
+        </localization-form>
+      </hdt-scroll-hint>
+    {%- endif -%}
+    {%- if show_language_selector or show_language_selector_mobile -%}
+      <div data-language-a class="hdt-language-selector-label hdt-text-sm hdt-uppercase">{{ 'localization.language' | t }}</div>
+      <div data-language-a class="hdt-popover__inner hdt-popover__inner--language hdt-scrollbar">
+        <localization-form class="hdt-contents"{% if id == 'Header' %} on-header{% endif %}>
+        {%- form 'localization', id: localization_form_id, class: 'localization-form' -%}
+          <div class="hdt-disclosure__list hdt-language-selector__list hdt-grid" id="{{ id }}Language-language-results" role="listbox" aria-activedescendant="{{ id }}-option-language--{{ localization.language.iso_code }}">
+              {%- for language in localization.available_languages -%}
+                <button type="submit" name="language_code" class="hdt-disclosure__item hdt-flex hdt-align-center focus-inset-1" role="option" value="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} aria-selected="true" {%- endif -%}id="{{ id }}-option-language--{{ language.iso_code }}">{{ language.endonym_name | capitalize }}{%- if language.iso_code == localization.language.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}</button>
+              {%- endfor -%}
+          </div>
+        {%- endform -%}
+        </localization-form>
+      </div>
+    {%- endif -%}
+    </div>
+  </dialog>
+</hdt-popover>

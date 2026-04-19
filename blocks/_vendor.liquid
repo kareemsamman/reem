@@ -1,0 +1,27 @@
+{%- liquid
+    assign product = section.settings.product | default: product
+    assign vendor = product.vendor
+    assign vendor_handle = vendor | handle
+    if settings.use_url_collection_vendor and collections[vendor_handle] != blank
+      assign vendor_url = collections[vendor_handle].url
+    else
+      assign vendor_url = vendor | url_for_vendor
+    endif
+  -%}
+  {%- if vendor != blank -%}
+    <div class="hdt-product__vendor hdt-product-info__item--text hdt-text-xs hdt-font-semibold hdt-s-text" data-type="vendor" {{ block.shopify_attributes }}>
+      <span class="sr-only">{{- 'accessibility.vendor' | t -}}</span><a href="{{ vendor_url }}" class="hdt-main-product__vendor">{{- vendor | escape -}}</a>
+    </div>
+  {%- endif -%}
+  
+  {% schema %}
+  {
+    "name": "t:names.vendor",
+    "tag": null,
+    "presets": [
+      {
+        "name": "t:names.vendor",
+      }
+    ]
+  }
+  {% endschema %}

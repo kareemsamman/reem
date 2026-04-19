@@ -1,0 +1,44 @@
+{%- if block.settings.text != blank -%}
+    {%- liquid
+    assign hdt_un_style_link = ''
+    if block.settings.text contains '<a'
+        assign text_size = block.settings.text | size | minus: 1
+        assign text_size_start = text_size | minus: 3
+        assign star_text = block.settings.text | slice: 0, 2
+        assign end_text = block.settings.text | slice: text_size_start, text_size
+        assign arr_a = block.settings.text | split: '<a'
+        if arr_a.size == 2 and star_text == '<a' and end_text contains '</a>'
+        assign hdt_un_style_link = ' rte---un-style-link'
+        endif
+    endif
+    -%}
+    <div class="hdt-marquee-item__mess rte{{ hdt_un_style_link }} hdt-{{ section.settings.text_font }}{% if section.settings.uppercase %} hdt-uppercase{% endif %}{% if block.settings.outline_text %} hdt-outline-text{% endif %}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+    {%- assign shape = section.settings.shape | default: 'none' -%}
+    {%- if shape != 'none' -%}
+        <div class="hdt-shape-block hdt-shape__{{ shape }}"></div>
+    {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "t:names.message",
+    "tag": null,
+    "settings": [
+        {
+            "type": "inline_richtext",
+            "id": "text",
+            "default": "t:text_defaults.welcome_store",
+            "label": "t:settings.text"
+        },
+        {
+            "type": "checkbox",
+            "id": "outline_text",
+            "label": "t:settings.outline_text",
+            "default": false
+        },
+    ],
+    "presets": [
+      { "name": "t:names.message" }
+    ]
+  }
+{% endschema %}

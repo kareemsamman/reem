@@ -1,0 +1,33 @@
+<div class="hdt-theme-block hdt-group-button-block hdt-flex-block{% if block.settings.stack_buttons %} hdt-flex-col{% endif %}" style="--gap-btns: {{ block.settings.gap-btn }}px" {{ block.shopify_attributes }}>
+    {%-  content_for 'blocks' -%}
+</div>
+{% schema %}
+    {
+        "name": "t:names.group_button",
+        "tag": null,
+        "blocks": [{"type": "_button"}],
+        "settings": [
+            {
+                "type": "checkbox",
+                "id": "stack_buttons",
+                "label": "t:settings.stack_buttons",
+                "default": true
+            },
+            {
+                "type": "range",
+                "id": "gap-btn",
+                "label": "t:settings.button_gap",
+                "min": 0,
+                "max": 30,
+                "default": 15,
+                "unit": "px"
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.group_button",
+                "blocks": [{"type": "_button"}]
+            }
+        ]
+    }
+{% endschema %}

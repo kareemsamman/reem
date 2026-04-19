@@ -1,0 +1,10 @@
+{%- layout none -%}
+{%- liquid
+capture options_selected
+  for option in product.options_with_values
+  assign index = option.values | find_index: 'selected', true
+  echo option.values[index].id | append: '<br>'
+  endfor
+endcapture
+echo options_selected | split: '<br>' | json
+-%}

@@ -1,0 +1,81 @@
+{%- # theme-check-disable BlockIdUsage -%}
+{%- liquid
+  assign block_index = section.blocks | find_index: 'id', block.id
+  if block_index == 0
+    assign bf_image = 'first'
+    assign placeholder = 'detailed-apparel-1'
+  else
+    assign bf_image = 'last'
+    assign placeholder = 'hero-apparel-2'
+  endif
+
+assign image_mb = block.settings.image_mb | default: block.settings.image
+if section.index == 1
+  assign fetch_priority = 'high'
+  assign loading = 'eager'
+else
+  assign fetch_priority = 'auto'
+  assign loading = 'lazy'
+endif
+-%}
+
+{%- if bf_image == 'first' -%}
+<style>#before-after-{{ section.id }} { --aspect-ratioapt-md: {{ block.settings.image.aspect_ratio | default: 2.0 }};--aspect-ratioapt: {{ image_mb.aspect_ratio | default: 2.0 }} }</style>
+{%- endif -%}
+
+{%- capture sizes -%}
+  (min-width: {{ settings.page_width | plus: 100 }}px) calc(100vw - 180px), (min-width: 768px) calc(100vw - 60px), calc(100vw - 30px)
+{%- endcapture -%}
+
+<figure class="hdt-bf-image-{{ bf_image }} hdt-grid-1x1 hdt-ratio hdt-rounded hdt-rounded-f" {{ block.shopify_attributes }}>
+  {%- liquid
+    if block.settings.image != blank
+      assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: block.settings.image.width
+      echo '<picture class="hdt-contents">'
+      if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+        assign widths_mb = '200,400,600,800,1000,' | append: block.settings.image_mb.width
+        assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+        unless srcset contains 'src='
+          echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+        endunless
+      endif
+      echo block.settings.image | image_url: width: block.settings.image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes, class: 'hdt-full-width-image', widths: widths
+      echo '</picture>'
+    else
+      echo placeholder | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+    endif
+  -%}
+  {%- if block.settings.caption != blank -%}
+  <figcaption class="hdt-bf-image_caption hdt-h5 not-apply-ratio{% if bf_image == 'last' %} hdt-text-end{% endif %}">{{ block.settings.caption }}</figcaption>
+  {%- endif -%}
+</figure>
+
+{% schema %}
+{
+  "name": "t:names.image",
+  "tag": null,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:settings.image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mb",
+      "label": "t:settings.image_mb",
+      "info": "t:info.image_mb"
+    },
+    {
+      "type": "text",
+      "id": "caption",
+      "label": "t:settings.caption"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.image"
+    }
+  ]
+}
+{% endschema %}

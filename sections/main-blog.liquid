@@ -1,0 +1,340 @@
+{%- capture article_meta -%}
+  {% if section.settings.show_author %} author{% endif %}{%- if section.settings.show_date %} date{% endif %}{% if section.settings.show_comment and blog.comments_enabled? %} comments{% endif %}
+{%- endcapture -%}
+{%- liquid
+  if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+      assign reveal = 'reveal'
+  else
+      assign reveal = ''
+  endif
+  assign minus_spacing_mb = settings.spacing_grid_horizontal | plus: 60 | append: "px"
+  assign minus_spacing_mb = " - " | append: minus_spacing_mb
+  assign arr_meta = article_meta | lstrip | split: ' '
+  if section.settings.optimize_columns
+    assign col_mix_tb_dk = section.settings.columns_desktop | at_most: 3
+  endif
+-%}
+
+{%- capture sizes -%}
+  {%- if section.settings.optimize_columns -%}
+    {%- if section.settings.full_width -%}
+        (min-width: 1400px) calc((100vw - ({{ section.settings.columns_desktop }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ section.settings.columns_desktop }}), (min-width: 1024px) calc((100vw - ({{ col_mix_tb_dk }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ col_mix_tb_dk }}), (min-width: 768px) calc((100vw{{ minus_spacing_mb }}) / 2), calc(100vw - 30px)
+    {%- else -%}
+        (min-width: {{ settings.page_width | plus: 100 }}px) calc((min({{ settings.page_width }}px, 100vw - 100px) - ({{ section.settings.columns_desktop }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ section.settings.columns_desktop }}), (min-width: 1024px) calc((100vw - ({{ col_mix_tb_dk }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ col_mix_tb_dk }}), (min-width: 768px) calc((100vw{{ minus_spacing_mb }}) / 2), calc(100vw - 30px)
+    {%- endif -%}
+  {%- else -%}
+    {%- if section.settings.full_width -%}
+      (min-width: 1150px) calc((100vw - ({{ section.settings.columns_desktop }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ section.settings.columns_desktop }}), (min-width: 768px) calc((100vw{{ minus_spacing_mb }}) / 2), 100vw
+    {%- else -%}
+      (min-width: 1150px) calc((min({{ settings.page_width }}px, 100vw - 100px) - ({{ section.settings.columns_desktop }} - 1) * {{ settings.spacing_grid_horizontal }}px) / {{ section.settings.columns_desktop }}), (min-width: 768px) calc((100vw{{ minus_spacing_mb }}) / 2), calc(100vw - 30px)
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+<div data-hdt-init="{{ section.id }}" {% if reveal == 'reveal' %}reveal-on-scroll{% endif %} id="Section-{{ section.id }}" class="hdt-section__main-blog hdt-section-spacing hdt-s-gradient" color-scheme="{{ section.settings.color_scheme }}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %}">
+    <h1 class="hdt-h1 hdt-heading hdt-page-title hdt-text-center">{{ blog.title | escape }}</h1>
+    {%- if blog.articles.size > 0 -%}
+        {%- if section.settings.show_tags_filter -%}
+          {%- capture html_filter_tags -%}
+            {%- assign has_tags = false -%}
+            {%- if blog.metafields.theme.tags.value != blank -%}
+              {%- for tag in blog.metafields.theme.tags.value -%}
+                {%- liquid
+                  unless blog.all_tags contains tag
+                  continue
+                  endunless
+                  assign has_tags = true
+                -%}
+                <li><a circle-bg-wrap class="hdt-filter__tag" role="link" href="{{ blog.url }}/tagged/{{ tag | handle }}#tags-{{ section.id }}"{% if current_tags contains tag %} aria-current="tag"{% endif %} aria-label="{{ 'blogs.filters.tag_title' | t: tag: tag | remove_first: 'category_' | escape }}">{{ tag | remove_first: 'category_' }}<hdt-circle-bg></hdt-circle-bg></a></li>
+              {%- endfor -%}
+            {%- elsif blog.all_tags.size > 0 -%}
+              {%- assign has_tags = true -%}
+              {%- for tag in blog.all_tags -%}
+                <li><a circle-bg-wrap class="hdt-filter__tag" role="link" href="{{ blog.url }}/tagged/{{ tag | handle }}#tags-{{ section.id }}"{% if current_tags contains tag %} aria-current="tag"{% endif %} aria-label="{{ 'blogs.filters.tag_title' | t: tag: tag | remove_first: 'category_' | escape }}">{{ tag | remove_first: 'category_' }}<hdt-circle-bg></hdt-circle-bg></a></li>
+              {%- endfor -%}
+            {%- endif -%}
+          {%- endcapture -%}
+          {%- if has_tags -%}
+          <div class="hdt-filters-wrapper hdt-text-center">
+            <nav class="hdt-filters-nav hdt-tab-nav-wrapper" id="tags-{{ section.id }}" role="navigation" aria-label="{{ 'blogs.filters.label' | t }}">
+              <ul class="hdt-filters-nav__tags" role="list">
+                <li><a circle-bg-wrap class="hdt-filter__tag hdt-grid" role="link" {% unless current_tags %}aria-current="tag"{% endunless %} aria-label="{{ 'blogs.filters.all_tags' | t }}" href="{{ blog.url }}#tags-{{ section.id }}">{{ 'blogs.filters.all_tags' | t }}<hdt-circle-bg></hdt-circle-bg></a></li>
+                {{- html_filter_tags -}}
+              </ul>
+            </nav>
+          </div>
+          {%- endif -%}
+        {%- endif -%}
+        <div class="hdt-blog-articles{%if section.settings.stack_content_below %} hdt-post-card-content-below{% endif %}{% if section.settings.optimize_columns %} hdt-post-card__optimize{% endif %}">
+        {%- paginate blog.articles by section.settings.posts_per_page -%}
+            <div {% unless section.settings.stack_content_below %}color-scheme="{{ section.settings.color_scheme_blog_card }}"{% endunless %} class="hdt-row-grid hdt-row-grid--articles md:hdt-grid-cols-2 lg:hdt-grid-cols-{{ col_mix_tb_dk }} xl:hdt-grid-cols-{{ section.settings.columns_desktop }} hdt-ratio--{{ section.settings.image_ratio }}">
+            {%- for article in blog.articles -%}
+                {%- render 'article-card', article: article, arr_meta: arr_meta, meta_align: section.settings.align_meta, reveal: reveal, bellow_content: section.settings.stack_content_below, show_excerpt: section.settings.show_excerpt, show_date: section.settings.show_date, show_read_more: section.settings.show_read_more, show_category: section.settings.show_category, date_format: section.settings.date_format, sizes: sizes, blog_url: blog.url, blog_title: blog.title, blog_card_class: 'hdt-article-card-wrapper' -%}
+            {%- endfor -%}
+            </div>
+            {%- render 'pagination', paginate: paginate -%}
+        {%- endpaginate -%}
+        </div>
+      {%- endif -%}
+  </div>
+</div>
+
+{%- schema %}
+{
+  "name": "t:names.main_blog",
+  "class": "hdt-section",
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  },
+  "settings": [
+    {
+      "type": "range",
+      "id": "posts_per_page",
+      "min": 2,
+      "max": 50,
+      "step": 1,
+      "default": 6,
+      "label": "t:settings.post_limit"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3,
+      "label": "t:settings.columns_desktop"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "options": [
+        {
+          "value": "adapt_image",
+          "label": "t:options.adapt_to_image"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.portrait"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.landscape"
+        },
+        {
+          "value": "3-2",
+          "label": "t:options.3_2"
+        },
+        {
+          "value": "4-3",
+          "label": "t:options.4_3"
+        }
+      ],
+      "default": "landscape",
+      "label": "t:settings.image_ratio"
+    },
+    {
+      "type": "checkbox",
+      "id": "optimize_columns",
+      "label": "t:settings.optimize_columns",
+      "info": "t:info.optimize_columns_1400",
+      "default": true,
+      "visible_if": "{{ section.settings.stack_content_below == false  }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "stack_content_below",
+      "label": "t:settings.stack_content_below",
+      "default": false
+    },
+    {
+      "type": "radio",
+      "id": "show_category",
+      "default": "first_tag",
+      "label": "t:settings.show_category",
+      "options": [
+        {
+          "value": "disable",
+          "label": "t:options.disable"
+        },
+        {
+          "value": "blog_title",
+          "label": "t:options.blog_title"
+        },
+        {
+          "value": "first_tag",
+          "label": "t:options.first_article_tag"
+        },
+        {
+          "value": "category_tag",
+          "label": "t:options.category_tag"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags_filter",
+      "default": false,
+      "label": "t:settings.show_tags_filter"
+    },
+    {
+      "type": "header",
+      "content": "t:content.article_content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "t:settings.show_author",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "t:settings.show_date"
+    },
+    {
+      "type": "select",
+      "id": "date_format",
+      "options": [
+        {
+            "value": "abbreviated_date",
+            "label": "t:options.abbreviated_date"
+        },
+        {
+            "value": "basic",
+            "label": "t:options.basic_date"
+        },
+        {
+            "value": "date",
+            "label": "t:options.date"
+        },
+        {
+            "value": "%d %B %Y",
+            "label": "t:options.custom_date"
+        }
+      ],
+      "label": "t:settings.date_format",
+      "default": "%d %B %Y",
+      "visible_if": "{{ section.settings.show_date }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comment",
+      "label": "t:settings.show_comments_count",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "align_meta",
+      "label": "t:settings.align_meta",
+      "options": [
+        {
+          "value": "self-start",
+          "label": "t:options.left"
+        },
+        {
+          "value": "self-end",
+          "label": "t:options.right"
+        }
+      ],
+      "default": "self-end",
+      "visible_if": "{{ section.settings.stack_content_below == false  }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "t:settings.show_excerpt",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_more",
+      "default": true,
+      "label": "t:settings.show_read_more"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "checkbox",
+      "id": "reveal_on_scroll",
+      "label": "t:settings.reveal_on_scroll",
+      "info": "t:info.reveal_on_scroll",
+      "default": true,
+      "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:settings.make_full_width",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_blog_card",
+      "label": "t:settings.color_scheme_blog_card",
+      "default": "scheme-1",
+      "visible_if": "{{ section.settings.stack_content_below == false }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ],
+}
+{% endschema %}

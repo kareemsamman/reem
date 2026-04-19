@@ -1,0 +1,97 @@
+{%- liquid
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign block_slot = section.id | append: block_index
+  assign index = section.settings.product_list | find_index: 'id', closest.product.id
+  assign is_even = index | modulo: 2
+  if is_even == 0
+      assign row_label = 'hdt-row-even'
+  else
+      assign row_label = 'hdt-row-odd'
+  endif
+
+  if block.id contains section.blocks.last.first.id and section.settings.show_btn_detail == false
+    assign row_last = ' hdt-row-last'
+  else
+    assign row_last = ''
+  endif
+-%}
+{%- if index == 0 and section.settings.layout == 'table' -%}
+    <div class="hdt-compare-col hdt-col-first{{ row_last }}" data-title="{{ block.settings.title | capitalize | escape }}" slot="{{ block_slot }}"></div>
+{%- endif -%}
+<div class="hdt-compare-col hdt-compare-col-info {{ row_label }}{{ row_last }}" data-title="{{ block.settings.title | escape }}" slot="{{ block_slot }}">
+    <div class="hdt-metafield-info hdt-flex rte">
+      {%- if block.settings.icon_show and block.settings.text != blank -%}
+        <span class="hdt-icon-metafield" style="--icon-color: {{ block.settings.icon_color }}; --icon-height: {{ block.settings.icon_height }}px">
+        {%- liquid
+            if block.settings.custom_icon != blank
+                echo block.settings.custom_icon
+            else
+                echo 'icon-circle-check.svg' | inline_asset_content
+            endif
+        -%}
+        </span>
+      {%- endif -%}
+      {{- block.settings.text | default: '-' -}}
+      {%- if block.settings.text != blank %}<!--{{ block_slot }}:visible -->{% endif -%}
+    </div>
+</div>
+
+{% schema %}
+  {
+    "name": "t:names.text",
+    "tag": null,
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "t:settings.title",
+        "default": "t:text_defaults.title"
+      },
+      {
+        "type": "text",
+        "id": "text",
+        "label": "t:settings.text"
+      },
+      {
+          "type": "header",
+          "content": "t:content.icon"
+      },
+      {
+          "type": "checkbox",
+          "id": "icon_show",
+          "label": "t:settings.show_icon",
+          "default": false
+      },
+      {
+          "type": "textarea",
+          "id": "custom_icon",
+          "label": "t:settings.custom_icon",
+          "info": "t:info.custom_icon",
+          "visible_if": "{{ block.settings.icon_show == true }}"
+      },
+      {
+          "type": "color",
+          "id": "icon_color",
+          "label": "t:settings.icon_color",
+          "default": "#36A151",
+          "visible_if": "{{ block.settings.icon_show == true }}"
+      },
+      {
+        "type": "range",
+        "id": "icon_height",
+        "label": "t:settings.icon_h",
+        "min": 16,
+        "max": 30,
+        "step": 1,
+        "unit": "px",
+        "default": 16,
+        "visible_if": "{{ block.settings.icon_show == true }}"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.text"
+      }
+    ]
+  }
+{% endschema %}

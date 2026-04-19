@@ -1,0 +1,39 @@
+  {%- doc -%}
+  @description
+  This snippet is used to render a highlights.
+
+  @param {object} product
+  @param {string} [info_center]
+
+  @example
+  {%- render 'highlights', product: product -%}
+
+{%- enddoc -%}
+
+{%- if product.metafields.theme.highlights.value.count > 0 and product.metafields.theme.highlights.value != blank -%}
+  {%- capture childen -%}
+    {%- for metaobject in product.metafields.theme.highlights.value -%}
+      {%- if metaobject.icon.value != blank or metaobject.text.value != blank -%}
+        <div unDrag class="hdt-card-highlight__item hdt-flex hdt-align-center">
+          {%- if metaobject.icon.value != blank -%}
+          <div unDrag class="hdt-card-highlight__icon">
+            {%- if metaobject.icon.value contains '.svg' -%}
+              <span class="hdt-icon-higlight" style="--icon-url: url('{{ metaobject.icon.value | image_url }}')"></span>
+            {%- else -%}
+                {{- metaobject.icon.value | image_url: height: 30 | image_tag: loading: 'lazy', srcset: nil -}} 
+            {%- endif -%}
+          </div>
+          {%- endif -%}
+          {%- if metaobject.text.value != blank -%}
+          <div unDrag class="hdt-card-highlight__text hdt-h6">{{ metaobject.text.value }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if childen != blank -%}
+  <div class="hdt-card-highlight-wrap"><hdt-scroll-hint hover axis="x" unDrag class="hdt-card-highlight hdt-flex{% if info_center == 'center' %} hdt-safe-center{% endif %}">
+    {{- childen -}}
+  </hdt-scroll-hint></div>
+  {%- endif -%}
+{%- endif -%}

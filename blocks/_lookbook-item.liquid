@@ -1,0 +1,474 @@
+
+{%- liquid
+    assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+    assign column_xl = 0
+    assign column_md = 0
+    if section.blocks.size > 1
+        assign column_xl = 144
+        assign column_md = 94
+    endif
+    assign block_index = section.blocks | find_index: 'id', block.id
+    if block_index == 0 and section.index == 1
+    assign lazy_load = 'eager'
+    else
+    assign lazy_load = 'lazy'
+    endif
+    assign current = block_index | plus: 1 | modulo: 3 | plus: 1
+    assign aspect_ratio = block.settings.image.aspect_ratio | default: 0.8
+    assign has_product = false
+-%}
+{%- capture sizes -%}
+    (min-width: {{ settings.page_width | plus: 100 }}px) calc({{ settings.page_width | plus: 100 }}px - 555px - clamp(44px, {{ settings.page_width | times: 0.09 }}px, {{ settings.page_width | times: 0.09 }}px) - {{ column_xl }}px ), (min-width: 1150px) calc(100vw - 555px - clamp(44px, (100vw - 100px) * 0.12, (100vw - 100px) * 0.12) - {{ column_xl }}px ), (min-width: 768px) calc(100vw - 85px - clamp(270px, (100vw - 60px) * 0.38, (100vw - 60px) * 0.38) - {{ column_md }}px ), calc(100vw - 30px - {{ column_md }}px)
+{%- endcapture -%}
+{%- capture sizes_pr -%}
+    (min-width: 1150px) 445px, (min-width: 768px) calc((100vw - 60px)*0.38), calc(100vw - 124px)
+{%- endcapture -%}
+{%- capture sizes_tabimg -%}
+    (min-width: 1150px) 120px, 80px
+{%- endcapture -%}
+
+{%- if block_index > 0 %}[split94]{% endif -%}
+{%- liquid
+      if block.settings.image != blank
+      assign widths = '80, 120, 160, 240'
+      echo '<picture class="hdt-image-tab hdt-ratio hdt-ratio--square">'
+      if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+          assign widths_mb = '80, 160'
+          assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+          unless srcset contains 'src='
+          echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+          endunless
+      endif
+      echo block.settings.image | image_url: width: block.settings.image.width | image_tag: sizes: sizes_tabimg, widths: widths
+      echo '</picture>'
+    else
+      echo '<span class="hdt-image-tab hdt-ratio hdt-ratio--square">'
+      echo 'hero-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+      echo '</span>'
+    endif
+-%}
+[split94-2]{{- '' -}}
+<div class="hdt-lookbook-media hdt-relative" id="hdt-tab-img-{{ block.id }}" style="--aspect-ratioapt: {{ block.settings.image_mb.aspect_ratio | default: aspect_ratio }}; --aspect-ratioapt-md: {{ aspect_ratio }}">
+    <div class="hdt-lb-image">
+      {%- liquid
+        if block.settings.image != blank
+          assign fetch_priority = 'auto'
+          assign append_w = block.settings.image.width | default: 1000
+          assign widths = '400,600,700,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,' | append: append_w
+          echo '<picture class="hdt-media-wrapper hdt-ratio">'
+          if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+              assign append_w_mb = block.settings.image_mb.width | default: 1000
+              assign widths_mb = '300,400,500,600,700,800,1000,1200,1400,' | append: append_w_mb
+              assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+              unless srcset contains 'src='
+              echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+              endunless
+          endif
+          echo block.settings.image | image_url: width: block.settings.image.width | image_tag: fetchpriority: fetch_priority, loading: lazy_load, sizes: sizes, widths: widths
+          echo '</picture>'
+        else
+          echo '<div class="hdt-media-wrapper hdt-ratio">'
+          echo 'hero-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+          echo '</div>'
+        endif
+      -%}
+    </div>
+    <hdt-slider-controls class="hdt-pin-products hdt-full-width-link" aria-controls="Slider-{{ block.id }}">
+        {%- for i in (1..5) -%}
+            {%- liquid
+            assign product_key = 'product_' | append: i
+            assign product = block.settings[product_key]
+            -%}
+            {%- if product != blank -%}
+                {%- liquid
+                if i == 1
+                    assign aria_current = true
+                else
+                    assign aria_current = false
+                endif
+                assign has_product = true
+                assign x_pos_key = 'x_pos_' | append: i
+                assign y_pos_key = 'y_pos_' | append: i
+                assign x_pos_mb_key = 'x_pos_mb_' | append: i
+                assign y_pos_mb_key = 'y_pos_mb_' | append: i
+                -%}
+                <div class="hdt-pin-item hdt-absolute" style="--x-pos: {{ block.settings[x_pos_key] }}%; --y-pos: {{ block.settings[y_pos_key] }}%; --x-pos-mb: {{ block.settings[x_pos_mb_key] }}%; --y-pos-mb: {{ block.settings[y_pos_mb_key] }}%;">
+                    <button type="button" aria-hidden="true" tabindex="-1" value="{{ i | minus: 1 }}" aria-current="{{ aria_current }}" aria-controls="popover-{{ block.id }}-{{  product.id }}">
+                        <span class="hdt-hotspots-pulse-ring"></span>
+                        <span class="hdt-hotspots-dot"></span>
+                    </button>
+                    <hdt-popover color-scheme="{{ section.settings.color_scheme }}" class="hdt-contents" data-auto-close>
+                        <dialog id="popover-{{ block.id }}-{{  product.id }}" class="hdt-popover hdt-popover-u hdt-hotspot__popover_product" scroll-lock>
+                            <button unless-btn ref="closeButton" class="hdt-btn-close-x hdt-s-text" aria-controls="popover-{{ block.id }}-{{  product.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+                            <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+                            <div class="hdt-popover__arrow"></div>
+                            <div class="hdt-popover__body">
+                                <div class="hdt-popover__inner hdt-scrollbar">
+                                    <div class="hdt-product-lookbook hdt-align-start">
+                                        {%- liquid
+                                            assign selected_variant = product.selected_or_first_available_variant
+                                            assign featured_image = selected_variant.image | default: product.featured_image
+                                        -%}
+                                        {%- if featured_image -%}
+                                            <a class="hdt-product-image hdt-shrink-0 hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ featured_image.aspect_ratio }}"{% endif %} href="{{ product.url }}">
+                                                {{- featured_image | image_url: width: featured_image.width | image_tag: widths: '100,200', sizes: '200px'  -}}
+                                            </a>
+                                        {%- endif -%}
+                                        <div class="hdt-product-info">
+                                            <div class="hdt-card-product__title"><a href="{{ product.url }}" class="hdt-link hdt-text-lg hdt-font-medium">{{ product.title | escape }}</a></div>
+                                            {%- liquid
+                                            render 'item-price', product: product, price_class: 'hdt-text-base hdt-font-semibold'
+                                            -%}
+                                            <wrapp-hdt-open-btn class="hdt-contents hdt-open-quickview-wrapp">
+                                                <button unless-btn type="button" handle="{{ product.handle }}" aria-controls="hdt-quick-view-modal" class="hdt-open-quickview-btn hdt-btn hdt-btn-outline hdt-btn--size-s hdt-btn--with-icon" aria-expanded="false">
+                                                    {{ 'icon-quickview-rc.svg' | inline_asset_content }}
+                                                    {{ 'products.product.quick_view' | t }}
+                                                </button>
+                                            </wrapp-hdt-open-btn>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </dialog>
+                    </hdt-popover>
+                </div>
+            {%- endif -%}
+        {%- endfor -%}
+        {%- unless has_product -%}
+            <div class="hdt-pin-item hdt-absolute" style="--x-pos: {{ block.settings.x_pos_1 }}%; --y-pos: {{ block.settings.y_pos_1 }}%; --x-pos-mb: {{ block.settings.x_pos_mb_1 }}%; --y-pos-mb: {{ block.settings.y_pos_mb_1 }}%;">
+                <button type="button" aria-hidden="true" tabindex="-1" value="0" aria-current="true" aria-controls="popover-{{ block.id }}-placeholder" aria-expanded="false">
+                    <span class="hdt-hotspots-pulse-ring"></span>
+                    <span class="hdt-hotspots-dot"></span>
+                </button>
+                <hdt-popover color-scheme="{{ section.settings.color_scheme }}" class="hdt-contents" data-auto-close>
+                    <dialog id="popover-{{ block.id }}-placeholder" class="hdt-popover hdt-hotspot__popover_product" scroll-lock>
+                        <div class="hdt-popover__body">
+                            <div class="hdt-popover__inner hdt-scrollbar">
+                                <button ref="closeButton" class="hdt-btn-close-x hdt-s-text" aria-controls="popover-{{ block.id }}-placeholder" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+                                <div class="hdt-product-lookbook hdt-align-start">
+                                    <a class="hdt-product-image hdt-shrink-0 hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ featured_image.aspect_ratio }}"{% endif %} href="{{ routes.root_url }}">
+                                        {{- 'product-apparel-' | append: current | placeholder_svg_tag: 'hdt-placeholder-svg' -}}
+                                    </a>
+                                    <div class="hdt-product-info">
+                                        <div class="hdt-card-product__title"><a href="{{ routes.root_url }}" class="hdt-link hdt-text-lg hdt-font-medium">{{ 'onboarding.product_title' | t }}</a></div>
+                                        {%- liquid
+                                        render 'card-price', price_class: 'hdt-font-semibold hdt-text-lg', show_compare_at_price: true
+                                        -%}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </dialog>
+                </hdt-popover>
+            </div>
+        {%- endunless -%}
+    </hdt-slider-controls>
+</div>
+{{- '' -}}[split94]{{- '' -}}
+<div assign-img="hdt-tab-img-{{ block.id }}" class="hdt-tab-content">
+    {%- assign block_count = section.blocks | size -%}
+    <hdt-slider id="Slider-{{ block.id }}" class="hdt-slider hdt-slide-spacing-10 hdt-con-reveal--disabled hdt-slider-1 hdt-slide-lookbook-product{% if block_count > 1 %} hdt-slider__active-true{% endif %}" config='{"autoHeight": false, "active": true, "loop": true, "fade": false, "slidesToScroll": "1", "breakpoints": { "(min-width: 768px)": { "active": {{ true }} } } }'>
+        <div class="hdt-slider__viewport">
+            <div class="hdt-slider__container">
+              {%- liquid
+              assign has_product = false
+              for i in (1..5)
+                  assign product_key = 'product_' | append: i
+                  assign product = block.settings[product_key]
+                  if lazy_load == 'eager' and i != 1
+                    assign lazy_load = 'lazy'
+                  endif
+                  if product != blank
+                    assign has_product = true
+                    content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, swatch_list: swatch_list, section_id: block.id, image_ratio: section.settings.pr_image_ratio, sizes: sizes_pr, show_vendor: section.settings.show_vendor, card_style: section.settings.card_style, class_card: 'hdt-slider__slide', lazy_load: lazy_load
+                  endif
+              endfor
+              unless has_product
+                render 'product-card-placeholder', index_image: current, card_style: section.settings.card_style, image_ratio: section.settings.pr_image_ratio, class_card: 'hdt-slider__slide'
+              endunless
+              -%}
+            </div>
+        </div>
+        <hdt-slider-nav class="hdt-slide-control-mixed hdt-slide-controls-vertical" aria-controls="Slider-{{ block.id }}"{% if section.settings.enable_custom_nav_colors %} style="--nav-background-rgb: {{ section.settings.nav_background.rgb }}; --nav-color-rgb: {{ section.settings.nav_color.rgb }}"{% endif %}>
+            <button circle-bg-wrap type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+                {{- 'icon-arrow-prev.svg' | inline_asset_content -}}
+                <hdt-circle-bg></hdt-circle-bg>
+            </button>
+            <hdt-slider-progress controls="Slider-{{ block.id }}"><span class="hdt-slider-progress_bar"></span></hdt-slider-progress>
+            <button circle-bg-wrap type="button" name="next" aria-label="{{ 'accessibility.slider.next_slide' | t }}">
+                {{- 'icon-arrow-next.svg' | inline_asset_content -}}
+                <hdt-circle-bg></hdt-circle-bg>
+            </button>
+        </hdt-slider-nav>
+    </hdt-slider>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.lookbook_item",
+  "tag": null,
+  "settings": [
+    {
+        "type": "image_picker",
+        "id": "image",
+        "label": "t:settings.image",
+        "info": "t:info.image_lookbook"
+    },
+    {
+        "type": "image_picker",
+        "id": "image_mb",
+        "label": "t:settings.image_mb"
+    },
+    {
+        "type": "header",
+        "content": "t:content.product_1"
+    },
+    {
+        "type": "product",
+        "id": "product_1",
+        "label": "t:content.product"
+    },
+    {
+        "type": "range",
+        "id": "x_pos_1",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.x_pos",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_1",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.y_pos",
+    },
+    {
+        "type": "range",
+        "id": "x_pos_mb_1",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.x_pos_mb",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_mb_1",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.y_pos_mb",
+    },
+    {
+        "type": "header",
+        "content": "t:content.product_2"
+    },
+    {
+        "type": "product",
+        "id": "product_2",
+        "label": "t:content.product"
+    },
+    {
+        "type": "range",
+        "id": "x_pos_2",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 40,
+        "label": "t:settings.x_pos",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_2",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 40,
+        "label": "t:settings.y_pos",
+    },
+    {
+        "type": "range",
+        "id": "x_pos_mb_2",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 40,
+        "label": "t:settings.x_pos_mb",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_mb_2",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 40,
+        "label": "t:settings.y_pos_mb",
+    },
+    {
+        "type": "header",
+        "content": "t:content.product_3"
+    },
+    {
+        "type": "product",
+        "id": "product_3",
+        "label": "t:content.product"
+    },
+    {
+        "type": "range",
+        "id": "x_pos_3",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 60,
+        "label": "t:settings.x_pos",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_3",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 60,
+        "label": "t:settings.y_pos",
+    },
+    {
+        "type": "range",
+        "id": "x_pos_mb_3",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 60,
+        "label": "t:settings.x_pos_mb",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_mb_3",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 60,
+        "label": "t:settings.y_pos_mb",
+    },
+    {
+        "type": "header",
+        "content": "t:content.product_4"
+    },
+    {
+        "type": "product",
+        "id": "product_4",
+        "label": "t:content.product"
+    },
+    {
+        "type": "range",
+        "id": "x_pos_4",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 75,
+        "label": "t:settings.x_pos",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_4",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.y_pos",
+    },
+    {
+        "type": "range",
+        "id": "x_pos_mb_4",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 75,
+        "label": "t:settings.x_pos_mb",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_mb_4",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.y_pos_mb",
+    },
+    {
+        "type": "header",
+        "content": "t:content.product_5"
+    },
+    {
+        "type": "product",
+        "id": "product_5",
+        "label": "t:content.product"
+    },
+    {
+        "type": "range",
+        "id": "x_pos_5",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.x_pos",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_5",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 30,
+        "label": "t:settings.y_pos",
+    },
+    {
+        "type": "range",
+        "id": "x_pos_mb_5",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 50,
+        "label": "t:settings.x_pos_mb",
+    },
+    {
+        "type": "range",
+        "id": "y_pos_mb_5",
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "step": 1,
+        "default": 30,
+        "label": "t:settings.y_pos_mb",
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.lookbook_item"
+    }
+  ]
+}
+{% endschema %}

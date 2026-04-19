@@ -1,0 +1,72 @@
+{%- comment -%}
+  Renders active-filter
+
+  Accepts:
+  - results: {Object} Collection or Search object
+
+  Usage:
+  {%- render 'active-filters', results: collection -%}
+{%- endcomment -%}
+
+{%- liquid
+    assign sort_by = results.sort_by | default: results.default_sort_by
+    assign total_active_values = 0
+    if results.url
+      assign results_url = results.url
+    else
+      assign terms = results.terms | escape
+      assign results_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+    endif
+  -%}
+
+  <div class="hdt-active-filters">
+    {%- for filter in results.filters -%}
+      {%- if filter.type == "price_range" -%}
+        {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+          {%- liquid
+            assign total_active_values = total_active_values | plus: 1
+            assign min_value = filter.min_value.value | default: 0
+            assign max_value = filter.max_value.value | default: filter.range_max
+          -%}
+          <wrapp-hdt-facet-url><a class="hdt-active-filters__remove" href="{{ filter.url_to_remove }}">
+            <span>{% if section.settings.show_filter_label %}{{ filter.label | escape  }}: {% endif %}{{ min_value | money }} - {{ max_value | money }}</span>{{- 'icon-close.svg' | inline_asset_content }}
+          </a></wrapp-hdt-facet-url>
+        {%- endif -%}
+      {%- else -%}
+        {%- assign total_active_values = total_active_values | plus: filter.active_values.size -%}
+        {%- for filter_value in filter.active_values -%}
+          <wrapp-hdt-facet-url>
+            <a class="hdt-active-filters__remove" href="{{ filter_value.url_to_remove }}">
+              {%- if section.settings.show_filter_label %}<span>{{ filter.label | escape  }}: </span>{% endif -%}
+              {%- liquid
+                if filter_value.swatch
+                  assign class_swatch_white = ''
+                  if filter_value.swatch.color
+                    assign swatch_brightness = filter_value.swatch.color | color_brightness
+                    if swatch_brightness > 245
+                      assign class_swatch_white = ' hdt-bg-color-white'
+                    endif
+                  endif
+                  if filter_value.swatch.image
+                    if class_swatch_white != ''
+                      assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+                    endif
+                    assign style_swatch = filter_value.swatch.image | image_url: width: 40
+                    assign style_swatch = '--hdt-bg-image: url([img_url]);' | replace_first: '[img_url]', style_swatch
+                  elsif filter_value.swatch.color
+                    assign style_swatch = '--bg-color: [color];' | replace_first: '[color]', filter_value.swatch.color
+                  else
+                    assign style_swatch = ''
+                  endif
+                  echo '<span class="hdt-swatch-filter[class_white]" style="[style_swatch]"></span>' | replace_first: '[class_white]', class_swatch_white | replace_first: '[style_swatch]', style_swatch
+                endif
+              -%}
+              <span>{{ filter_value.label }}</span>
+              {{- 'icon-close.svg' | inline_asset_content -}}
+            </a>
+            </wrapp-hdt-facet-url>
+        {%- endfor -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- if total_active_values > 1 %}<wrapp-hdt-facet-url><a href="{{ results_url }}" class="hdt-active-filters__clear-all" data-hover="{{ 'products.facets.clear_all' | t | escape }}"><span class="hdt-link-underline">{{ 'products.facets.clear_all' | t | escape }}</span></a></wrapp-hdt-facet-url>{% endif -%}
+  </div>

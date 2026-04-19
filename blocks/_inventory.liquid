@@ -1,0 +1,137 @@
+{%- liquid
+    assign product = closest.product
+    assign un_no_pick = true
+    if settings.pick_mode == 'no' and product.variants_count > 1
+      assign selected_variant = product.selected_variant
+      unless selected_variant
+        assign un_no_pick = false
+      endunless
+    elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+      assign selected_variant = product.selected_variant | default: product.variants.first
+    else
+      assign selected_variant = product.selected_or_first_available_variant
+    endif
+    assign inventory_threshold = block.settings.inventory_threshold
+    assign show_inventory_quantity = block.settings.show_inventory_quantity
+    assign low_stock = false
+    assign low_stock_count = false
+    assign in_stock = false
+    assign in_stock_count = false
+    assign pre_order_stock = false
+    assign out_of_stock = false
+    if selected_variant.inventory_management == 'shopify'
+      assign inventory_managed = true
+    endif
+    if un_no_pick == false and product.available
+      assign low_stock = false
+      assign in_stock = true
+      assign selected_variant = product.selected_or_first_available_variant
+    elsif inventory_managed and selected_variant.available
+      assign inventory_quantity = selected_variant.inventory_quantity | default: 0
+      if selected_variant.inventory_quantity > 0
+        if selected_variant.inventory_quantity <= inventory_threshold and selected_variant.requires_shipping
+          if show_inventory_quantity
+            assign low_stock_count = true
+          else
+            assign low_stock = true
+          endif
+        else
+          if show_inventory_quantity
+            assign in_stock_count = true
+          else
+            assign in_stock = true
+          endif
+        endif
+      else
+        assign pre_order_stock = true
+      endif
+    elsif selected_variant.available
+      assign inventory_quantity = block.settings.progress_bar_max
+      assign in_stock = true
+    else
+      assign out_of_stock = true
+    endif
+  -%}
+
+{%- capture stock_icon -%}
+  {%- if low_stock_count -%}
+    <svg class="hdt-icon-progress" width="13" height="19" viewBox="0 0 13 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10.8874 7.32259H8.02052L8.54041 2.84331V2.61728C8.53957 2.18082 8.36624 1.76239 8.0582 1.45319C7.9106 1.30321 7.7347 1.18403 7.5407 1.10254C7.34669 1.02106 7.13844 0.978904 6.92802 0.978516C6.66899 0.981063 6.41429 1.04526 6.185 1.1658C5.95571 1.28634 5.75843 1.45976 5.60948 1.67169L0.308937 9.5302C0.107936 9.82998 0.000424911 10.1827 2.16272e-05 10.5436C-0.00218798 10.9779 0.164993 11.396 0.466057 11.709C0.767121 12.022 1.17835 12.2053 1.61241 12.22H3.80872L3.27377 17.2117C3.26963 17.2681 3.26963 17.3247 3.27377 17.3812C3.27476 17.5919 3.31725 17.8004 3.39881 17.9948C3.48038 18.1891 3.59942 18.3655 3.74915 18.5138C3.89887 18.6621 4.07634 18.7795 4.27143 18.8592C4.46652 18.939 4.67541 18.9795 4.88616 18.9785C5.14394 18.9743 5.39714 18.9097 5.62546 18.79C5.85378 18.6703 6.05088 18.4987 6.20094 18.2891L12.1909 9.7261C12.3969 9.47332 12.5064 9.15554 12.4998 8.82949C12.496 8.62369 12.4509 8.42075 12.3672 8.23271C12.2835 8.04466 12.1629 7.87535 12.0125 7.7348C11.8621 7.59426 11.6851 7.48535 11.4918 7.41454C11.2985 7.34373 11.093 7.31246 10.8874 7.32259ZM10.959 8.82949L4.96904 17.4075C4.95874 17.4243 4.94502 17.4386 4.92879 17.4496C4.91256 17.4607 4.89418 17.4681 4.87486 17.4716C4.85058 17.4739 4.82632 17.4671 4.80681 17.4524C4.7873 17.4378 4.77396 17.4164 4.76938 17.3925L5.49646 10.7131H1.61241C1.58174 10.6963 1.55592 10.6719 1.53744 10.6422C1.51896 10.6125 1.50845 10.5785 1.50693 10.5436C1.50993 10.5002 1.51751 10.4573 1.52953 10.4155L6.8376 2.53816C6.84716 2.52591 6.85905 2.51568 6.87261 2.50809C6.88616 2.50049 6.90109 2.49568 6.91653 2.49392C6.93196 2.49217 6.94759 2.49351 6.96251 2.49787C6.97742 2.50223 6.99131 2.50953 7.00336 2.51933C7.02958 2.54522 7.04448 2.58043 7.0448 2.61728C7.0448 2.61728 7.0448 2.67002 7.0448 2.70015L6.32902 8.82949H10.9628H10.959Z" fill="currentColor"/>
+    </svg>
+  {%- else -%}
+    <svg class="hdt-icon-progress" width="15" height="15" aria-hidden="true"><circle cx="7.5" cy="7.5" r="7.5" fill="currentColor"></circle><circle cx="7.5" cy="7.5" r="5" stroke="rgb(255, 255, 255)" stroke-width="1" fill="currentColor"/></svg>
+  {%- endif -%}
+{%- endcapture -%}
+{%- liquid
+  assign tag_legend = 'span'
+  assign show_progress = false
+  if block.settings.show_progress_bar and product.available and pre_order_stock == false and out_of_stock == false
+    assign tag_legend = 'legend'
+    assign show_progress = true
+  endif
+-%}
+  <div class="hdt-product-info__item hdt-product__inventory" data-type="inventory"{% if product.available %} data-need-update{% endif %} {{ block.shopify_attributes }}>
+    <fieldset role="status" class="hdt-variant-inventory{% if show_progress == false %} hdt-progress-bar--empty{% endif %}">
+      {%- if low_stock -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium hdt-stock-error"><span>{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.low_stock' | t -}}</span></{{ tag_legend }}>
+      {%- elsif low_stock_count -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium"><span class="hdt-stock-error">{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.low_stock_show_count_html' | t: quantity: inventory_quantity -}}</span></{{ tag_legend }}>
+      {%- elsif in_stock -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium hdt-stock-success"><span>{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.in_stock' | t -}}</span></{{ tag_legend }}>
+      {%- elsif in_stock_count -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium hdt-stock-success"><span>{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.in_stock_show_count_html' | t: quantity: inventory_quantity -}}</span></{{ tag_legend }}>
+      {%- elsif pre_order_stock -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium hdt-stock-warning"><span>{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.out_of_stock_continue_selling' | t -}}</span></{{ tag_legend }}>
+      {%- elsif out_of_stock -%}
+      <{{tag_legend }} class="hdt-inline-flex hdt-align-center hdt-stock-status hdt-font-medium hdt-stock-error"><span>{% if show_progress == false %}{{ stock_icon }}{%endif %}{{- 'products.product.inventory.out_of_stock' | t -}}</span></{{ tag_legend }}>
+      {%- endif -%}
+      {%- if block.settings.show_progress_bar and product.available and pre_order_stock == false and out_of_stock == false %}
+        <div class="hdt-progress-wrap">
+            {{- stock_icon -}}
+            <hdt-x-progress class="hdt-x-progress" aria-label="{{ 'products.product.inventory.product_inventory' | t }}" role="progressbar" reveal-in-view value="{% if inventory_quantity > 0 %}{{ inventory_quantity }}{% elsif selected_variant.available %}{{ block.settings.progress_bar_max }}{% endif %}" max="{{ block.settings.progress_bar_max }}" gradient="false" -colors='[ {"threshold":0,"color":"{{ settings.color_error }}"}, {"threshold":70,"color":"{{ settings.color_warning }}"}, {"threshold":100,"color":"{{ settings.color_success }}"} ]'></hdt-x-progress>
+        </div>
+      {% endif -%}
+    </fieldset>
+  </div>
+  {% schema %}
+  {
+    "name": "t:names.inventory_status",
+    "tag": null,
+    "settings": [
+      {
+        "type": "range",
+        "id": "inventory_threshold",
+        "label": "t:settings.inventory_threshold",
+        "info": "t:info.inventory_threshold",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "default": 10
+      },
+      {
+        "type": "checkbox",
+        "id": "show_inventory_quantity",
+        "label": "t:settings.show_inventory_quantity",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_progress_bar",
+        "label": "t:settings.show_progress_bar",
+        "default": true
+      },
+      {
+        "type": "number",
+        "id": "progress_bar_max",
+        "visible_if": "{{ block.settings.show_progress_bar }}",
+        "label": "t:settings.progress_bar_max",
+        "default": 20
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.inventory_status",
+      }
+    ]
+  }
+{% endschema %}

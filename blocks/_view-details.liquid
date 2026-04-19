@@ -1,0 +1,18 @@
+{%- assign product = section.settings.product | default: product -%}
+{%- if product != blank -%}
+<div class="hdt-product-info__item hdt-product__view-details hdt-product-info__item--text" data-type="view-details" {{ block.shopify_attributes }}>
+  <a href="{{ product.url }}" class="hdt-btn-link hdt-btn--size-s hdt-text-xs hdt-font-semibold"><span>{{ 'products.product.view_full_details' | t }}</span>{{ 'icon-slide.svg' | inline_asset_content }}</a>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.view_details",
+  "tag": null,
+  "presets": [
+    {
+      "name": "t:names.view_details",
+    }
+  ]
+}
+{% endschema %}

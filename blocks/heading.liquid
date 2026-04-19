@@ -1,0 +1,126 @@
+{%- if block.settings.heading != blank %}<{{ block.settings.heading_tag }} can-reveal class="hdt-theme-block hdt-heading-block hdt-{{ block.settings.heading_size }} hdt-heading{% if block.settings.uppercase %} hdt-uppercase{% endif %}" {{ block.shopify_attributes }}{% if block.settings.heading_size == 'heading-custom' %} style="--heading-custom-size: {{ block.settings.heading_size_custom }}px;--heading-custom-size-xs: {{ block.settings.heading_size_custom_mb }}px"{% endif %}>{{ block.settings.heading }}</{{ block.settings.heading_tag }}>{% endif -%}
+
+{% schema %}
+{
+  "name": "t:names.heading",
+  "tag": null,
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.heading_text"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h0",
+          "label": "t:options.heading_2extra_large"
+        },
+        {
+          "value": "h1",
+          "label": "t:options.heading_extra_large"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.heading_large"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.heading_medium"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.heading_small"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.heading_extra_small"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.heading_2extra_small"
+        },
+        {
+          "value": "heading-custom",
+          "label": "t:options.custom"
+        }
+      ],
+      "default": "h2",
+      "label": "t:settings.heading_size"
+    },
+    {
+      "type": "number",
+      "id": "heading_size_custom",
+      "label": "t:settings.heading_size_px",
+      "default": 50,
+      "visible_if": "{{ block.settings.heading_size == 'heading-custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "heading_size_custom_mb",
+      "label": "t:settings.heading_size_mb_px",
+      "default": 30,
+      "visible_if": "{{ block.settings.heading_size == 'heading-custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "t:settings.heading_tag",
+      "info": "t:info.heading_tag",
+      "options": [
+        {
+          "value": "h1",
+          "label": "t:options.h1"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.h2"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.h3"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.h4"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.h5"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.h6"
+        },
+        {
+          "value": "div",
+          "label": "t:options.div"
+        },
+        {
+          "value": "span",
+          "label": "t:options.span"
+        },
+        {
+          "value": "p",
+          "label": "t:options.p"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "checkbox",
+      "id": "uppercase",
+      "label": "t:settings.uppercase",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.heading"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,148 @@
+{{- 'customer.css' | asset_url | stylesheet_tag -}}
+{%- capture logout_link -%}
+  <a class="hdt-link-underline" data-no-instant href="{{ routes.account_logout_url }}" rel="nofollow">{{ 'customer.account.logout' | t }}</a>
+{%- endcapture -%}
+{%- capture customer_strong -%}
+  <strong>{{ customer.name | default: customer.email }}</strong>
+{%- endcapture -%}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-account hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container"> 
+    <div class="hdt-section__header hdt-section__header--account hdt-text-center">
+      <h1 class="hdt-heading hdt-h4">{{ 'customer.account.title' | t }}</h1>
+    </div>
+  </div>
+  <div class="hdt-filters-wrapper hdt-filters-wrapper--account">
+    <nav class="hdt-filters-nav hdt-container" role="navigation" aria-label="{{ 'customer.account.nav_tabs' | t }}">
+      <ul class="hdt-filters-nav__tags hdt-filters-nav__tags--account hdt-font-medium" role="list">
+        <li>
+          <a class="hdt-filter__tag hdt-grid hdt-pe-none" role="link" aria-current="tag" aria-label="{{ 'customer.account.dashboard' | t }}" rel="nofollow" href="{{ routes.account_url }}" data-hover="{{ 'customer.account.dashboard' | t }}">
+            {{ 'icon-four-squares.svg' | inline_asset_content }} <span>{{ 'customer.account.dashboard' | t }}</span>
+          </a>
+        </li>
+        <li>
+          <a class="hdt-filter__tag hdt-grid" role="link" aria-label="{{ 'customer.account.addresses' | t }}" href="{{ routes.account_addresses_url }}" data-hover="{{ 'customer.account.addresses' | t }} ({{ customer.addresses_count }})">
+            {{ 'icon-location.svg' | inline_asset_content }} <span>{{ 'customer.account.addresses' | t }} ({{ customer.addresses_count }})</span>
+          </a>
+        </li>
+        <li>
+          <a class="hdt-filter__tag hdt-grid" role="link" aria-label="{{ 'customer.account.logout' | t }}" href="{{ routes.account_logout_url }}" data-no-instant data-hover="{{ 'customer.account.logout' | t }}">
+            {{ 'icon-logout.svg' | inline_asset_content }} <span>{{ 'customer.account.logout' | t }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="hdt-container">
+    <div class="hdt-account-content">
+      <p class="hdt-account-welcome hdt-s-text">{{ 'customer.account.welcome_html' | t : customer: customer_strong, customer:  customer_strong, logout_link: logout_link }}</p>
+      <h2 class="hdt-text-base hdt-font-medium hdt-heading--acc">{{ 'customer.orders.title' | t }}</h2>
+      {%- paginate customer.orders by 20 -%}
+        {%- if customer.orders.size > 0 -%}
+          <table role="table" class="hdt-table hdt-table--responsive hdt-order-history">
+            <caption class="sr-only">{{ 'customer.orders.title' | t }}</caption>
+            <thead role="rowgroup">
+              <tr role="row">
+                <th id="ColumnOrder" scope="col" role="columnheader">{{ 'customer.orders.order_number' | t }}</th>
+                <th id="ColumnDate" scope="col" role="columnheader">{{ 'customer.orders.date' | t }}</th>
+                <th id="ColumnPayment" scope="col" role="columnheader">{{ 'customer.orders.payment_status' | t }}</th>
+                <th id="ColumnFulfillment" scope="col" role="columnheader">{{ 'customer.orders.fulfillment_status' | t }}</th>
+                <th id="ColumnTotal" scope="col" role="columnheader">{{ 'customer.orders.total' | t }}</th>
+              </tr>
+            </thead>
+            <tbody role="rowgroup">
+              {%- for order in customer.orders -%}
+                <tr role="row">
+                  <td id="RowOrder" role="cell" headers="ColumnOrder" data-label="{{ 'customer.orders.order_number' | t }}"><a class="hdt-link-text hdt-font-medium" href="{{ order.customer_url }}" aria-label="{{ 'customer.orders.order_number_link' | t: number: order.name }}">{{ order.name }}</a></td>
+                  <td headers="RowOrder ColumnDate" role="cell" data-label="{{ 'customer.orders.date' | t }}">{{ order.created_at | time_tag: format: 'date' }}</td>
+                  <td headers="RowOrder ColumnPayment" role="cell" data-label="{{ 'customer.orders.payment_status' | t }}">{{ order.financial_status_label }}</td>
+                  <td headers="RowOrder ColumnFulfillment" role="cell" data-label="{{ 'customer.orders.fulfillment_status' | t }}" class="hdt-order-status-td--{{ order.fulfillment_status }}">{{ order.fulfillment_status_label }}</td>
+                  <td headers="RowOrder ColumnTotal" role="cell" data-label="{{ 'customer.orders.total' | t }}">{{ order.total_net_amount | money_with_currency }}</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        {%- else -%}
+          <div class="hdt-info-box hdt-rounded-sm"><span class="hdt-info-box-wrap">{{ 'icon-cart-checked.svg' | inline_asset_content }}</span> <a href="{{ routes.all_products_collection_url }}" class="hdt-btn-link hdt-font-medium">{{ 'customer.orders.make_first' | t }}{{ 'icon-slide.svg' | inline_asset_content }}</a> <span class="hdt-font-medium">{{ 'customer.orders.none' | t }}</span></div>
+        {%- endif -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endpaginate -%}      
+      <h2 class="hdt-text-base hdt-font-medium hdt-heading--acc">{{ 'customer.account.details' | t }}</h2>
+      {%- if customer.default_address -%}
+        <table role="table" class="hdt-table hdt-customer-address">
+          <tbody role="rowgroup">
+            <tr role="row"><th>{{ 'customer.account.name' | t }}</th><td>{{ customer.name | default: customer.email }}</td></tr>
+            <tr role="row"><th>{{ 'customer.account.email' | t }}</th><td>{{ customer.email }}</td></tr>
+            <tr role="row"><th>{{ 'customer.account.address' | t }}</th><td>{{ customer.default_address.address1 }}{% if customer.default_address.address2 %}, {{ customer.default_address.address2 }}{% endif %}</td></tr>
+            <tr role="row"><th>{{ 'customer.account.city_province' | t }}</th><td>{{ customer.default_address.city }}{% if customer.default_address.province %}, {{ customer.default_address.province }}{% endif %}</td></tr>
+            <tr role="row"><th>{{ 'customer.account.country_region' | t }}</th><td>{{ customer.default_address.country }}</td></tr>
+            {%- if customer.default_address.zip -%}
+              <tr role="row"><th>{{ 'customer.account.postal_zipcode' | t }}</th><td>{{ customer.default_address.zip }}</td></tr>
+            {%- endif -%}
+            {%- if customer.default_address.phone -%}
+              <tr role="row"><th>{{ 'customer.account.phone' | t }}</th><td>{{ customer.default_address.phone }}</td></tr>
+            {%- endif -%}
+          </tbody>
+        </table>
+      {%- endif -%}
+      <a href="{{ routes.account_addresses_url }}" class="hdt-btn-link hdt-font-medium"><span>{{ 'customer.account.view_addresses' | t }}{% if customer.addresses_count > 0 %} ({{ customer.addresses_count }}){%  endif %}</span>{{ 'icon-slide.svg' | inline_asset_content }}</a>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.account",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px", 
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200, 
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

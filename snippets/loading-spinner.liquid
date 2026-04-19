@@ -1,0 +1,11 @@
+{%- doc -%}
+  Renders loading-spinner.
+  @param {string} [class] - CSS classes to replace the default ones
+
+  @example
+  {%- render 'loading-spinner' -%}
+{%- enddoc -%}
+
+<div class="{{ class | default: 'hdt-loading__spinner hdt-hidden' }}">
+    {{- 'loading-spinner.svg' | inline_asset_content -}}
+</div>

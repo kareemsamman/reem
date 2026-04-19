@@ -1,0 +1,165 @@
+{%- comment -%}
+  Renders product variant options
+
+  Accepts:
+  - product: {Object} product object.
+  - option: {Object} current product_option object.
+  - block: {Object} block object.
+  - picker_style: {String} style of picker to dispay
+  - linked_products: {Boolean} (optional)
+  - product_form_id: {String}
+  - show_variant_image: {Boolean}
+  - color_option_index: {String}
+  - selected_value: {Object}
+  - un_no_pick: {Boolean}
+  - hide_sold_out: {Boolean}
+  - swatch_legacy: {Boolean}
+
+
+  Usage:
+  {%- render 'product-variant-options', product: product, option: option, block: block, picker_style: picker_style -%}
+{%- endcomment -%}
+
+{%- capture label_unavailable -%}
+  <span class="sr-only label-unavailable">{{- 'products.product.variant_unavailable' | t -}}</span>
+{%- endcapture -%}
+{%- capture label_sold_out -%}
+  <span class="sr-only label-sold-out">{{- 'products.product.variant_sold_out' | t -}}</span>
+{%- endcapture -%}
+{%- capture data_option_index %}data-index="{{ option.position | minus: 1 }}"{% endcapture -%}
+{%- capture input_prefix -%}
+  {{- block.id }}-{{ option.position }}-
+{%- endcapture -%}
+{%- capture input_name -%}
+  {{ option.name | escape }}-{{ input_prefix }}
+{%- endcapture -%}
+
+{%- unless linked_products -%}
+
+  {%- for value in option.values -%}
+    {%- liquid
+      assign option_unavailable = true
+      assign option_soldout = true
+      if value.available or un_no_pick == false
+      assign option_unavailable = false
+      assign option_soldout = false
+      elsif value.variant
+      assign option_unavailable = false
+      endif
+      assign input_id = input_prefix | append: forloop.index0
+    -%}
+
+    {%- if picker_style contains 'swatch' -%}
+      {%- liquid
+      assign color_style_inline = ''
+      assign color_image_style = nil
+      if show_variant_image or swatch_legacy
+        if value.product_url != blank and value.variant != blank
+          assign variant_image = value.variant.product.selected_or_first_available_variant.featured_media | default: value.variant.product.featured_media
+        else
+          assign variant_image = value.variant.featured_media
+          unless variant_image
+              assign variants_has_color = product.variants | where: color_option_index, value
+              assign variant_first_color = variants_has_color | first
+              if variant_first_color.featured_image
+                assign variant_first_image = variant_first_color
+              else
+                assign variant_first_image = variants_has_color | where: 'featured_image' | first
+              endif
+              assign variant_image = variant_first_image.featured_image
+          endunless
+        endif
+      endif
+      assign class_swatch_white = ''
+      if value.swatch.color
+        assign swatch_brightness = value.swatch.color | color_brightness
+        if swatch_brightness > 245
+          assign class_swatch_white = ' hdt-bg-color-white'
+        endif
+      endif
+      assign image = variant_image | default: value.swatch.image
+      if image != blank
+        if class_swatch_white != ''
+          assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+        endif
+        assign swatch_width_2x = block.settings.swatch_height | at_least: block.settings.swatch_width | times: 2.5 | ceil
+        assign color_image = image | image_url: width: swatch_width_2x
+        assign color_image_style = '--hdt-bg-image: url([img]);' | replace_first: '[img]', color_image
+        if image.presentation.focal_point
+          assign color_image_style = color_image_style | append: '--hdt-focal-point: [point];' | replace_first: '[point]', image.presentation.focal_point
+        endif
+      elsif value.swatch.color
+        assign color_style_inline = '--hdt-bg-color: rgba([color]);' | replace_first: '[color]', value.swatch.color.rgba
+      endif
+      -%}
+      {%- capture swatch_style -%}{%- if color_image_style or color_style_inline != '' %} style="{{ color_image_style }}{{ color_style_inline }}"{% endif -%}{%- endcapture -%}
+    {%- endif -%}
+
+    {%- if picker_style contains 'block' -%}
+        {%- unless value.product_url %}<input {{ data_option_index }} autocomplete="off" is-value type="radio" data-value-id="{{ value.id }}" id="{{ input_id }}" name="{{ input_name }}" value="{{ value | escape }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="sr-only {% if option_unavailable %}is-unavailable{% elsif option_soldout %}is-disabled{% endif %}">{% endunless -%}
+        {%- render 'block', value: value, swatch_style: swatch_style, input_id: input_id, option_unavailable: option_unavailable, option_soldout: option_soldout, label_sold_out: label_sold_out, label_unavailable: label_unavailable, class_swatch_white: class_swatch_white -%}
+    {%- elsif picker_style contains 'dropdown' -%}
+        {%- liquid
+        if selected_value == value and un_no_pick
+          assign selected = 'true'
+        else
+          assign selected = 'false'
+        endif
+        render 'dropdown', value: value, swatch_style: swatch_style, input_id: input_id, option_unavailable: option_unavailable, option_soldout: option_soldout, label_sold_out: label_sold_out, label_unavailable: label_unavailable, data_option_index: data_option_index, class_swatch_white: class_swatch_white, selected: selected
+        -%}
+    {%- else -%}
+        {%- unless value.product_url %}<input {{ data_option_index }} autocomplete="off" is-value type="radio" data-value-id="{{ value.id }}" id="{{ input_id }}" name="{{ input_name }}" value="{{ value | escape }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="sr-only {% if option_unavailable %}is-unavailable{% elsif option_soldout %}is-disabled{% endif %}">{% endunless -%}
+        {%- render 'swatch', value: value, swatch_style: swatch_style, input_id: input_id, option_unavailable: option_unavailable, option_soldout: option_soldout, label_sold_out: label_sold_out, label_unavailable: label_unavailable, class_swatch_white: class_swatch_white -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+{%- else -%}
+
+  {%- for product_linked in product.metafields.theme.linked_products.value.products.value -%}
+    {%- liquid
+      # if product_linked.options_with_values.first.values.size > 1
+      #   continue
+      # endif
+      assign value = product_linked.options_with_values.first.values.first
+    -%}
+    {%- if picker_style contains 'swatch' -%}
+      {%- liquid
+      assign color_style_inline = ''
+      assign color_image_style = nil
+      if show_variant_image
+        assign variant_image = product_linked.selected_or_first_available_variant.featured_media | default: product_linked.featured_media
+      endif
+      assign image = variant_image | default: value.swatch.image
+      assign class_swatch_white = ''
+      if value.swatch.color
+        assign swatch_brightness = value.swatch.color | color_brightness
+        if swatch_brightness > 245
+          assign class_swatch_white = ' hdt-bg-color-white'
+        endif
+      endif
+      if image != blank
+        if class_swatch_white != ''
+          assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+        endif
+        assign color_image = image | image_url: width: 90
+        assign color_image_style = '--hdt-bg-image: url([img]);' | replace_first: '[img]', color_image
+        if image.presentation.focal_point
+          assign color_image_style = color_image_style | append: '--hdt-focal-point: [point];' | replace_first: '[point]', image.presentation.focal_point
+        endif
+      elsif value.swatch.color
+        assign color_style_inline = '--hdt-bg-color: rgba([color]);' | replace_first: '[color]', value.swatch.color.rgba
+      endif
+      -%}
+      {%- capture swatch_style -%}{%- if color_image_style or color_style_inline != '' %} style="{{ color_image_style }}{{ color_style_inline }}"{% endif -%}{%- endcapture -%}
+    {%- endif -%}
+
+    {%- if picker_style contains 'block' -%}
+        {%- render 'block', product_id: product.id, value: value, swatch_style: swatch_style, class_swatch_white: class_swatch_white, product_linked: product_linked, option_soldout: option_soldout -%}
+    {%- elsif picker_style contains 'dropdown' -%}
+        {%- render 'dropdown', product_id: product.id, value: value, swatch_style: swatch_style, class_swatch_white: class_swatch_white, product_linked: product_linked, option_soldout: option_soldout -%}
+    {%- else -%}
+        {%- render 'swatch', product_id: product.id, value: value, swatch_style: swatch_style, class_swatch_white: class_swatch_white, product_linked: product_linked, option_soldout: option_soldout -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+{%- endunless -%}

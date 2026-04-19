@@ -1,0 +1,36 @@
+{%- liquid
+assign selected_value = option.selected_value
+assign picker_style = block.settings.swatch_style
+# assign swatch_count = option.values | map: 'swatch' | compact | size
+# if swatch_count == 0 and block.settings.linked_show_variant_image == false
+  # assign picker_style = 'block'
+# endif
+-%}
+
+<fieldset class="hdt-product-form__input" picker-style="{{ picker_style }}" linked-products{% if block.settings.show_variant_image %} variant-image="true"{% endif %}>
+  <legend class="hdt-product-form__label"><span>{{ option.name }}: <span class="hdt-font-semibold" update-value>{{ selected_value }}</span></span> </legend>
+  {%- unless picker_style contains 'dropdown' -%}
+  <div class="hdt-product-form__values">
+    <input is-value type="hidden" name="option1" value="{{ selected_value | escape }}" data-value-id="{{ selected_value.id }}">
+    {%- render 'product-variant-options', product: product, option: option, block: block, picker_style: picker_style, linked_products: true, show_variant_image: block.settings.show_variant_image, color_option_index: 'option1' -%}
+  </div>
+  {%- else -%}
+    <input is-value type="hidden" name="option1" value="{{ selected_value | escape }}" data-value-id="{{ selected_value.id }}">
+    <div class="hdt-relative">
+      <button class="hdt-select" aria-controls="variant-popover{{ section.id }}-{{ forloop.index0 }}" aria-owns="variant-listbox{{ section.id }}-{{ forloop.index0 }}">{{ selected_value | default: choose_an_option }}</button>
+      <hdt-popover class="hdt-contents" placement="bottom" data-auto-close>
+        <dialog class="hdt-popover  hdt-popover-u hdt-popover-u--no-padding hdt-popover--variant hdt-product-form__values" id="variant-popover{{ section.id }}-{{ forloop.index0 }}" scroll-lock>
+          <button ref="closeButton" class="hdt-s-text" aria-controls="variant-popover{{ section.id }}-{{ forloop.index0 }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+          <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+          <div class="hdt-popover__body">
+            <div class="hdt-popover__inner">
+              <hdt-richlist role="listbox" selected="{{ selected_value | escape }}" id="variant-listbox{{ section.id }}-{{ forloop.index0 }}" class="hdt-richlist--variant">
+                {%- render 'product-variant-options', product: product, option: option, block: block, picker_style: picker_style, linked_products: true, show_variant_image: block.settings.show_variant_image, color_option_index: 'option1' -%}
+              </hdt-richlist>
+            </div>
+          </div>
+        </dialog>
+      </hdt-popover>
+  </div>
+  {%- endunless -%}
+</fieldset>

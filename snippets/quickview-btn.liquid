@@ -1,0 +1,18 @@
+{%- comment -%}
+  Quickview button
+
+  Accepts:
+  - popover_id: {String} Popover id
+  - product: {Object} Product Liquid object (required)
+
+  Usage:
+  {%- render 'quickview-btn', product: product, popover_id: popover_id -%}
+{%- endcomment -%}
+
+<wrapp-hdt-open-btn class="hdt-contents hdt-open-qv">
+    <button circle-bg-wrap class="hdt-btn hdt-btn-outline hdt-btn--quickview hdt-btn--with-icon" close-dialog="{{ popover_id }}" type="button" handle="{{ product.handle }}" aria-controls="hdt-quick-view-modal" aria-expanded="false">
+      {{- 'products.product.quick_view' | t -}}
+      <svg class="hdt-icon hdt-icon-quick-view" aria-hidden="true" focusable="false" width="13" height="7" viewBox="0 0 13 7" fill="none" xmlns="http://www.w3.org/2000/svg"><use xlink:href="#hdt-icon-quickview"></use></svg>
+      <hdt-circle-bg mousemove></hdt-circle-bg>
+    </button>
+</wrapp-hdt-open-btn>

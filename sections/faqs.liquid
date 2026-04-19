@@ -1,0 +1,272 @@
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__faqs hdt-s-gradient hdt-section-spacing" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-container{% if section.settings.section_width == 'custom' %}-custom{% endif %}"{% if section.settings.section_width == 'custom' %} style="--max-w-container: {{ section.settings.max_custom_width }}px"{% endif %}>
+        <div class="hdt-faqs-wrapper{% if section.settings.title_right %} hdt-title__right{% endif %}" style="--gap-content: {{ section.settings.content_spacing }}px">
+            {%- content_for 'block', type: '_section_header', id: 'section-header' -%}
+            <div class="hdt-faqs-content">
+            {%- content_for 'blocks' -%}
+            </div>
+        </div>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.faqs",
+        "class": "hdt-section",
+        "tag": "section",
+        "disabled_on": {
+            "groups": ["*"]
+        },
+        "blocks": [
+            {"type": "_section_header"},
+            {"type": "_collapsible_row"}
+        ],
+        "settings": [
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "select",
+                "id": "section_width",
+                "label": "t:settings.section_width",
+                "options": [
+                    {
+                        "value": "container",
+                        "label": "t:options.container"
+                    },
+                    {
+                        "value": "custom",
+                        "label": "t:options.custom"
+                    }
+                ],
+                "default": "custom"
+            },
+            {
+                "type": "range",
+                "id": "max_custom_width",
+                "label": "t:settings.max_custom_width",
+                "min": 800,
+                "max": 1400,
+                "default": 1100,
+                "step": 10,
+                "unit": "px",
+                "visible_if": "{{ section.settings.section_width == 'custom' }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "title_right",
+                "label": "t:settings.title_right",
+                "default": false
+            },
+            {
+                "type": "range",
+                "id": "content_spacing",
+                "label": "t:settings.content_spacing",
+                "info": "t:info.content_spacing",
+                "min": 20,
+                "max": 160,
+                "step": 4,
+                "unit": "px",
+                "default": 100
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 60
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.faqs",
+                "category": "t:categories.storytelling",
+                "blocks": [
+                    {
+                        "type": "_section_header",
+                        "static": true,
+                        "id": "section-header",
+                        "blocks": [
+                            {
+                                "type": "heading",
+                                "settings": {
+                                    "heading": "Frequently asked questions"
+                                }
+                            },
+                            {
+                                "type": "heading",
+                                "settings": {
+                                    "heading": "Still looking for an answer?",
+                                    "heading_size": "h5",
+                                    "heading_tag": "h3"
+                                }
+                            },
+                            {
+                                "type": "group-button",
+                                "blocks": [
+                                    {
+                                        "type": "_button",
+                                        "settings": {
+                                            "button_label": "Contact us"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Do your wireless chargers compatible with all devices?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>Our chargers are compatible with all Qi-enabled devices, including a wide range of smartphones and accessories. We recommend checking your device’s specifications to ensure wireless charging support.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Are there any hidden costs?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>No, there are no hidden costs. All charges, including taxes and shipping (if applicable), are clearly displayed at checkout. We value transparency and aim to provide a hassle-free shopping experience.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Do your wireless chargers compatible with all devices?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>Our chargers are compatible with all Qi-enabled devices, including a wide range of smartphones and accessories. We recommend checking your device’s specifications to ensure wireless charging support.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Are there any hidden costs?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>No, there are no hidden costs. All charges, including taxes and shipping (if applicable), are clearly displayed at checkout. We value transparency and aim to provide a hassle-free shopping experience.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Do your wireless chargers compatible with all devices?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>Our chargers are compatible with all Qi-enabled devices, including a wide range of smartphones and accessories. We recommend checking your device’s specifications to ensure wireless charging support.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Are there any hidden costs?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>No, there are no hidden costs. All charges, including taxes and shipping (if applicable), are clearly displayed at checkout. We value transparency and aim to provide a hassle-free shopping experience.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Do your wireless chargers compatible with all devices?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>Our chargers are compatible with all Qi-enabled devices, including a wide range of smartphones and accessories. We recommend checking your device’s specifications to ensure wireless charging support.</p>"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_collapsible_row",
+                        "settings": {
+                            "title": "Are there any hidden costs?"
+                        },
+                        "blocks": [
+                            {
+                                "type": "text",
+                                "settings": {
+                                    "text": "<p>No, there are no hidden costs. All charges, including taxes and shipping (if applicable), are clearly displayed at checkout. We value transparency and aim to provide a hassle-free shopping experience.</p>"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

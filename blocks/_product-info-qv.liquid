@@ -1,0 +1,15 @@
+<div class="hdt-product__info-wrapp hdt-relative" {{ block.shopify_attributes }}>
+    <div class="hdt-product__info-container hdt-scrollbar">
+      {%- content_for 'blocks' -%}
+    </div>
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.product_info",
+    "tag": null,
+    "blocks": [{"type": "@app"},{"type": "_product-title"},{"type": "_price"},{"type": "_variant-picker"},{"type": "_buy-buttons"},{"type": "_vendor_ratting"},{"type": "_badges"},{"type": "_description"},{"type": "_inventory"},{"type": "_sku"},{"type": "_tax"},{"type": "_share"},{"type": "_liquid"}, {"type": "_payment-terms"},{"type": "_accordion"},{"type": "_pickup-availability"},{"type": "_icon_with_text_pr"}, {"type": "_popup"}, {"type": "_separator"},{"type": "_complementary"},{"type": "_line-item-property"},{"type": "_product_deal_countdown"},{"type": "_view-details"},{"type": "_external"}],
+    "settings": [
+    ]
+  }
+  {% endschema %}

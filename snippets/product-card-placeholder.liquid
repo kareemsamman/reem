@@ -1,0 +1,32 @@
+{%- doc -%}
+  Renders a product placeholder card
+
+  @param {number} index_image - The placeholder image to use when no product exists. Default: 2
+  @param {string} [image_ratio] - Size of the product image card. Values are "square" and "portrait". Default is "Adapt to image"
+  @param {string} [card_style] - Show border around the card
+  @param {string} [class_card] - a list class.
+  @param {string} [info_center]
+
+  @example
+  {%- render 'product-card-placeholder', index_image: 1 -%}
+{%- enddoc -%}
+
+{%- assign info_center = info_center | default: settings.pr_text_alignment -%}
+<hdt-card-product class="hdt-card-product {{ class_card }}{% if card_style == 'card' %} hdt-card-product__border{% endif %}" can-reveal>
+  <div class="hdt-card-product__wrapper">
+    <div class="hdt-card-product__media">
+      <a calc-nav data-not-instant class="hdt-ratio hdt-ratio--{{ image_ratio }}"{% if image_ratio == 'adapt_image' %} style="--aspect-ratioapt: 1"{% endif %} href="{{ routes.root_url }}">
+        {%- liquid
+        if index_image
+          echo 'product-apparel-' | append: index_image | placeholder_svg_tag: 'hdt-placeholder-svg'
+        else
+          echo 'product-apparel-2' | placeholder_svg_tag: 'hdt-placeholder-svg'
+        endif -%}
+      </a>
+    </div>
+    <div class="hdt-card-product__content{% if info_center == 'center' %} hdt-text-center{% endif %}">
+      <div class="hdt-card-product__title hdt-font-medium"><a class="hdt-link" href="{{ routes.root_url }}">{{ 'onboarding.product_title' | t }}</a></div>
+      {%- render 'card-price', price_class: 'hdt-font-semibold hdt-text-lg', show_compare_at_price: true -%}
+    </div>
+  </div>
+</hdt-card-product>

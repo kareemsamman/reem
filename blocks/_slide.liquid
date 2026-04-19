@@ -1,0 +1,314 @@
+{%- # theme-check-disable BlockIdUsage -%}
+{%- liquid
+assign block_index = section.blocks | find_index: 'id', block.id
+if block_index == 0 and section.index < 3
+  assign fetch_priority = 'high'
+  assign loading = 'eager'
+  assign lazyload = false
+else
+  assign fetch_priority = 'auto'
+  assign loading = 'lazy'
+  assign lazyload = true
+endif
+assign object_pos = block.settings.image_mb.presentation.focal_point
+assign class_object_mb = ''
+assign reveal = 'reveal'
+assign sizes = '100vw'
+-%}
+
+<div role="group" aria-roledescription="{{ 'accessibility.slider.slide' | t | escape }}" aria-label="{{ block_index | plus: 1 }} {{ 'accessibility.slider.of' | t | escape }} {{ section.blocks.size }}" id="block-{{ block.id }}" color-scheme="{{ block.settings.color_scheme }}" class="hdt-block hdt-slider__slide hdt-slideshow__slide" {{ block.shopify_attributes }}>
+{%- if block_index == 0 -%}
+{%- style -%}
+  #Slider-{{ section.id }} {
+    {% if section.settings.image_height_mb == 'adapt_image_first' or section.settings.image_height_mb == 'fixed' %}--aspect-ratioapt:{% if section.settings.image_height_mb == 'adapt_image_first' %}{% assign image_mb_first = block.settings.image_mb | default: block.settings.image %}{{ image_mb_first.aspect_ratio | default: 1.5 }}{% else %}{{ section.settings.fixed_height_mb }}px{% endif %};{% endif %}
+    {% if section.settings.image_height == 'adapt_image_first' or section.settings.image_height == 'fixed' %}--aspect-ratioapt-md:{% if section.settings.image_height == 'adapt_image_first' %}{{ block.settings.image.aspect_ratio | default: 1.5 }}{% else %}{{ section.settings.fixed_height }}px{% endif %};{% endif %}
+  }
+{%- endstyle -%}
+{%- endif -%}
+{%- if block.settings.link != blank %}<a href="{{ block.settings.link }}" class="hdt-group-block__link"{% if block.settings.open_in_new_tab %} aria-describedby="a11y-new-window-message" target="_blank" rel="noopener noreferrer"{% endif %}{% if block.settings.link_description == blank %} tabindex="-1"{% endif %}>{% if block.settings.link_description != blank %}<span class="sr-only">{{ block.settings.link_description | escape }}</span>{% else %}<span class="sr-only">{{ 'accessibility.link' | t | escape }}</span>{% endif %}</a>{% endif -%}
+<div class="hdt-media-overlap-content hdt-media-overlap-content--container{% if block.settings.link != blank %} hdt-group-block__content{% endif %}" style="--overlap-content-mw: {{ block.settings.max_width_content }}px; --color-overlay-opacity: {{ block.settings.image_overlay_opacity }}%;{% if section.settings.image_height_mb == 'adapt_image' %}{% assign image_mb = block.settings.image_mb | default: block.settings.image %}--aspect-ratioapt: {{ image_mb.aspect_ratio | default: 1.5 }};{% endif %}{% if section.settings.image_height == 'adapt_image' %}--aspect-ratioapt-md: {{ block.settings.image.aspect_ratio | default: 1.5 }};{% endif %}{% if object_pos != blank %}{% assign class_object_mb = 'hdt-object-pos-mb' %}--object-pos-mb: {{ object_pos }}{% endif %}">
+  {%- if block.settings.media_type == 'image'  -%}
+    {%- liquid
+      if block.settings.image != blank
+        assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: block.settings.image.width
+        echo '<picture class="hdt-media-wrapper">'
+        if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+          assign widths_mb = '200,400,600,800,1000,' | append: block.settings.image_mb.width
+          assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+          unless srcset contains 'src='
+            echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+          endunless
+        endif
+        echo block.settings.image | image_url: width: block.settings.image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes, class: class_object_mb, widths: widths
+        echo '</picture>'
+      else
+        assign current = block_index | modulo: 3 | plus: 1
+        echo '<div class="hdt-media-wrapper">'
+        echo 'hero-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+        echo '</div>'
+      endif
+    -%}
+  {%- else -%}
+    <div class="hdt-media-wrapper">
+      {%- if block.settings.video != blank -%}
+        <hdt-video duration autoplay type="html5" data-loop="true"{% if lazyload %} is--lazy{% endif %}>
+          {%- capture video -%}
+            {%- render 'video', video: block.settings.video, show_image: true, image: block.settings.image_video, sizes: '100vw', hidden_poster: true, lazyload: lazyload, widths: '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200' -%}
+          {%- endcapture -%}
+          {%- liquid
+          unless video contains ' alt='
+            echo video | replace_first: '<img ', '<img alt="" '
+          else
+            echo video
+          endunless
+          -%}
+        </hdt-video>
+      {%- else -%}
+        {%- liquid
+          if block.settings.image_video != blank
+            assign widths = '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: block.settings.image_video.width
+            echo block.settings.image_video | image_url: width: block.settings.image_video.width | image_tag: widths: widths, loading: loading, sizes: '100vw'
+          else
+            echo 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+          endif
+        -%}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+  {%- liquid
+    assign shrink_translate = ''
+    if block.settings.content_position_lg contains 'hdt-text-start'
+      assign shrink_translate = 'start'
+    endif
+    if block.settings.content_position_lg contains 'hdt-text-end'
+      assign shrink_translate = 'end'
+    endif
+    assign shrink_translate_mb = ''
+    if block.settings.content_position contains 'hdt-text-start'
+      assign shrink_translate_mb = 'start'
+    endif
+    if block.settings.content_position contains 'hdt-text-end'
+      assign shrink_translate_mb = 'end'
+    endif
+  -%}
+  <div data-shrink-translate="{{ shrink_translate }}" data-shrink-translate_mb="{{ shrink_translate_mb }}" class="hdt-media-content{% if reveal == 'reveal' %} hdt-content-eff-reveal{% endif %} hdt-place-self-{{ block.settings.content_position }} xl:hdt-place-self-{{ block.settings.content_position_lg }}">
+    <div class="hdt-media-content-wrapp" {{ reveal }}>
+      {%- content_for 'blocks' -%}
+    </div>
+  </div>
+</div>
+</div>
+
+{% schema %}
+{
+"name": "t:names.slide",
+"tag": null,
+"settings": [
+  {
+    "type": "select",
+    "id": "media_type",
+    "label": "t:settings.media_type",
+    "options": [
+        {
+            "label": "t:options.image",
+            "value": "image"
+        },
+        {
+            "label": "t:options.video",
+            "value": "video"
+        }
+    ],
+    "default": "image"
+  },
+  {
+    "type": "image_picker",
+    "id": "image",
+    "label": "t:settings.image",
+    "visible_if": "{{ block.settings.media_type == 'image' }}"
+  },
+  {
+    "type": "image_picker",
+    "id": "image_mb",
+    "label": "t:settings.image_mb",
+    "info": "t:info.image_mb",
+    "visible_if": "{{ block.settings.media_type == 'image' }}"
+  },
+  {
+    "type": "video",
+    "id": "video",
+    "label": "t:settings.video",
+    "visible_if": "{{ block.settings.media_type == 'video' }}"
+  },
+  {
+    "type": "image_picker",
+    "id": "image_video",
+    "label": "t:settings.image_video",
+    "info": "t:info.image_video",
+    "visible_if": "{{ block.settings.media_type == 'video' }}"
+  },
+  {
+    "type": "color_scheme",
+    "id": "color_scheme",
+    "label": "t:settings.color_scheme",
+    "default": "scheme-1"
+  },
+  {
+    "type": "range",
+    "id": "image_overlay_opacity",
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%",
+    "label": "t:settings.media_overlay_opacity",
+    "default": 0
+  },
+  {
+    "type": "select",
+    "id": "content_position_lg",
+    "label": "t:settings.content_position_lg",
+    "default": "center xl:hdt-text-center",
+    "options": [
+      {
+        "value": "start xl:hdt-text-start",
+        "label": "t:options.top_left"
+      },
+      {
+        "value": "start-center xl:hdt-text-center",
+        "label": "t:options.top_center"
+      },
+      {
+        "value": "start-end xl:hdt-text-end",
+        "label": "t:options.top_right"
+      },
+      {
+        "value": "center-start xl:hdt-text-start",
+        "label": "t:options.middle_left"
+      },
+      {
+        "value": "center xl:hdt-text-center",
+        "label": "t:options.middle_center"
+      },
+      {
+        "value": "center-end xl:hdt-text-end",
+        "label": "t:options.middle_right"
+      },
+      {
+        "value": "end-start xl:hdt-text-start",
+        "label": "t:options.bottom_left"
+      },
+      {
+        "value": "end-center xl:hdt-text-center",
+        "label": "t:options.bottom_center"
+      },
+      {
+        "value": "end xl:hdt-text-end",
+        "label": "t:options.bottom_right"
+      }
+    ]
+  },
+  {
+    "type": "select",
+    "id": "content_position",
+    "label": "t:settings.content_position",
+    "default": "center hdt-text-center",
+    "options": [
+      {
+        "value": "start hdt-text-start",
+        "label": "t:options.top_left"
+      },
+      {
+        "value": "start-center hdt-text-center",
+        "label": "t:options.top_center"
+      },
+      {
+        "value": "start-end hdt-text-end",
+        "label": "t:options.top_right"
+      },
+      {
+        "value": "center-start hdt-text-start",
+        "label": "t:options.middle_left"
+      },
+      {
+        "value": "center hdt-text-center",
+        "label": "t:options.middle_center"
+      },
+      {
+        "value": "center-end hdt-text-end",
+        "label": "t:options.middle_right"
+      },
+      {
+        "value": "end-start hdt-text-start",
+        "label": "t:options.bottom_left"
+      },
+      {
+        "value": "end-center hdt-text-center",
+        "label": "t:options.bottom_center"
+      },
+      {
+        "value": "end hdt-text-end",
+        "label": "t:options.bottom_right"
+      }
+    ]
+  },
+  {
+    "type": "range",
+    "id": "max_width_content",
+    "min": 400,
+    "max": 900,
+    "step": 10,
+    "unit": "px",
+    "label": "t:settings.max_width_content",
+    "default": 860
+  },
+  {
+    "type": "header",
+    "content": "t:content.slide_link",
+    "info": "t:info.slide_link"
+  },
+  {
+    "type": "url",
+    "id": "link",
+    "label": "t:settings.link"
+  },
+  {
+    "type": "checkbox",
+    "id": "open_in_new_tab",
+    "label": "t:settings.open_in_new_tab",
+    "visible_if": "{{ block.settings.link != blank }}",
+    "default": false
+  },
+  {
+    "type": "text",
+    "id": "link_description",
+    "label": "t:settings.link_description",
+    "info": "t:info.link_description",
+    "visible_if": "{{ block.settings.link != blank }}"
+  }
+],
+"blocks": [{"type": "heading"},{"type": "subtext"},{"type": "text"},{"type": "group-button"},{"type": "spacer"}],
+"presets": [
+  {
+    "name": "t:names.slide",
+    "blocks": [
+      {
+        "type": "subtext",
+        "settings": {
+          "text": "Caption",
+          "uppercase": true
+        }
+      },
+      {
+        "type": "text",
+        "settings": {
+          "text": "<p>This is a slide!<\/p>",
+          "text_size": "xl"
+        }
+      },
+      {
+        "type": "group-button"
+      }
+    ]
+  }
+]
+}
+{% endschema %}

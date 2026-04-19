@@ -1,0 +1,355 @@
+<style>
+  .hdt-section__main-gift-card {
+    position: relative;
+  }
+  .hdt-container-full--gc {
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-inline: 3rem;
+  }
+  .hdt-gc-content {
+    background: rgb(var(--color-background-rgb) / 30%);
+    -webkit-backdrop-filter: blur(70px);
+    backdrop-filter: blur(70px);
+    width: 100%;
+    max-width: 39rem;
+    padding: 3rem 3rem 3.8rem 3rem;
+  }
+  .hdt-gc-content > *:last-child {
+    margin-bottom: 0;
+  }
+  .hdt-gc-boxes {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    row-gap: 2rem;
+    flex-direction: column;
+  }
+  .hdt-gc-box {
+    display: grid;
+    row-gap: 1.5rem;
+    place-content: baseline center;
+    padding: 2rem 1.5rem;
+    max-width: 36rem;
+    width: 100%;
+    background: rgb(var(--color-text-rgb) / 20%);
+    border: 1px solid var(--color-line-border);
+  }
+  .hdt-gc-box > * {
+    place-self: center;
+  }
+  .hdt-gc-box > .hdt-btn {
+    margin-top: .3rem;
+    margin-bottom: 1rem;
+  }
+  .hdt-gc-box > *:last-child {
+    margin-bottom: 0;
+  }
+  .hdt-gc-gift-img {
+    display: inline-block;
+    width: 100%;
+    max-width: var(--gift-width, 12rem);
+    margin-bottom: 2.5rem;
+  }
+  .hdt-gc-gift-img.hdt-gc-heading--img {
+    max-width: 100%;
+  }
+  .hdt-gc-heading {
+
+  }
+  .hdt-gc-heading--here {
+    margin-bottom: 1rem;
+  }
+  .hdt-gc-balance {
+    margin-bottom: 2.7rem;
+  }
+  .hdt-gc-gift-img :where(img, svg) {
+    width: 100%;
+  }
+  .hdt-gc-exprires-on {
+    margin-top: 1rem;
+  }
+  .hdt-copy-input-group {
+    display: grid;
+    grid-template-columns: auto 4.5rem;
+    background: rgb(var(--color-text-rgb) / 10%);
+    border-radius: var(--rounded-full);
+  }
+  .hdt-copy-input-group input {
+    background: none;
+    border: none;
+    border-radius: 0;
+    height: 4.5rem;
+    margin: 0;
+  }
+  .hdt-copy-input-group .hdt-btn--copy-redeem {
+    position: relative;
+    z-index: 1;
+  }
+  .hdt-copy-input-group .hdt-btn--copy-redeem svg {
+    width: 1.3rem;
+    height: auto;
+  }
+  .hdt-copy-btn--redeem {
+    display: inline-grid;
+    width: 100%;
+    place-content: center;
+    border-radius: var(--rounded-full);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .hdt-copy-btn--redeem:after {
+    content: "";
+    z-index: 0;
+    border-top-left-radius:calc(var(--rounded-button) * 4);
+    border-top-right-radius: calc(var(--rounded-button) * 4);
+    background-color: rgb(var(--color-text-rgb) / 10%);
+    transform-origin: 50% 100%;
+    height: 100%;
+    position: absolute;
+    inset: auto 0% 0%;
+    transform: scale(1,0);
+    transition: transform 0.3s linear;
+  }
+  .hdt-copy-btn--redeem:hover:after {
+    transform: scale(1.2, 1.4);
+  }
+  .hdt-gift-card__qr-code {
+    display: inline-grid;
+    place-content: center;
+    margin-block: 1rem;
+    max-width: 12rem;
+  }
+  .hdt-gift-card__qr-code canvas {
+    width: 100%;
+  }
+  .hdt-gift-card__qr-code:has(+.hdt-gift_card__apple-wallet) {
+    margin-block: .5rem;
+  }
+  .hdt-badge.hdt-badge--expired {
+    background-color: rgb(var(--color-text-rgb) / 10%);
+    padding: .5rem 1.2rem;
+    border-radius: var(--rounded);
+  }
+  @media (min-width: 768px) {
+    .hdt-gc-box {
+      padding: 2rem 2rem;
+    }
+  }
+  @media (min-width: 1150px) {
+    .hdt-gc-content {
+      max-width: 90rem;
+      padding: 4.3rem 9rem 6rem 9rem;
+    }
+    .hdt-gc-boxes {
+      flex-direction: row;
+      column-gap: 2.4rem;
+    }
+    .hdt-gc-box {
+      place-self: inherit;
+      padding: 2rem 2.3rem;
+    }
+    .hdt-gc-gift-img {
+      margin-bottom: 3.5rem;
+    }
+    .hdt-gc-heading--img {
+      
+    }
+    .hdt-gc-heading--remain {
+      margin-bottom: .5rem;
+    }
+    .hdt-gc-balance {
+      margin-bottom: 3.2rem;
+    }
+    .hdt-gc-heading {
+      
+    }
+  }
+</style>
+
+<div id="Section-{{ section.id }}" class="hdt-section__main-gift-card hdt-s-gradient" color-scheme="{{ section.settings.color_scheme }}" style="--gift-width: {{ section.settings.gift_width }}px">
+  {%- render 'bg-media', section: section -%}
+  <div class="hdt-container-full hdt-container-full--gc">
+    <div class="hdt-gc-content hdt-s-text hdt-text-center hdt-rounded">
+      {%- if section.settings.image_gift != blank -%}
+        <div class="hdt-gc-gift-img">
+          {%- capture widths %}120,180,240,300,400,500,600,700,800,{{ section.settings.image_gift.width }}{% endcapture -%}
+          {%- liquid
+            assign sizes = section.settings.gift_width | append: 'px' | default: '120px'
+            assign logo_alt = section.settings.image_gift.alt | default: shop.name | escape
+            assign logo_height = section.settings.image_gift.width | divided_by: section.settings.image_gift.aspect_ratio
+            echo section.settings.image_gift | image_url: width: section.settings.image_gift.width | image_tag: class: 'hdt-gift-img', widths: widths, height: logo_height, width: section.settings.image_gift.width, alt: logo_alt, sizes: sizes,preload: true
+          -%}
+        </div>
+      {%- else -%}
+        <h1 class="hdt-gc-heading--img hdt-gc-gift-img hdt-h5 hdt-s-text hdt-uppercase">{{ shop.name }}</h1>
+      {%- endif -%}
+      <h2 class="hdt-gc-heading hdt-gc-heading--here hdt-h5">{{ 'gift_cards.issued.here' | t }}</h2>
+      <p class="hdt-gc-heading hdt-gc-heading--remain">{{ 'gift_cards.issued.remaining' | t }}</p>
+      <div class="hdt-gc-balance hdt-h2">{% if settings.currency_code_enabled %}{{ gift_card.balance | money_with_currency }}{% else %}{{ gift_card.balance | money }}{% endif %}</div>
+      <div class="hdt-gc-boxes">
+        <div class="hdt-gc-box hdt-gc-box--redeem hdt-rounded-sm">
+          <p class="hdt-gc-heading hdt-gc-heading--redeem hdt-s-text">{{ 'gift_cards.issued.redeem' | t }}</p>
+          <div aria-hidden="true" class="hdt-print-only hdt-font-medium hdt-text-center--print">{{ gift_card.code | format_code }}</div>
+          <div class="hdt-copy-input-group hdt-no-print">
+            <label for="input-{{ section.id }}" class="sr-only">{{ 'gift_cards.issued.gift_card_code' | t | escape }}</label>
+            <input id="input-{{ section.id }}" class="hdt-input hdt-field__input hdt-font-medium" type="text" value="{{ gift_card.code | format_code }}" onclick="this.select();" readonly aria-label="{{ 'gift_cards.issued.gift_card_code' | t | escape }}">
+            <wrapp-hdt-copy-btn class="hdt-copy-btn--redeem hdt-hover-bg-zoom" text-id="input-{{ section.id }}" data-success-message="{{ 'gift_cards.issued.copy_code_success' | t | escape }}">
+              <button type="button" class="hdt-btn--copy-redeem" aria-label="{{ 'gift_cards.issued.copy_code' | t | escape }}"><span>{{ 'icon-copy.svg' | inline_asset_content }}</span></button>
+            </wrapp-hdt-copy-btn>
+          </div>
+          <button onclick="print()" type="button" role="link" aria-label="{{ 'gift_cards.issued.print' | t | escape }}" class="hdt-link-underline hdt-no-print">{{ 'gift_cards.issued.print' | t | escape }}</button>
+          {%- if gift_card.enabled == false or gift_card.expired -%}
+            <p class="hdt-badge hdt-badge--expired hdt-s-text2 hdt-rounded hdt-no-print">{{ 'gift_cards.issued.expired' | t }}</p>
+          {%- endif -%}
+          {%- if gift_card.expires_on -%}
+            {%- assign gift_card_expiration_date = gift_card.expires_on | date: '%B %e, %Y' -%}
+            <p class="hdt-gc-exprires-on hdt-text-sm">{{ 'gift_cards.issued.expiration_date' | t: expires_on: gift_card_expiration_date }}</p>
+          {%- endif -%}
+        </div>
+        <div class="hdt-gc-box hdt-gc-box--qr hdt-rounded-sm">
+          <p class="hdt-gc-heading hdt-gc-heading--qr hdt-s-text">{{ 'gift_cards.issued.scan_code' | t }}</p>
+          <hdt-qr-code class="hdt-gift-card__qr-code" identifier="{{ gift_card.qr_identifier }}" config='{ "text": {{ gift_card.qr_identifier  | json }}, "imageAltText": {{ 'gift_cards.issued.qr_image_alt' | t | json }}, "width": 240, "height": 240 }'></hdt-qr-code>
+          {%- if gift_card.pass_url -%}
+            <a href="{{ gift_card.pass_url }}" class="hdt-gift_card__apple-wallet hdt-hover-bounce hdt-no-print">
+              <img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" width="120" height="40" alt="{{ 'gift_cards.issued.add_to_apple_wallet' | t }}" loading="lazy">
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.gift_card",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_gift",
+      "label": "t:settings.logo",
+      "info": "t:info.gift_card_logo"
+    },
+    {
+      "type": "range",
+      "id": "gift_width",
+      "min": 60,
+      "max": 400,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.logo_max_width",
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "t:content.background"
+    },
+    {
+      "type": "select",
+      "id": "background_type",
+      "label": "t:settings.background_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "color",
+          "label": "t:options.color"
+        },
+        {
+          "value": "image",
+          "label": "t:options.image"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "t:settings.background",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_gradient",
+      "label": "t:settings.background_gradient",
+      "info": "t:info.background_gradient",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "t:settings.background_image",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image_mb",
+      "label": "t:settings.background_image_mb",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "background_overlay",
+      "label": "t:settings.background_overlay",
+      "visible_if": "{{ section.settings.background_type == 'image' }}",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "color_overlay",
+      "label": "t:settings.color_overlay",
+      "default": "#0000001a",
+      "alpha": true,
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:settings.overlay_type",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.background_type == 'image'}}"
+    },
+    {
+      "type": "select",
+      "id": "gradient_direction",
+      "label": "t:settings.gradient_direction",
+      "options": [
+        {
+          "value": "to top",
+          "label": "t:options.up"
+        },
+        {
+          "value": "to bottom",
+          "label": "t:options.down"
+        }
+      ],
+      "default": "to top",
+      "visible_if": "{{ section.settings.background_overlay == true and section.settings.overlay_style == 'gradient' and section.settings.background_type == 'image' }}"
+    }
+  ]
+}
+{% endschema %}

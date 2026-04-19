@@ -1,0 +1,47 @@
+<script>
+  {%- if request.page_type == 'captcha' -%}
+    if (history.scrollRestoration) history.scrollRestoration = 'manual'; {% comment %} Prevent the browser to scroll on captcha page{% endcomment %}
+  {%- endif -%}
+  window.themeHDN = {
+    settings: {
+      currencyFormat: {% if settings.currency_code_enabled %}{{ shop.money_with_currency_format | json }}{% else %}{{ shop.money_format | json }}{% endif %},
+      moneyFormat: {{ shop.money_format | json }},
+      moneyWithCurrencyFormat: {{ shop.money_with_currency_format | json }},
+      pageType: `{{ request.page_type }}`,
+      actionAfterATC: `{{ settings.action_after_atc }}`,
+      cartCustomLink: {{ settings.custom_cart_link | default: routes.cart_url | json }},
+      revealInView: {{ settings.sections_reveal_on_scroll }},
+      daysMax: {{ shop.metafields.theme.days_max.value | default: 999 }}
+      {% if settings.countdown_timezone == 'shop' %}, shopTimezone: {{ 'today' | date: '%:z' | json }}{% endif -%}
+    },
+    strings: {
+      addToCart: `{{ 'products.product.add_to_cart' | t }}`,
+      soldOut: `{{ 'products.product.sold_out' | t }}`,
+      preOrder: `{{ 'products.product.pre_order' | t }}`,
+      unavailable: `{{ 'products.product.unavailable' | t }}`,
+      goToItem: `{{ 'accessibility.go_to_item' | t: index: '[index]' }}`,
+      countryCount: `{{ 'localization.country_results_count' | t: count: '[count]' }}`,
+      quantity: {
+        increment: `{{ 'products.product.quantity.multiples_of' | t: quantity: 1904 }}`,
+        min: `{{ 'products.product.quantity.minimum_of' | t: quantity: 1904 }}`,
+        max: `{{ 'products.product.quantity.maximum_of' | t: quantity: 1904 }}`
+      },
+      pswp: {
+        close: `{{ 'light_box_image.close' | t }}`,
+        zoom: `{{ 'light_box_image.zoom' | t }}`,
+        prev: `{{ 'light_box_image.prev' | t }}`,
+        next: `{{ 'light_box_image.next' | t }}`,
+        errorMsg: `{{ 'light_box_image.errorMsg' | t }}`
+      },
+      cart: {
+        error: `{{ 'cart.cart_error' | t }}`,
+        quantityError: `{{ 'cart.cart_quantity_error_html' | t: quantity: '[quantity]' }}`,
+        min_error: `{{ 'cart.min_error' | t: min: '[min]' }}`,
+        max_error: `{{ 'cart.max_error' | t: max: '[max]' }}`,
+        step_error: `{{ 'cart.step_error' | t: step: '[step]' }}`,
+        items_added_to_cart_one: `{{ 'cart.items_added_to_cart.one' | t }}`,
+        items_added_to_cart_other: `{{ 'cart.items_added_to_cart.other' | t }}`
+      }
+    }
+  };
+</script>

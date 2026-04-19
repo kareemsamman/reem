@@ -1,0 +1,186 @@
+{%- render 'header-mega-menu', block: block, type: 'shop' -%}
+
+{% schema %}
+{
+  "name": "t:names.mega_menu_shop",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:settings.menu_item_label",
+      "info": "t:info.menu_item_label"
+    },
+    {
+      "type": "checkbox",
+      "id": "hightlight_lastmenu",
+      "label": "t:settings.hightlight_lastmenu",
+      "default": true,
+    },
+    {
+      "type": "header",
+      "content": "t:content.collections"
+    },
+    {
+      "type": "collection_list",
+      "id": "collection_list",
+      "limit": 5,
+      "label": "t:settings.collection_list"
+    },
+    {
+      "type": "select",
+      "id": "position_collections",
+      "label": "t:settings.position",
+      "visible_if": "{{ block.settings.collection_list != blank }}",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "cl_button_label",
+      "label": "t:settings.button_label",
+    },
+    {
+      "type": "url",
+      "id": "cl_button_link",
+      "label" : "t:settings.button_link",
+    },
+    {
+      "type": "header",
+      "content": "t:content.products"
+    },
+    {
+      "type": "text",
+      "id": "pr_heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.most_popular"
+    },
+    {
+      "type": "product_list",
+      "id": "product_list",
+      "limit": 6,
+      "label": "t:settings.products"
+    },
+    {
+      "type": "select",
+      "id": "position_products",
+      "label": "t:settings.position",
+      "visible_if": "{{ block.settings.product_list != blank }}",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "pr_image_ratio",
+      "options": [
+        {
+          "value": "adapt_image",
+          "label": "t:options.adapt_to_image"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.portrait"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.landscape"
+        },
+      ],
+      "default": "portrait",
+      "label": "t:settings.image_ratio"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "t:settings.show_vendor",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "pr_btn_label",
+      "label": "t:settings.button_label",
+    },
+    {
+      "type": "url",
+      "id": "pr_btn_link",
+      "label": "t:settings.button_link",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon_button",
+      "label": "t:settings.show_icon",
+      "default": true
+    },
+    {
+        "type": "select",
+        "label": "t:settings.icon_button",
+        "id": "icon_btn_custom",
+        "options": [
+            {
+                "value": "angle-right",
+                "label": "t:options.ic_angle_right"
+            },
+            {
+                "value": "angles-right",
+                "label": "t:options.ic_angles_right"
+            },
+            {
+                "value": "arrow-45deg",
+                "label": "t:options.ic_arrow_45deg"
+            },
+            {
+                "value": "arrow-45deg-2",
+                "label": "t:options.ic_arrow_45deg_2"
+            },
+            {
+                "value": "arrow-right-2",
+                "label": "t:options.ic_arrow_right"
+            },
+            {
+                "value": "arrow-circle-45deg-fill",
+                "label": "t:options.ic_circle_arrow_45deg"
+            },
+            {
+                "value": "arrow-circle-45deg-outline",
+                "label": "t:options.ic_circle_arrow_45deg_outline"
+            },
+            {
+                "value": "arrow-circle-right-fill",
+                "label": "t:options.ic_circle_arrow_right"
+            },
+            {
+                "value": "arrow-circle-right-outline",
+                "label": "t:options.ic_circle_arrow_right_outline"
+            },
+        ],
+        "default": "arrow-circle-45deg-fill",
+        "visible_if": "{{ block.settings.show_icon_button == true }}"
+    },
+  ],
+  "presets": [
+    { "name": "t:names.mega_menu_shop" }
+  ]
+}
+{% endschema %}

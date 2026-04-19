@@ -1,0 +1,219 @@
+{%- if section.blocks.size > 0 -%}
+<hdt-resize prefix="bar-mobile" color-scheme="{{ section.settings.color_scheme }}" class="hdt-navbar-mobile{% if section.settings.navbar_labels %} hdt-navbar-mobile--label{% endif %} hdt-s-gradient hdt-s-text">
+    {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'custom' -%}
+          {%- liquid
+          if block.settings.link == blank
+          continue
+          endif
+          -%}
+        <a href="{{ block.settings.link }}" id="item-{{ block.id }}" class="hdt-navbar-mobile__item hdt-navbar-mobile__item--custom">
+          <span class="hdt-navbar-mobile__icon">{% if block.settings.icon != blank %}{{ block.settings.icon }}{% else %}{{ 'icon-navbar-custom.svg' | inline_asset_content }}{% endif %}</span>
+          <span class="hdt-navbar-mobile__label hdt-truncate">{{ block.settings.text }}</span>
+        </a>
+      {%- when 'cart' -%}
+        <a href="{{ routes.cart_url }}" class="hdt-navbar-mobile__item hdt-navbar-mobile__item--cart" aria-controls="CartDrawer">
+          <span class="hdt-navbar-mobile__icon hdt-relative">{{ 'icon-navbar-cart.svg' | inline_asset_content }}<hdt-cart-count aria-hidden="true" class="hdt-navbar-mobile__count hdt-absolute{% if cart.item_count > 0 %} is-visible{% endif %}">{{ cart.item_count }}</hdt-cart-count></span>
+          <span class="hdt-navbar-mobile__label hdt-truncate">{{ block.settings.text }}</span>
+        </a>
+      {%- when 'account' -%}
+        {%- render 'shopify-account', type: 'navbar', text: block.settings.text, icon: 'icon-navbar-account.svg' -%}
+      {%- else -%}
+        {%- liquid
+        assign controls = ''
+        case block.type
+          when 'menu'
+            assign link = routes.root_url
+            assign controls = 'MenuDrawer'
+          when 'home'
+            assign link = routes.root_url
+          when 'shop'
+            assign link = block.settings.link | default: routes.all_products_collection_url
+          when 'search'
+            assign link = routes.search_url
+            assign controls = 'Drawer-search'
+        endcase
+        -%}
+        <a href="{{ link }}" class="hdt-navbar-mobile__item hdt-navbar-mobile__item--{{ block.type }}"{% if controls != '' %} aria-controls="{{ controls }}"{% endif %}>
+          {%- if block.type == 'account' -%}
+            {%- if settings.enable_customer_avatar and customer and customer.has_avatar? -%}
+              {{ customer | avatar }}
+            {%- elsif settings.enable_customer_avatar and customer and customer.first_name or customer.email -%}
+              <svg class="hdt-icon-customer-avatar hdt-icon-customer-avatar--navbar" aria-hidden="true" width="20" height="20" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="10" class="hdt-icon-background"/>
+                <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" class="hdt-centered-char">{{- customer.email | default: customer.first_name | first | upcase -}}</text>
+              </svg>
+            {%- else -%}
+               <span class="hdt-navbar-mobile__icon">{{ 'icon-navbar-account.svg' | inline_asset_content }}</span>
+            {%- endif -%}
+          {%- else -%}
+          <span class="hdt-navbar-mobile__icon">{{ 'icon-navbar-' | append: block.type | append: '.svg' | inline_asset_content }}</span>
+          {%- endif -%}
+          <span class="hdt-navbar-mobile__label hdt-truncate">{{ block.settings.text }}</span>
+        </a>
+    {%- endcase -%}
+    {%- endfor -%}
+</hdt-resize>
+{%- endif -%}
+
+    {% schema %}
+    {
+      "name": "t:names.mobile_bottom_navbar",
+      "limit": 1,
+      "class": "hdt-section-navbar-mobile",
+      "enabled_on": {
+        "groups": ["custom.overlay"]
+      },
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:content.show_navbar_bottom_mobile"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:settings.color_scheme",
+          "default": "scheme-1"
+        },
+        {
+          "type": "checkbox",
+          "id": "navbar_labels",
+          "label": "t:settings.navbar_labels",
+          "info": "t:content.show_label_bottom_icons_mobile_navbar",
+          "default": true
+        }
+      ],
+      "blocks": [
+        {
+          "type": "menu",
+          "name": "t:names.menu",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.menu"
+            }
+          ]
+        },
+        {
+          "type": "home",
+          "name": "t:names.home",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.home"
+            }
+          ]
+        },
+        {
+          "type": "shop",
+          "name": "t:names.shop",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.shop"
+            },
+            {
+              "type": "url",
+              "id": "link",
+              "label": "t:settings.custom_link"
+            }
+          ]
+        },
+        {
+          "type": "search",
+          "name": "t:names.search",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.search"
+            }
+          ]
+        },
+        {
+          "type": "account",
+          "name": "t:names.account",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.account"
+            }
+          ]
+        },
+        {
+          "type": "cart",
+          "name": "t:names.cart",
+          "limit": 1,
+          "settings": [
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.cart"
+            }
+          ]
+        },
+        {
+          "type": "custom",
+          "limit": 10,
+          "name": "t:names.custom",
+          "settings": [
+            {
+              "type": "textarea",
+              "id": "icon",
+              "label": "t:settings.custom_icon",
+              "info": "t:info.custom_icon"
+            },
+            {
+              "type": "text",
+              "id": "text",
+              "label": "t:settings.label",
+              "default": "t:text_defaults.custom"
+            },
+            {
+              "type": "url",
+              "id": "link",
+              "label": "t:settings.custom_link"
+            }
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "name": "t:names.mobile_bottom_navbar",
+          "blocks": [
+            {
+              "type": "home"
+            },
+            {
+              "type": "shop"
+            },
+            {
+              "type": "search"
+            },
+            {
+              "type": "account"
+            },
+            {
+              "type": "cart"
+            }
+          ]
+        }
+      ]
+    }
+    {% endschema %}

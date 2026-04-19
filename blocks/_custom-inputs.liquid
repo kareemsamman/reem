@@ -1,0 +1,154 @@
+{%- liquid
+  assign form_id = 'ContactForm' | append: section.id
+  assign information_id = block.settings.title | escape
+-%}
+
+{%- case block.settings.field_type -%}
+  {%- when 'phone' -%}
+    <div class="hdt-field hdt-contact__custom-field hdt-contact__custom-field--{{ block.settings.field_type }} hdt-s-text" {{ block.shopify_attributes }}>
+      <input can-reveal {% if block.settings.use_required %}required="required"{% endif %} type="tel" id="{{ form_id }}-{{ block.id }}" class="hdt-field__input hdt-input" autocomplete="tel" name="contact[{{ information_id }}]"pattern="[0-9\-]*" value="{% if customer %}{{ customer.phone }}{% endif %}"placeholder="{{ information_id }}">
+      <label class="sr-only" for="{{ form_id }}-{{ block.id }}">{{ information_id }}{% if block.settings.use_required %} *{% endif %}</label>
+    </div>
+  {%- when 'text' -%}
+    <div class="hdt-field hdt-contact__custom-field hdt-contact__custom-field--{{ block.settings.field_type }} hdt-s-text" {{ block.shopify_attributes }}>
+      {%- if block.settings.type_text == 'short' -%}
+        <input can-reveal {% if block.settings.use_required %}required="required"{% endif %} class="hdt-field__input hdt-input"  placeholder="{{ information_id }}" type="text" id="{{ form_id }}-{{ block.id }}"{% if block.settings.use_required %} required="required"{% endif %} name="properties[{{ information_id }}]"{% if block.settings.max_characters > 0 %} maxlength="{{ block.settings.max_characters }}"{% endif %}>
+      {%- else -%}
+        <textarea {% if block.settings.use_required %}required="required"{% endif %} rows="4" id="{{ form_id }}-{{ block.id }}" class="hdt-textarea" name="contact[{{ information_id }}]" placeholder="{{ information_id }}{% if block.settings.use_required %} *{% endif %}"{% if block.settings.use_required %} required="required"{% endif %}{% if block.settings.max_characters > 0 %} maxlength="{{ block.settings.max_characters }}"{% endif %}></textarea>
+      {%- endif -%}
+      <label class="sr-only" for="{{ form_id }}-{{ block.id }}">{{ information_id }}{% if block.settings.use_required %} *{% endif %}</label>
+    </div>
+  {%- when 'options' -%}
+    {%- liquid
+      assign arr_options = block.settings.options | newline_to_br | split: '<br />'
+      if arr_options.size == 0
+        continue
+      endif
+    -%}
+    <div class="hdt-field hdt-field--no-move hdt-contact__custom-field hdt-contact__custom-field--{{ block.settings.field_type }} hdt-s-text" {{ block.shopify_attributes }}>
+      {%- if block.settings.type_options == 'select' -%}
+      <div class="hdt-select">
+        <select can-reveal {% if block.settings.use_required %}required="required"{% endif %} id="{{ form_id }}-{{ block.id }}" name="contact[{{ information_id }}]">
+          <option value="" disabled selected>{{ information_id }}</option>
+          {%- for option in arr_options %}<option value="{{ option | strip | escape }}">{{ option }}</option>{% endfor -%}
+        </select>
+        <label class="sr-only" for="{{ form_id }}-{{ block.id }}">{{ information_id }}{% if block.settings.use_required %} *{% endif %}</label>
+      </div>
+    {%- else -%}
+
+      <label for="{{ form_id }}-{{ block.id }}">{{ information_id }}{% if block.settings.use_required %} <i aria-hidden="true">*</i>{% endif %}</label>
+        <div class="hdt-property-option-wrap">
+        {%- for option in arr_options %}
+        <div class="hdt-property-option" can-reveal>
+          <input {% if block.settings.use_required %}required="required"{% endif %} type="radio" name="contact[{{ information_id }}]" value="{{ option | strip | escape }}" id="{{ option | handle }}-{{ block.id }}"><label for="{{ option | handle }}-{{ block.id }}">{{ option }}</label>{% unless forloop.last %}<br>{% endunless -%}
+        </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+    </div>
+{%- endcase -%}
+
+
+{% schema %}
+{
+  "name": "t:names.custom_field",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:settings.label",
+      "default": "t:text_defaults.custom_field"
+    },
+    {
+      "type": "select",
+      "id": "field_type",
+      "options": [
+        {
+          "value": "text",
+          "label": "t:options.text"
+        },
+        {
+          "value": "phone",
+          "label": "t:options.phone"
+        },
+        {
+          "value": "options",
+          "label": "t:options.options"
+        }
+      ],
+      "default": "text",
+      "label": "t:settings.type"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_required",
+      "label": "t:settings.required",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:content.text",
+      "visible_if": "{{ block.settings.field_type == 'text' }}"
+    },
+    {
+      "type": "select",
+      "id": "type_text",
+      "options": [
+        {
+          "value": "short",
+          "label": "t:options.short"
+        },
+        {
+          "value": "long",
+          "label": "t:options.long"
+        }
+      ],
+      "default": "short",
+      "label": "t:settings.text_type",
+      "visible_if": "{{ block.settings.field_type == 'text' }}"
+    },
+    {
+      "type": "number",
+      "id": "max_characters",
+      "label": "t:settings.max_characters",
+      "visible_if": "{{ block.settings.field_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.options",
+      "visible_if": "{{ block.settings.field_type == 'options' }}"
+    },
+    {
+      "type": "select",
+      "id": "type_options",
+      "options": [
+        {
+          "value": "select",
+          "label": "t:options.select"
+        },
+        {
+          "value": "radio",
+          "label": "t:options.radio"
+        }
+      ],
+      "default": "select",
+      "label": "t:settings.options_type",
+      "visible_if": "{{ block.settings.field_type == 'options' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "options",
+      "default": "option1\noption2",
+      "label": "t:settings.options",
+      "info": "t:info.one_option_per_line",
+      "visible_if": "{{ block.settings.field_type == 'options' }}"
+    }
+  ],
+  "presets": [
+    {
+    "name": "t:names.custom_field"
+    }
+  ]
+}
+{% endschema %}

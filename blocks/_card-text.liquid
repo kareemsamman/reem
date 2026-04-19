@@ -1,0 +1,69 @@
+<div class="hdt-card-text rte hdt-s-text{{ block.settings.text_color }} hdt-text-{{ block.settings.text_size }}{% if block.settings.hide_mobile %} hdt-hidden md:hdt-block{% endif %}" {{ block.shopify_attributes }}>
+  {{- block.settings.text -}}
+</div>
+{% schema %}
+{
+  "name": "t:names.text",
+  "tag": null,
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "t:settings.text",
+      "default": "{{ closest.product.title }}"
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "t:settings.color",
+      "options": [
+        {
+          "value": "",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "2",
+          "label": "t:options.secondary"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:settings.text_size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "t:options.text_sm"
+        },
+        {
+          "value": "base",
+          "label": "t:options.text_base"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.text_lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.text_xl"
+        },
+        {
+          "value": "2xl",
+          "label": "t:options.text_2xl"
+        }
+      ],
+      "default": "base"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_mobile",
+      "label": "t:settings.hide_mobile",
+      "default": false
+    }
+  ],
+  "presets": [
+    { "name": "t:names.text" }
+  ]
+}
+{% endschema %}

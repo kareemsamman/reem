@@ -1,0 +1,4 @@
+<svg class="hdt-icon hdt-icon-u hdt-icon-u--2" aria-hidden="true" focusable="false" width="102" height="31" viewBox="0 0 102 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path class="hdt-notch__fill" fill-rule="evenodd" clip-rule="evenodd" d="M24 8.36449C21.9441 3.50286 17.2785 0 12 0H0V31H102V0H90C84.4915 0 80.2016 3.81755 78.0969 8.90807C73.2799 20.5585 63.9938 29 51 29C37.5509 29 29.4906 21.3479 24 8.36449Z" fill="currentColor"/>
+<path class="hdt-notch__stroke" d="M0 0H12 C17.2785 0 21.9441 3.50286 24 8.36449 C29.4906 21.3479 37.5509 29 51 29 C63.9938 29 73.2799 20.5585 78.0969 8.90807 C80.2016 3.81755 84.4915 0 90 0 H102" />
+</svg>

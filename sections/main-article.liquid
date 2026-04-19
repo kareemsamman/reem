@@ -1,0 +1,723 @@
+{{ 'article.css' | asset_url | stylesheet_tag }}
+{%- capture sizes -%}
+  (min-width: {{ settings.page_width | plus : 100 }}px) calc(100vw - 180px), (min-width: 768px) calc(100vw - 60px), calc(100vw - 30px)
+{%- endcapture -%}
+
+<div id="Section-{{ section.id }}" class="hdt-section__main-article hdt-section-spacing hdt-s-gradient" color-scheme="{{ section.settings.color_scheme }}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <article class="hdt-article"{% if section.settings.section_width == 'custom' %} style="--max-w-content: {{ section.settings.max_width }}px"{% endif %}>
+      <div class="hdt-container-xl">
+        <div class="header-article-wrap{% if article.image and section.settings.show_image_article %} hdt-has-art-image{% endif %}">
+            {%- if article.image and section.settings.show_image_article -%}
+            {%- liquid
+                assign append_w = article.image.width
+                assign widths = '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,' | append: append_w
+            -%}
+            <div class="hdt-article--figure hdt-ratio--{{ section.settings.image_ratio }}{% if section.settings.image_ratio == 'fixed' %} md:hdt-ratio--fixed{% endif %}" style="--figure-width: {{ article.image.width }}px">
+                <figure class="hdt-article-media hdt-ratio" style="{% if section.settings.image_ratio == 'fixed' %}--aspect-ratioapt: {{ section.settings.fixed_height_mb }}px; --aspect-ratioapt-md: {{ section.settings.fixed_height }}px;{% else %}--aspect-ratioapt: {{ article.image.aspect_ratio }}{% endif %}">
+                {{- article.image | image_url: width: article.image.width | image_tag: sizes: sizes, widths: widths, class: 'hdt-blog-card-rounded', loading: 'eager', fetchpriority: 'high' -}}
+                </figure>
+            </div>
+            {%- endif -%}
+            <header class="hdt-article-block hdt-article-block--header hdt-text-left hdt-place-self-end-start hdt-w-full">
+              <div class="hdt-article-inner-header"{% if article.image and section.settings.show_image_article %} style="--header-max-width: {{ section.settings.intro_max_width }}px"{% endif %}>
+                {%- assign show_category = section.settings.show_category -%}
+                {%- liquid
+                  if article.image and section.settings.show_image_article
+                    assign class_btn = ' hdt-btn-reverse'
+                  else
+                    assign class_btn = ''
+                  endif 
+                -%}
+                {%- if show_category != 'disable'-%}
+                  <div class="hdt-post-cats not-apply-ratio">
+                    {%- if show_category == 'blog_title' -%}
+                      <a circle-bg-wrap href="{{ blog.url }}" class="item-post-cat hdt-btn{{ class_btn }} hdt-pe-auto">
+                        {{- blog.title | escape -}}
+                        <hdt-circle-bg mousemove></hdt-circle-bg>
+                      </a>
+                    {%- elsif article.tags.size > 0 -%}
+                      {%- for tag in article.tags -%}
+                        {%- liquid
+                          if tag contains 'category_'
+                          continue
+                          endif
+                        -%}
+                        <a circle-bg-wrap href="{{ blog.url }}/tagged/{{ tag | handle }}" class="item-post-cat hdt-btn{{ class_btn }} hdt-pe-auto" aria-label="{{ 'article.tag_title' | t: tag: tag | escape }}">
+                          {{- tag | escape -}}
+                          <hdt-circle-bg mousemove></hdt-circle-bg>
+                        </a>
+                      {%- endfor -%}
+                    {%- endif -%}
+                  </div>
+              {%- endif -%}
+                <h1 id="article-title-{{ article.id }}" class="hdt-h2 hdt-heading">{{ article.title | escape }}</h1>
+                {%- if section.settings.show_date or section.settings.show_comments_count -%}
+                    <div class="hdt-article--meta hdt-text-sm hdt-flex">
+                    {%- if section.settings.show_date -%}
+                        <div class="hdt-article-date">
+                            {{- 'icon-oclock.svg' | inline_asset_content -}}
+                            {%- if section.settings.date_format contains "%" %}{{ article.published_at | time_tag: section.settings.date_format }}{% else %}{{ article.published_at | time_tag: format: section.settings.date_format }}{% endif -%}
+                        </div>
+                    {%- endif -%}
+                    {%- if section.settings.show_comments_count and article.comments_enabled? -%}
+                        <div class="hdt-shape__line"></div>
+                        <a href="#{% if article.comments_count > 0 %}article-comments{% else %}comment-form{% endif %}" class="hdt-article-comments">{{- 'icon-comment.svg' | inline_asset_content -}}<span>{{ 'article.comments_count' | t: count: article.comments_count | escape }}</span></a>
+                    {%- endif -%}
+                    </div>
+                {%- endif -%}
+              </div>
+            </header>
+        </div>
+        {% if section.blocks.size >  0%}
+        <div class="hdt-main-article-content">
+            {% if section.settings.show_blog_share %}
+                {%- render 'share-article', id: section.id, share_url: article.url, share_title: article.title, share_image: article.image -%}
+            {% endif %}
+            <div class="hdt-main-blocks-article">
+              {%- for block in section.blocks -%}
+              {%- case block.type -%}
+              {%- when "content" -%}
+                  <section class="hdt-article-block hdt-article-block--content hdt-artc rte hdt-s-text" {{ block.shopify_attributes }}>
+                  {{- article.content -}}
+                  {%- if block.settings.show_tags and article.tags.size > 0 -%}
+                    <div class="hdt-arc-tags-list">
+                      {%- for tag in article.tags -%}
+                        {%- liquid
+                          if tag contains 'category_'
+                          continue
+                          endif
+                        -%}
+                        <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="hdt-article-tag hdt-btn hdt-btn-outline hdt-btn--inner" aria-label="{{ 'article.tag_title' | t: tag: tag | escape }}">
+                          <span circle-bg-wrap class="hdt-inner-btn">{{ tag | escape }}<hdt-circle-bg mousemove></hdt-circle-bg></span>
+                        </a>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                  </section>
+              {%- when "author" -%}
+                <div class="hdt-article-block hdt-article-block--author hdt-artc" {{ block.shopify_attributes }}>
+                  <div class="hdt-author-avatar hdt-rounded-sm hdt-oh">
+                    {%- if article.user.image -%}
+                      {%- assign widths = '160,240,320,400,' | append: article.user.image.width -%}
+                      {{- article.user.image | image_url: width: article.user.image.width | image_tag: sizes: '(min-width: 768px) 90px, 160px', widths: widths -}}
+                    {%- else -%}
+                      {%- # theme-check-disable RemoteAsset -%}
+                      {%- assign gravatar = article.user.email | remove: ' ' | strip_newlines | downcase | md5 -%}
+                      <img src="https://www.gravatar.com/avatar/{{ gravatar }}?s=160&d=mm&r=g" srcset="https://www.gravatar.com/avatar/{{ gravatar }}?s=160&d=mm&r=g 160w, https://www.gravatar.com/avatar/{{ gravatar }}?s=240&d=mm&r=g 240w, https://www.gravatar.com/avatar/{{ gravatar }}?s=320&d=mm&r=g 320w, https://www.gravatar.com/avatar/{{ gravatar }}?s=400&d=mm&r=g 400w" width="400" height="400" alt="{{ article.user.name | escape }}" sizes="(min-width: 768px) 90px, 160px">
+                      {%- # theme-check-enable RemoteAsset -%}
+                    {%- endif -%}
+                  </div>
+                  <div class="hdt-author-bio">
+                    <span class="hdt-auhthor-label hdt-uppercase hdt-text-sm hdt-font-semibold">{{ 'article.author' | t }}</span>
+                    <p class="hdt-author-name hdt-h6">{{ article.user.name | escape }}</p>
+                    {%- if article.user.bio != blank %}<p class="hdt-bio-text">{{ article.user.bio | escape }}</p>{% endif -%}
+                    {%- if block.settings.title != blank and article.user.homepage != blank -%}
+                      <a role="link" href="{{ article.user.homepage }}" data-hover="{{ block.settings.title | escape }}" class="hdt-btn--bio-link hdt-btn-link hdt-btn--size-s">
+                        {{- block.settings.title | escape -}}
+                        {{- 'icon-slide.svg' | inline_asset_content -}}
+                      </a>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- when "post_nav" -%}
+                  <div class="hdt-article-block hdt-article-block--post_nav hdt-artc" {{ block.shopify_attributes }}>
+                    {%- if blog.previous_article -%}
+                    <div class="hdt-post-nav-prev hdt-article-item hdt-rounded hdt-border">
+                      <a href="{{ blog.previous_article.url }}" aria-label="{{ 'article.post_nav.previous' | t | escape }}" class="hdt-nav-icon">{{- 'icon-post-prev.svg' | inline_asset_content -}}</a>
+                      <div class="hdt-nav-artc-info">
+                        <a tabindex="-1" href="{{ blog.previous_article.url }}" class="hdt-article-title hdt-h6 hdt-link">{{ blog.previous_article.title }}</a>
+                        {%- if block.settings.show_date_art_nav or block.settings.show_comments_count_art_nav -%}
+                          <div class="hdt-article--meta hdt-text-sm hdt-hidden md:hdt-flex">
+                          {%- if block.settings.show_date_art_nav -%}
+                              <div class="hdt-article-date">
+                                  {{- 'icon-oclock.svg' | inline_asset_content -}}
+                                  {%- if section.settings.date_format contains "%" %}{{ blog.previous_article.published_at | time_tag: section.settings.date_format }}{% else %}{{ blog.previous_article.published_at | time_tag: format: section.settings.date_format }}{% endif -%}
+                              </div>
+                          {%- endif -%}
+                          {%- if block.settings.show_comments_count_art_nav and blog.previous_article.comments_enabled? -%}
+                              <div class="hdt-shape__line"></div>
+                              <a href="{{ blog.previous_article.url }}#{% if blog.previous_article.comments_count > 0 %}article-comments{% else %}comment-form{% endif %}" class="hdt-article-comments">{{- 'icon-comment.svg' | inline_asset_content -}}<span>{{ 'article.comments_count' | t: count: blog.previous_article.comments_count | escape }}</span></a>
+                          {%- endif -%}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                    {%- endif -%}
+                    {%- if blog.next_article -%}
+                      <div class="hdt-post-nav-next hdt-article-item hdt-rounded hdt-border">
+                        <a href="{{blog.next_article.url }}" aria-label="{{ 'article.post_nav.next' | t | escape }}" class="hdt-nav-icon">{{- 'icon-post-next.svg' | inline_asset_content -}}</a>
+                        <div class="hdt-nav-artc-info hdt-text-end">
+                          <a tabindex="-1" href="{{blog.next_article.url }}" class="hdt-article-title hdt-h6 hdt-link">{{blog.next_article.title }}</a>
+                          {%- if block.settings.show_date_art_nav or block.settings.show_comments_count_art_nav -%}
+                            <div class="hdt-article--meta hdt-text-sm hdt-justify-end hdt-hidden md:hdt-flex">
+                            {%- if block.settings.show_date_art_nav -%}
+                                <div class="hdt-article-date">
+                                    {{- 'icon-oclock.svg' | inline_asset_content -}}
+                                    {%- if section.settings.date_format contains "%" %}{{blog.next_article.published_at | time_tag: section.settings.date_format }}{% else %}{{blog.next_article.published_at | time_tag: format: section.settings.date_format }}{% endif -%}
+                                </div>
+                            {%- endif -%}
+                            {%- if block.settings.show_comments_count_art_nav and blog.next_article.comments_enabled? -%}
+                                <div class="hdt-shape__line"></div>
+                                <a href="{{ blog.next_article.url }}#{% if blog.next_article.comments_count > 0 %}article-comments{% else %}comment-form{% endif %}" class="hdt-article-comments">{{- 'icon-comment.svg' | inline_asset_content -}}<span>{{ 'article.comments_count' | t: count: blog.next_article.comments_count | escape }}</span></a>
+                            {%- endif -%}
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      </div>
+                      {%- endif -%}
+                  </div>
+              {%- when "back_to_blog" -%}
+                  <div class="hdt-article-block hdt-article-block--back_to_blog hdt-artc hdt-text-center" {{ block.shopify_attributes }}>
+                  <a circle-bg-wrap class="hdt-btn hdt-btn-outline hdt-text-sm hdt-btn--with-icon" href="{{ blog.url }}">
+                      {{ 'icon-arrow-prev.svg' | inline_asset_content }}
+                      {{ 'article.back_to_blog' | t: blog: blog.title | escape }}
+                      <hdt-circle-bg mousemove></hdt-circle-bg>
+                  </a>
+                  </div>
+              {%- when "separator" -%}
+                  <hr {{ block.shopify_attributes }}>
+              {%- when "spacer" -%}
+                <div class="hdt-spacer-block" style="--space: {{ block.settings.space }}px; --space-md: {{ block.settings.space_md }}px; --space-xl: {{ block.settings.space_xl }}px;" {{ block.shopify_attributes }}> </div>
+              {%- when "comments" -%}
+                  {%- if article.comments_enabled? -%}
+                  <div id="article-comments" class="hdt-article-block hdt-article-block--comments hdt-artc" {{ block.shopify_attributes }}>
+                      {%- if article.comments.size > 0 -%}
+                      <div class="hdt-comments-wrap hdt-rounded hdt-border">
+                          <h4 class="hdt-comments-title hdt-h5 hdt-heading hdt-text-center">{{ 'article.comments.title' | t: count: article.comments_count, article: article.title }}</h4>
+                          {%- paginate article.comments by block.settings.per_page -%}
+                          <div class="hdt-comments-list">
+                              {%- for comment in article.comments -%}
+                                  <div class="hdt-comment">
+                                  {%- if block.settings.show_gravatar -%}
+                                      {%- assign gravatar = comment.email | remove: ' ' | strip_newlines | downcase | md5 -%}
+                                      <div class="hdt-cm-avatar hdt-inline-flex hdt-align-self-start hdt-oh">
+                                      {%- # theme-check-disable RemoteAsset -%}
+                                      <img src="https://www.gravatar.com/avatar/{{ gravatar }}?s=72&d=mm&r=g" srcset="https://www.gravatar.com/avatar/{{ gravatar }}?s=60&d=mm&r=g 60w, https://www.gravatar.com/avatar/{{ gravatar }}?s=72&d=mm&r=g 72w, https://www.gravatar.com/avatar/{{ gravatar }}?s=120&d=mm&r=g 120w, https://www.gravatar.com/avatar/{{ gravatar }}?s=144&d=mm&r=g 144w" width="144" height="144" alt="{{ comment.author | escape }}" sizes="(min-width: 768px) 72px, 60px">
+                                      {%- # theme-check-enable RemoteAsset -%}
+                                      </div>
+                                  {%- endif -%}
+                                  <div class="hdt-cm-content hdt-border--bottom">
+                                      <div class="hdt-cm-author hdt-h6">{{ comment.author }}</div>
+                                      <div class="rte hdt-s-text">{{ comment.content }}</div>
+                                      {%- if block.settings.show_date -%}
+                                      <p class="hdt-cm-date hdt-text-sm hdt-s-text2">{{ 'icon-oclock.svg' | inline_asset_content }}{{ comment.created_at | time_tag: format: 'date_at_time' }}</p>
+                                      {%- endif -%}
+                                  </div>
+                                  </div>
+                              {%- endfor -%}
+                          </div>
+                          {%- render 'pagination', paginate: paginate -%}
+                          {%-endpaginate -%}
+                      </div>
+                      {%- endif -%}
+                      <div class="hdt-comment-form-wrap hdt-rounded hdt-border">
+                        {%- form 'new_comment', article, id: 'comment-form', class: 'hdt-comment-form' -%}
+                        <h5 class="hdt-h5 hdt-heading hdt-text-center">{{ 'article.comments.form.title' | t }}</h5>
+                        {%- if article.moderated? -%}
+                          <p class="hdt-moderated-text hdt-text-center">{{ 'article.comments.form.moderated' | t }}</p>
+                        {%- endif -%}
+                        {%- if form.errors -%}
+                            <div class="hdt-form__alert hdt-form__alert--error hdt-radius-sm">
+                            <p class="hdt-form-alert__title hdt-h6">{{ 'icon-error.svg' | inline_asset_content }} {{ 'article.comments.form.error_message' | t }}</p>
+                            <ul>
+                                {%- for field in form.errors -%}
+                                <li>
+                                    <a href="#input--{{ block.id }}--{{ field }}">
+                                    {% if form.errors.translated_fields[field] contains 'author' -%}
+                                        {{- 'article.comments.form.author' | t | escape -}}
+                                    {% elsif form.errors.translated_fields[field] contains 'email' -%}
+                                        {{- 'article.comments.form.email' | t | escape -}}
+                                    {% elsif form.errors.translated_fields[field] contains 'body' -%}
+                                        {{- 'article.comments.form.body' | t | escape -}}
+                                    {%- endif %} {{ form.errors.messages[field] -}}
+                                    </a>
+                                </li>
+                                {%- endfor -%}
+                            </ul>
+                            </div>
+                        {%- elsif form.posted_successfully? -%}
+                            {%- liquid
+                            if article.moderated?
+                            assign post_message = 'article.comments.form.post_success_moderated' | t
+                            else
+                            assign post_message = 'article.comments.form.post_success' | t
+                            endif
+                            -%}
+                            <div class="hdt-form__alert hdt-form__alert--success hdt-radius-sm"><span>{{ 'icon-success.svg' | inline_asset_content }} {{ post_message }}</span></div>
+                        {%- endif -%}
+                        <div class="hdt-form-row hdt-row-grid md:hdt-grid-cols-2 hdt-grid-cols-1">
+                            <div class="hdt-field{% if form.errors contains 'author' %} hdt-field--with-error{% endif %}">
+                            <input type="text" name="comment[author]" id="input--{{ block.id }}--author" class="hdt-input hdt-field__input" autocomplete="author" value="{{ customer.name | default: form.author }}" aria-required="true" placeholder="{{ 'article.comments.form.author' | t | escape }}">
+                            <label for="input--{{ block.id }}--author" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'article.comments.form.author' | t | escape }}</span></label>
+                            {%- if form.errors contains 'author' -%}
+                                <small class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ 'article.comments.form.author' | t | escape }} {{ form.errors.messages.author }}</span></small>
+                            {%- endif -%}
+                            </div>
+                            <div class="hdt-field{% if form.errors contains 'email' %} hdt-field--with-error{% endif %}">
+                            <input type="email" name="comment[email]" id="input--{{ block.id }}--email" class="hdt-input hdt-field__input" autocomplete="email" value="{{ customer.email | default: form.email }}" autocorrect="off" autocapitalize="off" aria-required="true" placeholder="{{ 'article.comments.form.email' | t | escape }}">
+                            <label for="input--{{ block.id }}--email" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'article.comments.form.email' | t | escape }}</span></label>
+                            {%- if form.errors contains 'email' -%}
+                                <small class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ 'article.comments.form.email' | t | escape }} {{ form.errors.messages.email }}</span></small>
+                            {%- endif -%}
+                            </div>
+                        </div>
+                        <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                            <div class="hdt-field hdt-field-has-textarea-limit{% if form.errors contains 'body' %} hdt-field--with-error{% endif %}">
+                            <textarea rows="10" name="comment[body]" id="input--{{ block.id }}--body" class="hdt-textarea hdt-textarea-round-limit" aria-required="true" placeholder="{{ 'article.comments.form.body' | t | escape }}">{{ form.body }}</textarea>
+                            {%- if form.errors contains 'body' -%}
+                                <small class="hdt-form-field__msg hdt-s-text">{{ 'icon-error.svg' | inline_asset_content }} <span>{{ 'article.comments.form.body' | t | escape }} {{ form.errors.messages.body }}</span></small>
+                            {%- endif -%}
+                            </div>
+                        </div>
+                        <div class="hdt-form-row hdt-text-center">
+                          <button circle-bg-wrap type="submit" data-hover="{{ 'article.comments.form.submit' | t }}" class="hdt-btn hdt-btn-solid hdt-btn--size-l hdt-btn--with-icon">
+                            <span>{{ 'article.comments.form.submit' | t }}</span>
+                            {%- if block.settings.icon_button -%}<span>{{ 'icon-' | append: block.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}</span>{%- endif -%}
+                            <hdt-circle-bg mousemove></hdt-circle-bg>
+                          </button>
+                        </div>
+                        {%- endform -%}
+                      </div>
+                  </div>
+                  {%- endif -%}
+              {%- endcase -%}
+              {%- endfor -%}
+            </div>
+        </div>
+        {% endif %}
+      </div>
+  </article>
+</div>
+<script type="application/ld+json">{{ article | structured_data }}</script>
+
+{% schema %}
+{
+  "name": "t:names.posts",
+  "class": "hdt-section",
+  "disabled_on": {
+    "groups": [ "*" ]
+  },
+  "settings": [
+    {
+        "type": "checkbox",
+        "id": "show_image_article",
+        "label": "t:settings.show_image_article",
+        "default": true
+    },
+    {
+        "type": "select",
+        "id": "image_ratio",
+        "options": [
+          {
+            "value": "adapt_image",
+            "label": "t:options.adapt_to_image"
+          },
+          {
+            "value": "portrait",
+            "label": "t:options.portrait"
+          },
+          {
+            "value": "square",
+            "label": "t:options.square"
+          },
+          {
+            "value": "landscape",
+            "label": "t:options.landscape"
+          },
+          {
+            "value": "3-2",
+            "label": "t:options.3_2"
+          },
+          {
+            "value": "4-3",
+            "label": "t:options.4_3"
+          },
+          {
+            "value": "fixed",
+            "label": "t:options.fixed_height"
+          }
+        ],
+        "default": "adapt_image",
+        "label": "t:settings.image_ratio",
+        "visible_if": "{{ section.settings.show_image_article == true }}"
+    },
+    {
+      "type": "range",
+      "id": "fixed_height",
+      "label": "t:settings.fixed_height",
+      "min": 200,
+      "max": 1000,
+      "unit": "px",
+      "default": 670,
+      "step": 10,
+      "visible_if": "{{ section.settings.show_image_article == true and section.settings.image_ratio == 'fixed' }}"
+    },
+    {
+      "type": "range",
+      "id": "fixed_height_mb",
+      "label": "t:settings.fixed_height_mb",
+      "min": 200,
+      "max": 800,
+      "unit": "px",
+      "default": 500,
+      "step": 10,
+      "visible_if": "{{ section.settings.show_image_article == true and section.settings.image_ratio == 'fixed' }}"
+    },
+    {
+      "type": "range",
+      "id": "intro_max_width",
+      "label": "t:settings.intro_max_width",
+      "min": 600,
+      "max": 1900,
+      "step": 50,
+      "default": 800,
+      "unit": "px",
+      "visible_if": "{{ section.settings.show_image_article }}"
+    },
+    {
+        "type": "checkbox",
+        "id": "show_date",
+        "default": true,
+        "label": "t:settings.show_date"
+    },
+    {
+        "type": "select",
+        "id": "date_format",
+        "options": [
+            {
+                "value": "abbreviated_date",
+                "label": "t:options.abbreviated_date"
+            },
+            {
+                "value": "basic",
+                "label": "t:options.basic_date"
+            },
+            {
+                "value": "date",
+                "label": "t:options.date"
+            },
+            {
+                "value": "%d %B %Y",
+                "label": "t:options.custom_date"
+            }
+        ],
+        "label": "t:settings.date_format",
+        "default": "abbreviated_date",
+        "visible_if": "{{ section.settings.show_date == true }}"
+    },
+    {
+        "type": "checkbox",
+        "id": "show_comments_count",
+        "default": false,
+        "label": "t:settings.show_comments_count"
+    },
+    {
+      "type": "radio",
+      "id": "show_category",
+      "default": "blog_title",
+      "label": "t:settings.show_category",
+      "options": [
+        {
+          "value": "disable",
+          "label": "t:options.disable"
+        },
+        {
+          "value": "blog_title",
+          "label": "t:options.blog_title"
+        },
+        {
+          "value": "blog_tag",
+          "label": "t:options.article_tag"
+        }
+      ]
+    },
+    {
+        "type": "checkbox",
+        "id": "show_blog_share",
+        "label": "t:settings.show_social_share",
+        "default": true
+    },
+    {
+        "type": "header",
+        "content": "t:content.appearance"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "options": [
+        {
+            "value": "container",
+            "label": "t:options.container"
+        },
+        {
+            "value": "custom",
+            "label": "t:options.custom"
+        }
+      ],
+      "default": "custom",
+      "label": "t:settings.content_width"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 980,
+      "max": 1400,
+      "step": 5,
+      "unit": "px",
+      "label": "t:settings.max_custom_width",
+      "default": 1140,
+      "visible_if": "{{ section.settings.section_width == 'custom' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+        "type": "header",
+        "content": "t:content.section_padding"
+    },
+    {
+        "type": "range",
+        "id": "padding_top_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top",
+        "default": 60
+    },
+    {
+        "type": "range",
+        "id": "padding_bottom_xl",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom",
+        "default": 60
+    },
+    {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_top_mb",
+        "default": 40
+    },
+    {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.padding_bottom_mb",
+        "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "content",
+      "name": "t:names.content",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_tags",
+          "default": true,
+          "label": "t:settings.show_tags"
+        }
+      ]
+    },
+    {
+      "type": "author",
+      "name": "t:names.author",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:settings.bio_link_text",
+          "default":"t:text_defaults.bio_link_text",
+        }
+      ]
+    },
+    {
+      "type": "comments",
+      "name": "t:names.comments",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_gravatar",
+          "default": true,
+          "label": "t:settings.show_avatar"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_date",
+          "default": true,
+          "label": "t:settings.show_date"
+        },
+        {
+          "type": "range",
+          "id": "per_page",
+          "min": 5,
+          "max": 50,
+          "step": 1,
+          "label": "t:settings.comments_per_page",
+          "default": 10
+        },
+        {
+            "type": "checkbox",
+            "id": "icon_button",
+            "label": "t:settings.show_btn_icon",
+            "default": true
+        },
+        {
+            "type": "select",
+            "label": "t:settings.icon_button",
+            "id": "icon_btn_custom",
+            "options": [
+                {
+                    "value": "angle-right",
+                    "label": "t:options.ic_angle_right"
+                },
+                {
+                    "value": "angles-right",
+                    "label": "t:options.ic_angles_right"
+                },
+                {
+                    "value": "arrow-45deg",
+                    "label": "t:options.ic_arrow_45deg"
+                },
+                {
+                  "value": "arrow-45deg-2",
+                  "label": "t:options.ic_arrow_45deg_2"
+                },
+                {
+                    "value": "arrow-right-2",
+                    "label": "t:options.ic_arrow_right"
+                },
+                {
+                    "value": "arrow-circle-45deg-fill",
+                    "label": "t:options.ic_circle_arrow_45deg"
+                },
+                {
+                    "value": "arrow-circle-45deg-outline",
+                    "label": "t:options.ic_circle_arrow_45deg_outline"
+                },
+                {
+                    "value": "arrow-circle-right-fill",
+                    "label": "t:options.ic_circle_arrow_right"
+                },
+                {
+                    "value": "arrow-circle-right-outline",
+                    "label": "t:options.ic_circle_arrow_right_outline"
+                },
+            ],
+            "visible_if": "{{ block.settings.icon_button == true }}",
+            "default": "arrow-circle-45deg-fill",
+        },
+      ]
+    },
+    {
+      "type": "post_nav",
+      "name": "t:names.post_nav",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_date_art_nav",
+          "default": true,
+          "label": "t:settings.show_date"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_comments_count_art_nav",
+          "default": true,
+          "label": "t:settings.show_comments_count"
+        },
+      ]
+    },
+    {
+      "type": "back_to_blog",
+      "name": "t:names.back_to_blog",
+      "limit": 1
+    },
+    {
+      "type": "separator",
+      "name": "t:names.separator"
+    },
+    {
+      "type": "spacer",
+      "name": "t:names.spacer",
+      "settings": [
+        {
+          "type": "range",
+          "id": "space_xl",
+          "min": 0,
+          "max": 500,
+          "step": 5,
+          "unit": "px",
+          "label": "t:settings.space",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "space_md",
+          "min": 0,
+          "max": 200,
+          "step": 2,
+          "unit": "px",
+          "label": "t:settings.space_tablet",
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "space",
+          "min": 0,
+          "max": 200,
+          "step": 2,
+          "unit": "px",
+          "label": "t:settings.space_mobile",
+          "default": 50
+        }
+      ],
+    }
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "content",
+      },
+      {
+        "type": "author",
+      },
+      {
+        "type": "spacer",
+        "settings": {
+          "space_xl": 45,
+          "space_md": 40,
+          "space": 40
+        }
+      },
+      {
+        "type": "post_nav",
+      },
+      {
+        "type": "comments",
+        "settings": {
+          "show_gravatar": true,
+          "show_date": true,
+          "per_page": 10
+        }
+      }
+    ]
+  }
+}
+{% endschema %}

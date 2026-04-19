@@ -1,0 +1,141 @@
+{%- liquid
+if section.index == 1
+    assign loading = 'eager'
+else
+    assign loading = 'lazy'
+endif
+if block.settings.hover_effect == 'tilt'
+    assign tag_block_inner = 'hdt-tilt-card'
+    assign class_hover = ''
+else
+    assign tag_block_inner = 'div'
+    assign class_hover = ' hdt-hover-effblur'
+endif
+-%}
+{%- capture sizes -%}
+    (min-width:1024px) calc(min(100vw, {{ settings.page_width }}px) * 0.55), (min-width: 768px) calc((100vw - 60px) * 0.44), calc((100vw - 30px) * 0.75)
+{%- endcapture -%}
+
+<div class="hdt-shop-the-look-image hdt-slider__slide" color-scheme="{{ block.settings.image_overlay_color_scheme }}">
+    <{{ tag_block_inner }} {{ block.settings.hover_effect }} max-tilt="3" class="hdt-media-overlap-content hdt-rounded {{ class_hover }}" style="--color-overlay-opacity: {{ block.settings.image_overlay_opacity }}%" {{ block.shopify_attributes }}>
+        <div class="hdt-media-wrapper">
+            {%- liquid
+                if block.settings.media_type == 'image' and block.settings.image != blank
+                    assign widths = '300,400,500,600,700,800,1000,1200,1400,1600,1800,' | append: block.settings.image.width
+                    echo block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: sizes, widths: widths
+                elsif block.settings.media_type == 'video' and block.settings.video != blank
+                    echo '<hdt-video autoplay type="html5" is--lazy>'
+                        render 'video', video: block.settings.video, show_image: true, image: block.settings.poster_video, sizes: sizes, hidden_poster: true, lazyload: true
+                    echo '</hdt-video>'
+                else
+                    echo 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                endif
+            -%}
+        </div>
+        <div class="hdt-media-content md:hdt-place-self-end-center hdt-place-self-end-center hdt-text-center">
+            <div class="hdt-content">
+                {%- content_for 'blocks' -%}
+            </div>
+        </div>
+    </{{ tag_block_inner }}>
+</div>
+
+{% schema %}
+{
+    "name": "t:names.media_with_text_overlay",
+    "tag": null,
+    "blocks": [{"type": "label"}, {"type": "heading"}, {"type": "text"}, {"type": "_button"},{"type": "spacer"}, {"type": "icon"}],
+    "settings": [
+            {
+                "type": "color_scheme",
+                "id": "image_overlay_color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-3"
+            },
+            {
+                "type": "select",
+                "id": "media_type",
+                "label": "t:settings.media_type",
+                "options": [
+                    {
+                        "label": "t:options.image",
+                        "value": "image"
+                    },
+                    {
+                        "label": "t:options.video",
+                        "value": "video"
+                    }
+                ]
+            },
+            {
+                "type": "image_picker",
+                "id": "image",
+                "label": "t:settings.image",
+                "visible_if": "{{ block.settings.media_type == 'image' }}"
+            },
+            {
+                "type": "video",
+                "id": "video",
+                "label": "t:settings.video",
+                "visible_if": "{{ block.settings.media_type == 'video' }}"
+            },
+            {
+                "type": "image_picker",
+                "id": "image_poster",
+                "label": "t:settings.poster_video",
+                "visible_if": "{{ block.settings.media_type == 'video' and block.settings.video != blank }}"
+            },
+            {
+                "type": "range",
+                "id": "image_overlay_opacity",
+                "label": "t:settings.media_overlay_opacity",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "default": 0
+            },
+            {
+                "type": "select",
+                "id": "hover_effect",
+                "label": "t:settings.hover_effect",
+                "options": [
+                    {
+                        "value": "blur",
+                        "label": "t:options.blur"
+                    },
+                    {
+                        "value": "tilt",
+                        "label": "t:options.tilt"
+                    }
+                ],
+                "default": "tilt"
+            },
+    ],
+    "presets": [
+        {
+            "name": "t:names.media_with_text_overlay",
+            "blocks": [
+                {
+                    "type": "heading",
+                    "settings": {
+                        "heading_size": "h3"
+                    }
+                }, 
+                {
+                    "type": "text",
+                    "settings": {
+                        "text_size": "xl"
+                    }
+                },
+                {
+                    "type": "_button",
+                    "settings": {
+                        "button_size": "s"
+                    }
+                }
+            ]
+        }
+    ]
+}
+{% endschema %}

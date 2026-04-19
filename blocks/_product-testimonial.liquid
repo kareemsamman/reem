@@ -1,0 +1,91 @@
+{%- liquid
+  if block.settings.show_verified_text and block.settings.verified_text != blank
+    assign has_verified_text = true
+  else
+    assign has_verified_text = false
+  endif
+-%}
+
+<div class="hdt-slider__slide" can-reveal {{ block.shopify_attributes }}>
+    <div class="hdt-testimonial-item">
+        <span class="hdt-quote-icon-wrap">{{ 'icon-quote-flat.svg' | inline_asset_content }}</span>
+        <div class="hdt-test-info">
+            <div class="hdt-star-wrap" data-rate="{{ block.settings.star_rate }}">
+                <span class="hdt-star"></span>
+            </div>
+            {% if block.settings.client_title != blank %}<h3 class="hdt-heading hdt-text-xl">{{ block.settings.client_title }}</h3>{% endif %}
+            {% if block.settings.client_quote != blank %}<div class="hdt-auth-quote rte hdt-s-text">{{ block.settings.client_quote }}</div>{% endif %}
+            {%- if block.settings.author != blank -%}
+            <div class="hdt-testimonial-author hdt-font-semibold hdt-flex hdt-align-center{% if has_verified_text %} hdt-has-verified{% endif %}">
+                <div class="hdt-testimonial-author-info">
+                    {%- if block.settings.avatar != blank -%}
+                        <div class="hdt-testimonial-author-avatar">{{ block.settings.avatar | image_url: width: block.settings.avatar.width | image_tag: widths: '35,70', sizes: '35px' }}</div>
+                    {%- endif -%}
+                    <span class="hdt-testimonial-author-name">{{ block.settings.author }}</span>
+                </div>
+                {%- if has_verified_text -%}
+                    <span class="hdt-verified-text">{{ 'icon-verified.svg' | inline_asset_content }}<span>{{ block.settings.verified_text | escape }}</span></span>
+                {%- endif -%}
+            </div>
+            {%- endif -%}                                  
+        </div>
+    </div>
+</div>
+
+{%- schema -%}
+{
+  "name": "t:names.testimonial",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "star_rate",
+      "label": "t:settings.star_rating",
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "default": 5
+    },
+    {
+      "type": "inline_richtext",
+      "id": "client_title",
+      "label": "t:settings.title"
+    },
+    {
+      "type": "richtext",
+      "id": "client_quote",
+      "label": "t:settings.text",
+      "default": "t:text_defaults.testimonial_text"
+    },
+    {
+        "type": "image_picker",
+        "id": "avatar",
+        "label": "t:settings.avatar"
+    },
+    {
+      "type": "text",
+      "id": "author",
+      "label": "t:settings.author",
+      "default": "t:text_defaults.author_name"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_verified_text",
+      "label": "t:settings.show_verified_text",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "verified_text",
+      "label": "t:settings.verified_text",
+      "default": "t:text_defaults.verified_text",
+      "visible_if": "{{ block.settings.show_verified_text }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.testimonial"
+    }
+  ]
+}
+{%- endschema -%}

@@ -1,0 +1,151 @@
+{%- style -%}
+#Section-{{ section.id }} .hdt-scroll-stack-wrapper{
+    --height-item:calc(var(--hdt-fill-height) - var(--height-header-fixed, 0px) - var(--section-pt) - var(--section-pb));
+    --height-stack: calc(var(--item-size) * var(--height-item));
+}
+@media screen and (min-width: 768px){
+    #Section-{{ section.id }} .hdt-scroll-stack-wrapper{
+        --height-item: calc(var(--hdt-fill-height) - var(--height-header-fixed, 0px) - var(--section-pt-xl) - var(--section-pb-xl));
+    }
+}
+{%- endstyle-%}
+<div id="Section-{{ section.id }}" class="hdt-section__scroll-hero-stack hdt-section-spacing hdt-s-gradient" color-scheme="{{ section.settings.color_scheme }}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px; --item-size: {{ section.blocks.size }}">
+    <div class="hdt-container-xl">
+        <hdt-hero-scrollstack class="hdt-scroll-stack-wrapper">
+            <div class="hdt-stack-sticky hdt-rounded">
+                <div class="hdt-group-stack-scroll">
+                    {%- content_for 'blocks' -%}
+                </div>
+            </div>
+        </hdt-hero-scrollstack>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.hero_scroll_stack",
+        "class": "hdt-section",
+        "tag": "section",
+        "disabled_on": {
+            "groups": ["*"]
+        },
+        "max_blocks": 5,
+        "blocks": [{"type": "_hero_media"}],
+        "settings": [
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 40
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 40
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.hero_scroll_stack",
+                "category": "t:categories.banners",
+                "blocks": [
+                    {
+                        "type": "_hero_media",
+                        "blocks": [
+                            {
+                                "type": "_hero_content",
+                                "static": true,
+                                "id": "hero_content",
+                                "blocks": [
+                                  {"type": "heading"},
+                                  {
+                                    "type": "text",
+                                    "settings": {
+                                        "text_size": "xl"
+                                    }
+                                  },
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_hero_media",
+                        "blocks": [
+                            {
+                                "type": "_hero_content",
+                                "static": true,
+                                "id": "hero_content",
+                                "blocks": [
+                                  {"type": "heading"},
+                                  {
+                                    "type": "text",
+                                    "settings": {
+                                        "text_size": "xl"
+                                    }
+                                  },
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "_hero_media",
+                        "blocks": [
+                            {
+                                "type": "_hero_content",
+                                "static": true,
+                                "id": "hero_content",
+                                "blocks": [
+                                  {"type": "heading"},
+                                  {
+                                    "type": "text",
+                                    "settings": {
+                                        "text_size": "xl"
+                                    }
+                                  },
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

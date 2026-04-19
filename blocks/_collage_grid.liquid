@@ -1,0 +1,164 @@
+<div class="hdt-collage-wrapp hdt-grid" style="--collage-cols-md: {{ section.settings.select_grid }};--row-height-xl: {{ block.settings.row_height_xl }}px;--row-height-md: {{ block.settings.row_height_md }}px;--row-height: {{ block.settings.row_height }}px;">
+    {%- content_for 'blocks' -%}
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.collage_grid", 
+    "tag": null,
+    "blocks": [{ "type": "_collage_media" }],
+    "settings": [
+      {
+          "type": "paragraph",
+          "content": "t:content.collage_grid",
+      },
+      {
+        "type": "header",
+        "content": "t:content.row_height"
+      },
+      {
+        "type": "range",
+        "id": "row_height_xl",
+        "label": "t:settings.desktop",
+        "min": 100,
+        "max": 500,
+        "step": 10,
+        "unit": "px",
+        "default": 320
+      },
+      {
+        "type": "range",
+        "id": "row_height_md",
+        "label": "t:settings.tablet",
+        "min": 100,
+        "max": 500,
+        "step": 10,
+        "unit": "px",
+        "default": 320
+      },
+      {
+        "type": "range",
+        "id": "row_height",
+        "label": "t:settings.mobile",
+        "min": 100,
+        "max": 400,
+        "step": 10,
+        "unit": "px",
+        "default": 250
+      },
+    ],
+    "presets": [
+      {
+        "name": "t:names.collage_grid",
+        "blocks": [
+          {
+            "type": "_collage_media",
+            "settings": {
+              "grid12_column_ident_xl": "3",
+              "grid12_column_ident_md": "6",
+              "grid_column_ident": "2",
+              "row_ident_xl": 1,
+              "row_ident_md": 1,
+              "row_ident": 1,
+              "content_position_xl": "end-center md:hdt-text-center",
+              "content_position": "end-center hdt-text-center"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading_size": "h6"
+                }
+              }
+            ]
+          },
+          {
+            "type": "_collage_media",
+            "settings": {
+              "grid12_column_ident_xl": "6",
+              "grid12_column_ident_md": "6",
+              "grid_column_ident": "1",
+              "row_ident_xl": 2,
+              "row_ident_md": 2,
+              "row_ident": 2,
+              "content_position_xl": "end-center md:hdt-text-center",
+              "content_position": "end-center hdt-text-center"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading_size": "h4"
+                }
+              }
+            ]
+          },
+          {
+            "type": "_collage_media",
+            "settings": {
+              "grid12_column_ident_xl": "3",
+              "grid12_column_ident_md": "6",
+              "grid_column_ident": "2",
+              "row_ident_xl": 1,
+              "row_ident_md": 1,
+              "row_ident": 1,
+              "content_position_xl": "end-center md:hdt-text-center",
+              "content_position": "end-center hdt-text-center"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading_size": "h6"
+                }
+              }
+            ]
+          },
+          {
+            "type": "_collage_media",
+            "settings": {
+              "grid12_column_ident_xl": "3",
+              "grid12_column_ident_md": "6",
+              "grid_column_ident": "2",
+              "row_ident_xl": 1,
+              "row_ident_md": 1,
+              "row_ident": 1,
+              "content_position_xl": "end-center md:hdt-text-center",
+              "content_position": "end-center hdt-text-center"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading_size": "h6"
+                }
+              }
+            ]
+          },
+          {
+            "type": "_collage_media",
+            "settings": {
+              "grid12_column_ident_xl": "3",
+              "grid12_column_ident_md": "6",
+              "grid_column_ident": "2",
+              "row_ident_xl": 1,
+              "row_ident_md": 1,
+              "row_ident": 1,
+              "content_position_xl": "end-center md:hdt-text-center",
+              "content_position": "end-center hdt-text-center"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading_size": "h6"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  {% endschema %}
+  

@@ -1,0 +1,63 @@
+{%- if search.performed and search.results_count == 0 -%}
+no_000
+{%- elsif search.performed and search.results_count > 0 -%}
+  {%- paginate search.results by 10 -%}
+  <div wrap-clear class="hdt-recent-view-products">
+    <div class="hdt-search-drawer-title-wrap">
+      <h2 class="hdt-search-drawer-title">{{ 'search.recently_viewed' | t }}</h2>
+       <wrapp-recent-clearall><button type="button" class="hdt-clear-recent-products hdt-link hdt-text-sm">{{ 'search.clear' | t }}</button></wrapp-recent-clearall>
+    </div>
+    <div class="hdt-s-drawer-sub-content-inner hdt-s-drawer-product-list">
+        {%- liquid
+          assign limit = 5
+          assign check_limit = 1
+          assign order_id_list = search.terms | remove_first: 'id:' | split: ' NOT id:' | first | split: ' OR id:'
+          assign results_id = search.results | map: 'id' | join: ' ' | split: ' '
+        -%}
+
+        {%- for id in order_id_list -%}
+          {%- liquid
+            if check_limit > limit
+              break
+            endif
+            assign index = results_id | find_index: id
+            assign item = search.results[index]
+            if item == blank
+              continue
+            endif
+            assign check_limit = check_limit | plus: 1
+          -%}
+          <div class="hdt-sd-pr-item">
+            {%- if item != blank -%}
+              {%- liquid
+                  assign selected_variant = item.selected_or_first_available_variant
+                  assign v_image = selected_variant.image | default: item.featured_image
+              -%}
+              {%- if v_image != blank -%}
+                <a href="{{ item.url }}" class="hdt-sd-pr-img">
+                    {{- v_image | image_url: width: v_image.width | image_tag: loading: 'lazy', widths: '80,112,120,150,200,250', sizes: '(min-width: 768px) 112px, 80px' -}}
+                </a>
+              {%- endif -%}
+            {%- else -%}
+              {%- liquid
+                  assign img = 'product-apparel-1' | placeholder_svg_tag: 'hdt-w-full hdt-h-auto'
+              -%}
+              <div class="hdt-sd-pr-img">{{ img }}</div>
+            {%- endif -%}
+            <div class="hdt-sd-pr-info">
+              <a href="{{ item.url }}" class="hdt-text-base hdt-s-pr-text hdt-link hdt-font-medium">{{ item.title }}</a>
+              {%- render 'card-price', product: item, show_volume_note: false, price_class: "hdt-font-semibold" -%}
+            </div>
+          </div>
+        {%- endfor -%}
+    </div>
+  </div>
+  {%- endpaginate -%}
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Recently Viewed",
+    "class": "hdt-section"
+  }
+  {% endschema %}

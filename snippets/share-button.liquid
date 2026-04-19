@@ -1,0 +1,60 @@
+{%- comment -%}
+  Renders share button.
+  Accepts:
+  - id: {String} (required)
+  - class: {String} (optional)
+  - share_url: {String} url to be added to the input the user will get/copy. (required)
+  - share_title (required)
+  - share_image (optional)
+  - placement (optional)
+
+  Usage:
+  {%- render 'share-button', id: block.id, share_url: share_url, share_title: -%}
+{%- endcomment -%}
+
+{%- liquid
+    assign share_title = share_title | url_param_escape
+    if share_image
+      assign preview_image = share_image | image_url: width: 1024, height: 1024
+    endif
+    assign target = '_blank'
+    assign share_url = request.origin | append: share_url
+  -%}
+  <wrapp-hdt-share-btn class="hdt-contents"><button class="hdt-share-button md:hdt-hidden hdt-inline-flex hdt-s-text hdt-font-medium"><span>{{ 'icon-share.svg' | inline_asset_content }}</span><span>{{ 'general.social.shares.share_btn' | t }}</span></button></wrapp-hdt-share-btn>
+  <button class="hdt-share-button hdt-s-text hdt-hidden md:hdt-inline-flex hdt-align-center" aria-controls="Popover-{{ id }}">
+    <span>{{- 'icon-share.svg' | inline_asset_content -}}</span>
+    <span class="hdt-link hdt-font-medium">{{- 'general.social.shares.share_btn' | t -}}</span>
+  </button>
+  <hdt-popover class="hdt-contents" placement="{{ placement | default: 'top-start' }}" data-auto-close>
+    <dialog id="Popover-{{ id }}" class="hdt-popover hdt-popover--share {{ class }}" scroll-lock>
+      <div class="hdt-popover__arrow"></div>
+          <div class="hdt-popover__body">
+            <div class="hdt-popover__header hdt-share-button__header hdt-hidden md:hdt-flex hdt-s-text">
+              <span class="hdt-font-medium hdt-s-text">{{ 'general.social.shares.share_header' | t | escape }}</span>
+              <button ref="closeButton" class="hdt-s-text" aria-controls="Popover-{{ id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+            </div>
+            <div class="hdt-popover__inner hdt-scrollbar">
+              <div class="hdt-share-button__links hdt-share-button__defaultcolor">
+                  <a aria-label="{{ 'general.social.shares.share_on_facebook' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="https://www.facebook.com/sharer/sharer.php?u={{ share_url }}" target="{{ target }}" class="hdt-social--facebook hdt-icon--hover__sidey">{{ 'icon-facebook.svg' | inline_asset_content }}</a>
+                  <a aria-label="{{ 'general.social.shares.share_on_twitter' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="http://twitter.com/share?text={{ share_title }}&amp;url={{ share_url }}" target="{{ target }}" class="hdt-social--twitter hdt-icon--hover__sidey">{{ 'icon-x.svg' | inline_asset_content }}</a>
+                {%- if preview_image != blank -%}
+                    <a aria-label="{{ 'general.social.shares.share_on_pinterest' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="http://pinterest.com/pin/create/button/?url={{ share_url }}&amp;media=http:{{ preview_image }}&amp;description={{ share_title }}" target="{{ target }}" class="hdt-social--pinterest hdt-icon--hover__sidey">{{ 'icon-pinterest.svg' | inline_asset_content }}</a>
+                    <a aria-label="{{ 'general.social.shares.share_on_tumblr' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" data-content="http:{{ preview_image }}" href="//tumblr.com/widgets/share/tool?canonicalUrl={{ share_url }}" target="{{ target }}" class="hdt-social--tumblr hdt-icon--hover__sidey">{{ 'icon-tumblr.svg' | inline_asset_content }}</a>
+                {%- endif -%}
+                  <a aria-label="{{ 'general.social.shares.share_on_telegram' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" target="{{ target }}" class="hdt-social--telegram hdt-icon--hover__sidey" href="https://telegram.me/share/url?url={{ share_url }}">{{ 'icon-telegram.svg' | inline_asset_content }}</a>
+                  <a aria-label="{{ 'general.social.shares.share_on_whatsapp' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" target="{{ target }}" class="hdt-social--whatsapp hdt-icon--hover__sidey" href="https://wa.me/?text={{ share_title }}&#x20;{{ share_url }}">{{ 'icon-whatsapp.svg' | inline_asset_content }}</a>
+                  <a aria-label="{{ 'general.social.shares.share_on_email' | t | escape }}" data-no-instant rel="noopener noreferrer nofollow" href="mailto:?subject={{ share_title }}&amp;body={{ share_url }}" target="{{ target }}" class="hdt-social--email hdt-icon--hover__sidey">{{ 'icon-send-email.svg' | inline_asset_content }}</a>
+              </div>
+              <div class="hdt-share-button__wrapp hdt-border">
+                <input id="input-{{ id }}" class="hdt-share-button__input hdt-s-text" type="text" value="{{ share_url }}" onclick="this.select();" readonly>
+                <wrapp-hdt-copy-btn class="hdt-contents" text-id="input-{{ id }}" get-doc-url data-success-message="{{ 'general.social.shares.success_message' | t | escape }}">
+                  <button circle-bg-wrap class="hdt-share-button__copy hdt-btn hdt-align-center hdt-btn--size-s">
+                    {{- 'general.social.shares.share_btn_copy' | t -}}
+                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                  </button>
+                </wrapp-hdt-copy-btn>
+              </div>
+            </div>
+          </div>
+    </dialog>
+  </hdt-popover>

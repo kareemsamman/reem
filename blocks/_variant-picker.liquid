@@ -1,0 +1,312 @@
+{%- liquid
+  assign product = closest.product
+  if request.visual_preview_mode and product == blank
+    assign product = collections.all.products.first
+  endif
+-%}
+{%- unless product == blank or product.has_only_default_variant -%}
+  {%- liquid
+    assign hide_update_value = false
+    assign stt_un_no_pick = true
+    if section.settings.product or section.id contains 'main-qv'
+      assign update_url = false
+    else
+      assign update_url = settings.enable_historystate
+    endif
+    if settings.pick_mode == 'no' and product.variants_count > 1
+      assign selected_variant = product.selected_variant
+      assign update_url = false
+      unless selected_variant
+        assign stt_un_no_pick = false
+      endunless
+    elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+      assign selected_variant = product.selected_variant | default: product.variants.first
+    else
+      assign selected_variant = product.selected_or_first_available_variant
+    endif
+    if product.available and settings.hide_sold_out
+      assign hide_sold_out = true
+    else
+      assign hide_sold_out = false
+    endif
+    assign size_list = 'products.theme_settings.size' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+    assign use_size_chart_page = false
+    assign use_size_chart_image = false
+    assign add_size_chart = false
+    if block.settings.size_chart_source == 'page' and block.settings.size_chart_page != blank
+      assign use_size_chart_page = true
+    elsif block.settings.size_chart_source == 'image' and block.settings.size_chart_image != blank
+      assign use_size_chart_image = true
+      assign image_size_chart = block.settings.size_chart_image
+    endif
+    assign choose_an_option = 'products.product.choose_an_option' | t
+    assign product_form_id = 'form' | append: section.id | append: product.id
+    assign swatch_count_total = product.options_with_values | map: 'values' | map: 'swatch' | compact | size
+    assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+    assign combined_listing_count = product.options_with_values | map: 'values' | map: 'product_url' | compact | size
+    assign linked_products_metafield = product.metafields.theme.linked_products
+    if product.options_with_values.first.values.size == 1 and linked_products_metafield and linked_products_metafield.value.products != blank and linked_products_metafield.value.products.value.count > 0 and linked_products_metafield.value.products.type == 'list.product_reference' and combined_listing_count == 0
+      assign linked_products = true
+    else
+      assign linked_products = false
+    endif
+    assign enable_adapt_first = false
+    if product.images.first and block.settings.swatch_style == 'swatch' and block.settings.enable_adapt_first
+      assign enable_adapt_first = true
+    endif
+  -%}
+  {%- capture btn_size_chart -%}
+    {%- if use_size_chart_page or use_size_chart_image -%}
+      {%- if use_size_chart_page -%}
+        <button aria-controls="modal-{{ block.id }}" aria-expanded="false" class="hdt-open-size-chart-btn hdt-btn-link hdt-btn-link--hover hdt-btn--with-icon hdt-btn--size-s"><span>{{ 'icon-expand.svg' | inline_asset_content }}</span><span>{{ 'products.product.size_chart_button' | t }}</span>{{ 'icon-slide.svg' | inline_asset_content }}</button>
+      {%- else -%}
+        <hdt-img-psw class="hdt-contents" data-obj-img='{ "src": "{{ image_size_chart | image_url: width: image_size_chart.width }}", "width": "{{ image_size_chart.width }}", "height": "{{ image_size_chart.height }}", "alt": "{{ image_size_chart.alt | escape }}" }'><button class="hdt-open-size-chart-btn hdt-btn-link hdt-btn--with-icon hdt-btn--size-s"><span>{{ 'icon-expand.svg' | inline_asset_content }}</span><span>{{ 'products.product.size_chart_button' | t }}{{ 'icon-slide.svg' | inline_asset_content }}</span></button></hdt-img-psw>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endcapture -%}
+
+  <div class="hdt-product-info__item hdt-product__variant-picker hdt-product-info__item--text-box" data-type="variant-picker" {{ block.shopify_attributes }}>
+    <hdt-variant-picker handle="{{ product.handle }}" count="{{ product.variants_count }}" data-id="{{ product.id }}" form="{{ product_form_id }}" section-id="{{ section.id }}" class="hdt-variant-picker hdt-s-text no-js-hidden"{% if update_url %} {% if stt_un_no_pick %}update-url="{{ selected_variant.id }}"{% else %}update-url{%  endif %}{% endif %}{% if hide_sold_out %} hide-sold-out-variants{% endif %}{% unless stt_un_no_pick %} no-pick{% endunless %} style="{% if block.settings.swatch_style == 'swatch' %}--swatch-width-num: {{ block.settings.swatch_width | divided_by: 10.0 }};--swatch-height: {{ block.settings.swatch_height | divided_by: 10.0 }}rem;{% if enable_adapt_first %}--fit-ratio-img: {{ product.images.first.aspect_ratio }};{% endif %}{% endif %}--swatch-radius-num: {{ block.settings.swatch_radius | divided_by: 10.0 }};">
+      {%- for option in product.options_with_values -%}
+        {%- liquid
+        if forloop.first and linked_products
+          render 'linked-products', hide_sold_out: hide_sold_out, closest.product: product, block: block, product: product, option: option, product_form_id: product_form_id
+          continue
+        endif
+        assign swatch_legacy = false
+        assign swatch_count = option.values | map: 'swatch' | compact | size
+        assign name_downcase = option.name | downcase
+        assign picker_style = block.settings.style
+        if swatch_count > 0
+          assign color_option_index = 'option' | append: forloop.index
+          assign picker_style = block.settings.swatch_style
+        elsif swatch_list contains name_downcase and swatch_count_total == 0 and swatch_legacy == false
+          assign swatch_legacy = true
+          assign color_option_index = 'option' | append: forloop.index
+          assign picker_style = block.settings.swatch_style
+        endif
+        if picker_style == 'dropdown' or picker_style == 'dropdown_swatch'
+          assign no_dropdown = false
+        else
+          assign no_dropdown = true
+        endif
+        assign combined_listing = false
+        if option.values.size == 1
+          assign selected_value = option.values.first
+          assign un_no_pick = true
+        elsif option.values.first.product_url
+          assign combined_listing = true
+          assign selected_value = option.selected_value
+          assign un_no_pick = true
+        else
+          assign un_no_pick = stt_un_no_pick
+          assign selected_value = selected_variant.options[forloop.index0]
+        endif
+        if size_list contains name_downcase and use_size_chart_page or use_size_chart_image and add_size_chart == false
+          assign add_size_chart = true
+          assign show_dialog_size_chart = true
+        else
+          assign show_dialog_size_chart = false
+        endif
+        -%}
+
+        <fieldset class="hdt-product-form__input" picker-style="{{ picker_style }}"{% if combined_listing %} combined-listings{% endif %}{% if block.settings.show_variant_image %} variant-image="true"{% endif %}{% if enable_adapt_first %} is--fist-ratio{% endif %}>
+          <legend class="hdt-product-form__label{% if show_dialog_size_chart %} hdt-product-form__label--size_chart{% endif %}"><span>{{ option.name }}{% unless hide_update_value %}: <span class="hdt-font-semibold" update-value>{{ selected_value | default: choose_an_option }}</span>{% endunless %}</span>{% if show_dialog_size_chart %} {{ btn_size_chart }}{% endif %}</legend>
+          {%- if no_dropdown -%}
+            <div class="hdt-product-form__values">
+              {%- if combined_listing %}<input is-value type="hidden" name="option{{ forloop.index }}" value="{{ selected_value | escape }}" data-value-id="{{ selected_value.id }}">{% endif -%}
+              {%- render 'product-variant-options', hide_sold_out: hide_sold_out, product: product, option: option, block: block, picker_style: picker_style, swatch_legacy: swatch_legacy, product_form_id: product_form_id, linked_products: false, show_variant_image: block.settings.show_variant_image, color_option_index: color_option_index, un_no_pick: un_no_pick, selected_value: selected_value -%}
+            </div>
+          {%- else -%}
+            {%- if combined_listing -%}
+            <input is-value type="hidden" name="option{{ forloop.index }}" value="{{ selected_value | escape }}" data-value-id="{{ selected_value.id }}">
+            {%- else -%}
+            <input trigger-value id="{{ block.id }}-{{ option.position }}" type="hidden" name="option{{ forloop.index }}" value="{{ selected_value | escape }}" data-value-id="{{ selected_value.id }}">
+            {%- endif -%}
+            <div class="hdt-relative">
+              <button class="hdt-select" aria-controls="variant-popover{{ block.id }}-{{ forloop.index0 }}" aria-owns="variant-listbox{{ block.id }}-{{ forloop.index0 }}">{{ selected_value | default: choose_an_option }}</button>
+              <hdt-popover class="hdt-contents" placement="bottom" data-auto-close>
+                <dialog class="hdt-popover hdt-popover-u hdt-popover-u--no-padding hdt-popover--variant hdt-product-form__values" id="variant-popover{{ block.id }}-{{ forloop.index0 }}" scroll-lock>
+                  <button ref="closeButton" class="hdt-s-text" aria-controls="variant-popover{{ block.id }}-{{ forloop.index0 }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+                  <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+                  <div class="hdt-popover__body">
+                    <div class="hdt-popover__inner">
+                      <hdt-richlist role="listbox" selected="{{ selected_value | escape }}" id="variant-listbox{{ block.id }}-{{ forloop.index0 }}" class="hdt-richlist--variant">
+                        {%- render 'product-variant-options', hide_sold_out: hide_sold_out, product: product, option: option, block: block, picker_style: picker_style, swatch_legacy: swatch_legacy, product_form_id: product_form_id, linked_products: false, show_variant_image: block.settings.show_variant_image, color_option_index: color_option_index, un_no_pick: un_no_pick, selected_value: selected_value -%}
+                      </hdt-richlist>
+                    </div>
+                  </div>
+                </dialog>
+              </hdt-popover>
+            </div>
+          {%- endif -%}
+        </fieldset>
+
+      {%- endfor -%}
+      {%- if un_no_pick %}<script type="application/json">{{ selected_variant | json }}</script>{% endif -%}
+    </hdt-variant-picker>
+    <template hidden>
+      {%- form 'product', product, id: product_form_id, hidden: '' -%}<input type="hidden" name="id" value="{{ selected_variant.id }}"{% unless selected_variant.available %} disabled{% endunless %}>{%- endform -%}
+    </template>
+    {%- if add_size_chart and use_size_chart_page -%}
+    <hdt-modal class="hdt-contents">
+      <dialog color-scheme="{{ settings.modal_color_scheme }}" id="modal-{{ block.id }}" class="hdt-dialog hdt-modal hdt-modal__product hdt-modal__size-chart hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+        <div class="hdt-modal__header hdt-s-text">
+          <span class="hdt-h6 hdt-modal-title--size_chart">{{ block.settings.size_chart_page.title }}</span>
+          <button ref="closeButton" class="hdt-close-dialog-btn" aria-controls="modal-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">
+              {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+              {{- 'icon-close.svg' | inline_asset_content -}}
+          </button>
+        </div>
+        <hdt-scroll-hint class="hdt-modal__inner hdt-scrollbar">
+          <div class="rte">{{ block.settings.size_chart_page.content }}</div>
+        </hdt-scroll-hint>
+      </dialog>
+    </hdt-modal>
+    {%- endif -%}
+  </div>
+
+{%- endunless -%}
+
+{% schema %}
+{
+  "name": "t:names.variant_picker",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "options": [
+          {
+          "value": "block",
+          "label": "t:options.block"
+          },
+          {
+          "value": "dropdown",
+          "label": "t:options.dropdown"
+          }
+      ],
+      "default": "block",
+      "label": "t:settings.selector_style"
+    },
+    {
+      "type": "select",
+      "id": "swatch_style",
+      "options": [
+          {
+          "value": "swatch",
+          "label": "t:options.swatch"
+          },
+          {
+          "value": "block",
+          "label": "t:options.block"
+          },
+          {
+          "value": "block_swatch",
+          "label": "t:options.block_with_swatch"
+          },
+          {
+          "value": "dropdown",
+          "label": "t:options.dropdown"
+          },
+          {
+          "value": "dropdown_swatch",
+          "label": "t:options.dropdown_swatch"
+          }
+      ],
+      "default": "swatch",
+      "info": "t:info.swatch_style",
+      "label": "t:settings.swatch_style"
+    },
+    {
+      "type": "header",
+      "content": "t:content.swatch",
+      "visible_if": "{{ block.settings.swatch_style contains 'swatch' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variant_image",
+      "label": "t:settings.show_variant_image",
+      "visible_if": "{{ block.settings.swatch_style contains 'swatch' }}"
+    },
+    {
+      "type": "range",
+      "id": "swatch_width",
+      "min": 20,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.width",
+      "visible_if": "{{ block.settings.swatch_style == 'swatch' }}",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "swatch_height",
+      "min": 20,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.height",
+      "visible_if": "{{ block.settings.swatch_style == 'swatch' and block.settings.enable_adapt_first == false }}",
+      "default": 30
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_adapt_first",
+      "label": "t:settings.enable_adapt_first",
+      "info": "t:info.enable_adapt_first",
+      "default": false,
+      "visible_if": "{{ block.settings.swatch_style == 'swatch' }}"
+    },
+    {
+      "type": "range",
+      "id": "swatch_radius",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.corner_radius",
+      "visible_if": "{{ block.settings.swatch_style contains 'swatch' }}",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "t:content.size_chart",
+      "info": "t:info.size_chart"
+    },
+    {
+        "type": "select",
+        "id": "size_chart_source",
+        "options": [
+            {
+            "value": "page",
+            "label": "t:options.page"
+            },
+            {
+            "value": "image",
+            "label": "t:options.image"
+            }
+        ],
+        "default": "page",
+        "label": "t:settings.size_chart_source"
+    },
+    {
+        "type": "page",
+        "id": "size_chart_page",
+        "label": "t:settings.size_chart_page",
+        "info": "t:info.size_chart_page",
+    },
+    {
+      "type": "image_picker",
+      "id": "size_chart_image",
+      "label": "t:settings.size_chart_image",
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.variant_picker"
+    }
+  ]
+}
+{% endschema %}

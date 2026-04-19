@@ -1,0 +1,312 @@
+<details id="Details-HeaderMenuMobile" class="hdt-menu-mobile">
+    <summary id="HeaderMenuMobile" class="hdt-header__toggle-menu-mobile" aria-label="Menu">{{ 'icon-hamburger.svg' | inline_asset_content }}</summary>
+    <div class="hdt-mmb-container hdt-mmb-container--main-menu hdt-s-gradient" id="menu-drawer">
+        <div class="hdt-drawer__header hdt-menu-drawer__header hdt-s-text">
+            <button part="prev-button" class="hdt-menu-drawer__prev hdt-point-area hdt-opacity-0" aria-label="Close submenu">{{ 'icon-arrow-left.svg' | inline_asset_content }}</button>
+            <span class="hdt-menu-drawer__title hdt-menu-drawer__menu-{{ section.settings.text_style }} hdt-truncate hdt-block"></span>
+        </div>
+        <div class="hdt-drawer__inner hdt-scrollbar">
+            <div class="hdt-menu-drawer-body">
+                <nav class="hdt-menu-drawer__nav">
+                <ul class="hdt-menu-drawer__menu hdt-h4" role="list">
+                    {%- for link in menu_mb.links -%}
+                        {%- liquid
+                            assign has_block_mega = false
+                            if section.blocks.size > 0
+                                for block in section.blocks
+                                    if block.type == 'mega_menu_featured'
+                                        if block.settings.show_collections_mobile or block.settings.show_products_mobile
+                                            assign show_block_mobile = true
+                                        else
+                                            assign show_block_mobile = false
+                                        endif
+                                    else
+                                        assign show_block_mobile = block.settings.show_block_mobile
+                                    endif
+                                    if block.settings.title != blank and block.settings.title == link.title and show_block_mobile
+                                        assign has_block_mega = true
+                                    break
+                                    endif
+                                endfor
+                            endif
+                        -%}
+                        {%- if link.links != blank or has_block_mega -%}
+                            <li><a href="{{ link.url }}" panel-id="panel-{{ link.handle }}" class="hdt-menu-drawer__menu-item hdt-menu-drawer__menu-{{ section.settings.text_style }}{% if link.child_active %} hdt-menu-drawer__menu-item--active{% endif %}"{% if link.current %} aria-current="page"{% endif %}><span>{{ link.title | escape }}</span>{{ 'icon-menu-caret.svg' | inline_asset_content }}</a></li>
+                        {%- else -%}
+                            <li><a href="{{ link.url }}" class="hdt-menu-drawer__menu-item hdt-menu-drawer__menu-{{ section.settings.text_style }}{% if link.child_active %} hdt-menu-drawer__menu-item--active{% endif %}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}</a></li>
+                        {%- endif -%}
+                    {%- endfor -%}
+                </ul>
+                </nav>
+                {%- for link in menu_mb.links -%}
+                {%- liquid
+                    assign block_mega_menu = nil
+                    if section.blocks.size > 0
+                        for block in section.blocks
+                            if block.type == 'mega_menu_featured'
+                                if block.settings.show_collections_mobile or block.settings.show_products_mobile
+                                    assign show_block_mobile = true
+                                else
+                                    assign show_block_mobile = false
+                                endif
+                            else
+                                assign show_block_mobile = block.settings.show_block_mobile
+                            endif
+                            if block.settings.title != blank and block.settings.title == link.title and show_block_mobile
+                                assign block_mega_menu = block
+                            break
+                            endif
+                        endfor
+                    endif
+                    if link.links == blank and block_mega_menu == blank
+                    continue
+                    endif
+                -%}
+
+                <hdt-menu-panel id="panel-{{ link.handle }}" class="hdt-menu-drawer__panel" hidden>
+                    {%- if link.links != blank -%}
+                    <ul class="hdt-menu-drawer__panel-menu hdt-menu-drawer__{{ block_mega_menu.type }} hdt-ratio--{{ block_mega_menu.settings.image_ratio }}" role="list">
+                    {%- for childlink in link.links -%}
+                        <li>
+                            {%- if block_mega_menu.type == 'mega_standard' and block_mega_menu.settings.show_block_mobile and childlink.type == 'collection_link' and childlink.object.featured_image != blank or childlink.object.metafields.theme.menu_image != blank -%}
+                                {%- liquid
+                                assign image = childlink.object.metafields.theme.menu_image | default: childlink.object.featured_image
+                                -%}
+                                <a circle-bg-wrap id="HeaderMenu-{{ link.handle }}-{{ childlink.handle }}" href="{{ childlink.url }}" class="hdt-mobile-menu__link hdt-mega-menu__link--images hdt-mobile-menu__link--images hdt-btn-effhover hdt-btn-outline hdt-btn--with-icon hdt-mobile-menu__link--level-2{% if childlink.current %} hdt-mobile-menu__link--active{% endif %}"{% if childlink.current %} aria-current="page"{% endif %}>
+                                    <span class="hdt-mmf-collection-item--img">
+                                    {{- image | image_url: width: image.width | image_tag: loading: 'lazy', sizes: '64px', widths: '64,128', class: 'hdt-zoom-img' -}}
+                                    </span>
+                                    <span class="hdt-mmf-collection-item--title hdt-text-6xl">{{ childlink.title }}</span>
+                                    <span class="hdt-mmf-collection-item--icon">{{ 'icon-circle-arrow.svg' | inline_asset_content }}</span>
+                                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                                </a>
+                                {%- if childlink.links != blank -%}
+                                    <ul role="list" tabindex="-1">
+                                    {%- for grandchildlink in childlink.links -%}
+                                        <li><a href="{{ grandchildlink.url }}" class="hdt-menu-drawer__details-item"{% if grandchildlink.current %} aria-current="page"{% endif %}><span>{{ grandchildlink.title | escape }}</span></a></li>
+                                    {%- endfor -%}
+                                    </ul>
+                                {%- endif -%}
+                            {%- elsif childlink.links != blank -%}
+                                <hdt-accordion class="hdt-contents">
+                                <details {% if childlink.child_active %} open{% endif %}>
+                                    <summary class="hdt-menu-drawer__panel-menu-item{% if childlink.child_active %} hdt-menu-drawer__menu-item--active{% endif %} hdt-menu-drawer__menu-uppercase" aria-expanded="{% if childlink.child_active %}true{% else %}false{% endif %}" {% if childlink.current %} aria-current="page"{% endif %}><span>{{ childlink.title | escape }}</span>{{ 'icon-menu-caret.svg' | inline_asset_content }}</summary>
+                                    <ul role="list" tabindex="-1">
+                                    {%- for grandchildlink in childlink.links -%}
+                                    <li><a href="{{ grandchildlink.url }}" class="hdt-menu-drawer__details-item"{% if grandchildlink.current %} aria-current="page"{% endif %}><span>{{ grandchildlink.title | escape }}</span></a></li>
+                                    {%- endfor -%}
+                                    </ul>
+                                </details>
+                                </hdt-accordion>
+                            {%- else -%}
+                                <a href="{{ childlink.url }}" class="hdt-menu-drawer__panel-menu-item hdt-menu-drawer__menu-uppercase"{% if childlink.current %} aria-current="page"{% endif %}>{{ childlink.title | escape }}</a>
+                            {%- endif -%}
+                        </li>
+                    {%- endfor -%}
+                    </ul>
+                    {%- endif -%}
+                    {%- if block_mega_menu.type == 'mega_collection' -%}
+                        {%- if block_mega_menu.settings.show_block_mobile and block_mega_menu.settings.collection_list != blank -%}
+                            {%- liquid
+                                if link.links != blank and section.settings.full_width == false
+                                assign most_num = 3
+                                else
+                                assign most_num = 4
+                                endif
+                                assign int_most = block_mega_menu.settings.collection_list.count | at_most: most_num
+                            -%}
+                            <div class="hdt-mega-menu__aside hdt-mega-menu__collections{% if block_mega_menu.settings.collection_list.count > 1 %} hdt-mega-menu__aside-{{ int_most }}{% endif %}">
+                                <hdt-slider id="Slider-mmb-{{ block_mega_menu.id }}" autoheight class="hdt-slider xl:hdt-slides-{{ int_most }} hdt-slides-1" config='{ "autoHeight": true, "ntCenter": false, "loop": false, "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(min-width: 768px)": {  "active": true } } }'>
+                                    <div class="hdt-slider__viewport">
+                                    <div class="hdt-slider__container">
+                                        {%- for collection in block_mega_menu.settings.collection_list -%}
+                                        {%- liquid
+                                            assign image = collection.metafields.theme.menu_image | default: collection.featured_image
+                                            assign widths = '135,200,300,400,' | append: image.width
+                                            -%}
+                                        {%- assign sizes = '135px' -%}
+
+                                        <div class="hdt-slider__slide hdt-collection-card hdt-collection-card--mmc">
+                                            <a circle-bg-wrap href="{{ collection.url }}" class="hdt-mmc-link hdt-hover-line-wrap">
+                                                <div class="hdt-media-wrapper">
+                                                    {%- liquid
+                                                    if image != blank
+                                                        echo image | image_url: width: image.width | image_tag: loading: 'lazy', sizes: sizes, widths: widths, class: 'hdt-zoom-img'
+                                                    else
+                                                        capture current
+                                                        cycle 1, 2 , 3, 4
+                                                        endcapture
+                                                        echo 'collection-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-zoom-img'
+                                                    endif
+                                                    -%}
+                                                </div>
+                                                <div class="hdt-collection-card__content hdt-place-self-end-center hdt-text-center hdt-rounded-sm">
+                                                    <div class="hdt-collection-card__title hdt-h6 hdt-btn--flip-after" data-hover="{{ collection.title | escape }}"><span>{{ collection.title }}</span></div>
+                                                    {%- if block_mega_menu.settings.link_text != '' -%}
+                                                    <span class="hdt-mmc-link-text hdt-hover-line">{{ block_mega_menu.settings.link_text }}</span>
+                                                    {%- endif -%}
+                                                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        {%- endfor -%}
+                                    </div>
+                                    </div>
+                                    <hdt-slider-nav class="hdt-slide-controls--mmf hdt-slider-nav hdt-slider-nav--solid" aria-controls="Slider-mmb-{{ block_mega_menu.id }}">
+                                    <button type="button" class="hdt-btn--nav" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}"><span>{{ 'icon-nav-prev.svg' | inline_asset_content }}</span></button>
+                                    <button type="button" class="hdt-btn--nav" name="next" disabled="" aria-label="{{ 'accessibility.slider.next_slide' | t }}"><span>{{ 'icon-nav-next.svg' | inline_asset_content }}</span></button>
+                                    </hdt-slider-nav>
+                                </hdt-slider>
+                                {%- if block_mega_menu.settings.button_label != '' -%}
+                                    <a href="{{ block_mega_menu.settings.button_link }}" class="hdt-btn hdt-btn-solid hdt-btn--with-icon{% if block_mega_menu.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}">
+                                       {{- block_mega_menu.settings.button_label -}}
+                                       {%- if block_mega_menu.settings.show_icon_btn -%}<span>{{ 'icon-' | append: block_mega_menu.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}</span>{%- endif -%}
+                                    </a>
+                                {%- endif -%}
+                            </div>
+                        {%- endif -%}
+                    {%- elsif block_mega_menu.type == 'mega_menu_featured' -%}
+                        {%- liquid
+                            if block_mega_menu.settings.show_collections_mobile and block_mega_menu.settings.collection_list != blank
+                                assign has_collections = true
+                            else
+                                assign has_collections = false
+                            endif
+                            if block_mega_menu.settings.show_products_mobile and block_mega_menu.settings.product_list != blank
+                                assign has_products = true
+                            else
+                                assign has_products = false
+                            endif
+                        -%}
+                        {%- if has_collections or has_products -%}
+                            <div class="hdt-mega-menu__aside hdt-mega-menu_featured">
+                                {%- if has_collections -%}
+                                    <div class="hdt-mmf-collection-list">
+                                        {%- for collection in block_mega_menu.settings.collection_list -%}
+                                        {%- capture collection_image -%}
+                                            {%- liquid
+                                            assign image = collection.metafields.theme.menu_image | default: collection.featured_image
+                                            if image != blank
+                                             echo image | image_url: width: image.width | image_tag: loading: 'lazy', sizes: '64px', widths: '64,128', class: 'hdt-zoom-img'
+                                            endif
+                                            -%}
+                                        {%- endcapture -%}
+                                        <a href="{{ collection.url }}" class="hdt-mmf-collection-item hdt-btn-effhover">
+                                            {%- if collection_image != '' -%}
+                                            <span class="hdt-mmf-collection-item--img">{{ collection_image }}</span>
+                                            {%- endif -%}
+                                            <span class="hdt-mmf-collection-item--title hdt-text-4xl hdt-truncate">{{ collection.title }}</span>
+                                        </a>
+                                        {%- endfor -%}
+                                        {%- if block_mega_menu.settings.cl_btn_link_label != '' -%}
+                                        <div class="hdt-mmf-link-wrap">
+                                            <a class="hdt-link hdt-mmf-link"{% if block_mega_menu.settings.pl_btn_link != '' %} href="{{ block_mega_menu.settings.pl_btn_link }}"{% endif %}>{{ block_mega_menu.settings.cl_btn_link_label }}</a>
+                                        </div>
+                                        {%- endif -%}
+                                    </div>
+                                {%- endif -%}
+                                {%- if has_products -%}
+                                    <div class="hdt-mmf-product-list">
+                                        {%- liquid
+                                        if link.links != blank
+                                            assign most_num = 3
+                                        else
+                                            assign most_num = 4
+                                        endif
+                                        assign int_most = block_mega_menu.settings.product_list.count | at_most: most_num
+                                        assign sizes = '300px'
+                                        -%}
+                                        <div class="hdt-mmf-pl-header">
+                                        {%- if block_mega_menu.settings.pl_heading != '' -%}
+                                            <h3 class="hdt-mmf-heading hdt-h6">{{ block_mega_menu.settings.pl_heading }}</h3>
+                                        {%- endif -%}
+                                        <hdt-slider-nav class="hdt-slide-controls--mmf hdt-flex" aria-controls="Slider-mmb-{{ block_mega_menu.id }}">
+                                            <button type="button" class="hdt-btn hdt-btn--with-icon" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+                                              <span>{{ 'icon-nav-prev.svg' | inline_asset_content }}</span>
+                                            </button>
+                                            <button type="button" class="hdt-btn hdt-btn--with-icon" name="next" disabled="" aria-label="{{ 'accessibility.slider.next_slide' | t }}"`>
+                                              <span>{{ 'icon-nav-next.svg' | inline_asset_content }}</span>
+                                            </button>
+                                        </hdt-slider-nav>
+                                        </div>
+                                        <hdt-slider id="Slider-mmb-{{ block_mega_menu.id }}" autoheight class="hdt-slider hdt-ratio--{{ block_mega_menu.settings.image_ratio }}" config='{ "active": true, "autoHeight": true, "ntCenter": false, "loop": false, "align": "center", "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(max-width: 1023px)": { "active": true } } }'>
+                                        <div class="hdt-slider__viewport">
+                                            <div class="hdt-slider__container">
+                                            {%- liquid
+                                                assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+                                                for item in block_mega_menu.settings.product_list
+                                                    render 'product-card', product_card: item, swatch_list: swatch_list, section_id: block_mega_menu.id, image_ratio: block_mega_menu.settings.image_ratio, sizes: sizes, show_vendor: block_mega_menu.settings.show_vendor, class_card: 'hdt-slider__slide'
+                                                endfor
+                                                -%}
+                                            </div>
+                                        </div>
+                                        </hdt-slider>
+                                        {%- if block_mega_menu.settings.pl_btn_link_label != '' -%}
+                                        <div class="hdt-mmf-link-wrap">
+                                            <a class="hdt-btn hdt-btn-solid hdt-btn--with-icon{% if block_mega_menu.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}"{% if block_mega_menu.settings.pl_btn_link != '' %} href="{{ block_mega_menu.settings.pl_btn_link }}"{% endif %}>
+                                            <span>{{ block_mega_menu.settings.pl_btn_link_label }}</span>
+                                            {%- if block_mega_menu.settings.show_icon_btn -%}<span>{{ 'icon-' | append: block_mega_menu.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}</span>{%- endif -%}
+                                            </a>
+                                        </div>
+                                        {%- endif -%}
+                                    </div>
+                                {%- endif -%}
+                            </div>
+                        {%- endif -%}
+                    {%- endif -%}
+                </hdt-menu-panel>
+                {%- endfor -%}
+            </div>
+            <div class="hdt-menu-drawer-footer">
+                {%- if shop.customer_accounts_enabled -%}
+                    {%- if customer -%}
+                        {%- capture avatar_or_icon -%}
+                        {%- if settings.enable_customer_avatar and customer.has_avatar? -%}
+                            {{ customer | avatar }}
+                        {%- elsif settings.enable_customer_avatar and customer.first_name or customer.email -%}
+                            <svg class="hdt-icon-customer-avatar hdt-icon-customer-avatar--menu" aria-hidden="true" width="20" height="20" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="10" class="hdt-icon-background"/>
+                            <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" class="hdt-centered-char">{{- customer.email | default: customer.first_name | first | upcase -}}</text>
+                            </svg>
+                        {%- else -%}
+                            {{ 'icon-menu-mb-user.svg' | inline_asset_content }}
+                        {%- endif -%}
+                        {%- endcapture -%}
+                        <a href="{{ routes.account_url }}"  rel="nofollow" class="hdt-btn hdt-btn--with-icon hdt-btn--mmb-customer">
+                            {{ avatar_or_icon }}{{ 'customer.account.title' | t }}
+                        </a>
+                    {%- else -%}
+                        <a href="{{ routes.account_login_url }}" rel="nofollow" class="hdt-btn hdt-btn--with-icon hdt-btn--mmb-customer">
+                            {{ 'icon-menu-mb-user.svg' | inline_asset_content }}{{ 'customer.login.title' | t }}
+                        </a>
+                    {%- endif -%}
+                {%- endif -%}
+                {%- if show_country_selector_mobile or show_language_selector_mobile -%}
+                    <div class="hdt-localization-group hdt-flex hdt-justify-center hdt-align-center">
+                        <div class="hdt-localization-selector-wrap hdt-localization-selector-wrap--drawer hdt-relative">
+                        <button class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-{{ localization_id }}-Localization" aria-label="{% if show_country_selector_mobile and show_language_selector_mobile %}{{ 'accessibility.region_and_language' | t }}{% elsif show_country_selector_mobile %}{{ 'localization.country_aria_label' | t }}{% else %}{{ 'localization.language_aria_label' | t }}{% endif %}">
+                            {%- if show_country_selector_mobile -%}
+                            {%- if section.settings.show_country_flag %}<img src="{{ localization.country | image_url: width: 44 }}" alt="{{ localization.country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">{% endif -%}
+                            <span>{% if section.settings.show_country_name %}{{ localization.country.name }} ({{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}){% else %}{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}{% endif %}</span>
+                            {%- endif -%}
+                            {%- if show_language_selector_mobile -%}
+                            {%- if show_country_selector_mobile -%}
+                                <span>/</span><span>{{ localization.language.iso_code | upcase }}</span>
+                            {%- else -%}
+                                <span>{{ localization.language.endonym_name | capitalize }}</span>
+                            {%- endif -%}
+                            {%- endif -%}
+                            {{- 'icon-carret-down.svg' | inline_asset_content -}}
+                        </button>
+                        </div>
+                    </div>
+                {%- endif -%}
+                {%- liquid
+                    if section.settings.show_social
+                        render 'social-links'
+                    endif
+                -%}
+            </div>
+        </div>
+    </div>
+</details>

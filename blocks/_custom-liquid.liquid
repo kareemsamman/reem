@@ -1,0 +1,40 @@
+<div id="block-{{ block.id }}" class="hdt-theme-block hdt-liquid-block hdt-s-text{{ block.settings.text_color }}" {{ block.shopify_attributes }}>
+  {{- block.settings.custom_liquid -}}
+  {%- if request.visual_preview_mode %}<p class="hdt-h3">Liquid</p>{% endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.custom_liquid",
+  "tag": null,
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "t:settings.liquid_code",
+      "info": "t:info.liquid_code"
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "t:settings.color",
+      "options": [
+        {
+          "value": "",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "2",
+          "label": "t:options.secondary"
+        }
+      ],
+      "default": "2"
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.custom_liquid"
+    }
+  ]
+}
+{% endschema %}

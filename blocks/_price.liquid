@@ -1,0 +1,106 @@
+{%- liquid
+  assign product = section.settings.product | default: product
+  assign un_no_pick = true
+  if settings.pick_mode == 'no' and product.variants_count > 1
+    assign selected_variant = product.selected_variant
+    unless selected_variant
+      assign un_no_pick = false
+    endunless
+  elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+    assign selected_variant = product.selected_variant | default: product.variants.first
+  else
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+  assign show_compare_at_price = true
+  assign compare_at_price = selected_variant.compare_at_price
+  assign price = selected_variant.price | default: 1999
+  assign price_min = product.price_min
+  assign price_max = product.price_max
+  if settings.currency_code_enabled
+    assign money_price = price | money_with_currency
+    assign money_compare_at_price = compare_at_price | money_with_currency
+    assign money_price_min = price_min | money_with_currency
+    assign money_price_max = price_max | money_with_currency
+  else
+    assign money_price = price | money
+    assign money_compare_at_price = compare_at_price | money
+    assign money_price_min = price_min | money
+    assign money_price_max = price_max | money
+  endif
+  if compare_at_price > price
+    assign on_sale = true
+  else
+    assign on_sale = false
+  endif
+-%}
+{%- comment -%}
+Explanation of description list:
+  - div.hdt-price__nopick: Displayed when there are no variants selected
+  - div.hdt-price__sale: Displayed when a variant selected
+{%- endcomment -%}
+
+<div class="hdt-product-info__item hdt-product__price hdt-product-info__item--text"{% if product.price_varies or product.compare_at_price_varies %} data-type="price"{% if product.price_varies %} data-need-update{% endif %}{% endif %} {{ block.shopify_attributes }}>
+  <div class="hdt-price-wrapp">
+    <div class="hdt-price__container">
+      {%- unless un_no_pick -%}
+        <div class="hdt-price__nopick hdt-price__list">
+          {%- if product.quantity_price_breaks_configured? -%}
+            {%- if show_compare_at_price and compare_at_price -%}
+              {%- unless product.price_varies == false and product.compare_at_price_varies -%}
+                <hdt-compare-at-price class="hdt-compare-at-price">
+                  <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+                  <span class="hdt-money">{{ money_compare_at_price }}</span>
+                </hdt-compare-at-price>
+              {%- endunless -%}
+            {%- endif -%}
+            <span class="hdt-price hdt-price-item--range">
+              <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+              {{- 'products.product.volume_pricing.price_range_html' | t: minimum: money_price_min, maximum: money_price_max -}}
+            </span>
+          {%- else -%}
+            {%- if compare_at_price and on_sale and show_compare_at_price -%}
+              <hdt-compare-at-price class="hdt-compare-at-price">
+                <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+                <span class="hdt-money">{{ money_compare_at_price }}</span>
+              </hdt-compare-at-price>
+            {%- endif -%}
+            <hdt-price class="hdt-price hdt-price-item--range">
+              {{ 'products.product.price.from_price_html' | t: price: money_price }}
+            </hdt-price>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <div class="hdt-price__sale hdt-price__list">
+          {%- if compare_at_price and on_sale and show_compare_at_price -%}
+          <hdt-compare-at-price class="hdt-compare-at-price">
+            <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+            <span class="hdt-money">{{ money_compare_at_price }}</span>
+          </hdt-compare-at-price>
+          {%- endif -%}
+          <hdt-price class="hdt-price">
+            <span class="sr-only sr-only--inline">{{ 'products.product.price.sale_price' | t }}</span>
+            <span class="hdt-money">{{ money_price }}</span>
+          </hdt-price>
+        </div>
+        {%- if selected_variant.unit_price_measurement %}
+        {%- render 'unit-price', price: selected_variant.unit_price, measurement: selected_variant.unit_price_measurement -%}
+        {%- endif -%}
+      {%- endunless -%}
+    </div>
+    {%- if product.quantity_price_breaks_configured? -%}
+    <div class="hdt-volume-pricing-note" id="Volume-Note-{{ section.id }}"><span>{{ 'products.product.volume_pricing.note' | t }}</span></div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.price",
+  "tag": null,
+  "presets": [
+    {
+      "name": "t:names.price",
+    }
+  ]
+}
+{% endschema %}

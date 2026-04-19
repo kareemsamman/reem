@@ -1,0 +1,49 @@
+{%- doc -%}
+  Renders social links.
+
+  @param {string} [style] - defaut, circle
+  @param {string} [size] - small, medium, large
+  @param {string} [class] - a class list
+  @param {boolean} [open_new_tab] - open new tab
+  @param {boolean} [use_scroll_hint] - use scroll hint
+
+  @example
+  {%- render 'social-links' -%}
+{%- enddoc -%}
+
+{%- liquid
+assign socials = 'facebook, instagram, youtube, tiktok, twitter, snapchat, pinterest, tumblr, vimeo, linkedin' | split: ', '
+unless use_scroll_hint
+  assign tag = 'div'
+else
+  assign tag = 'hdt-scroll-hint'
+endunless
+-%}
+{%- capture social_links -%}
+  {%- for social in socials -%}
+    {%- assign social_link = 'social_[nt]_link' | replace_first: '[nt]', social -%}
+    {%- if settings[social_link] != blank %}{{ social }}=={{ settings[social_link] }};{% endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign social_links = social_links | split: ';' -%}
+{%- if social_links.size > 0 -%}
+  {%- liquid
+    unless open_new_tab
+      assign open_new_tab = 'target="_blank" rel="noopener"'
+      assign aria = 'a11y-new-window-message'
+    else
+      assign open_new_tab = ''
+      assign aria = 'a11y-external-message'
+    endunless
+  -%}
+  <{{ tag }} {% if use_scroll_hint %} axis="x"{% endif %}class="hdt-social-links hdt-social-links--{{ style | default: 'defaut' }} hdt-social-links--icon-{{ size | default: 'medium' }} {{ class }}">
+    {%- for name in social_links -%}
+      {%- liquid
+      assign platform = name | split: '=='
+      assign social_name = platform.first
+      assign label = 'general.social.links.follow_on_' | append: social_name
+      -%}
+      <a href="{{ platform.last | escape }}" class="hdt-social-link--{{ platform.first }} hdt-hover-spring hdt-point-area--after" rel="noopener noreferrer nofollow" aria-describedby="{{ aria }}" aria-label="{{ label | t | escape }}" {{ open_new_tab }}>{{ 'icon-link-' | append: social_name | append: '.svg' | inline_asset_content }}</a>
+    {%- endfor -%}
+  </{{ tag }}>
+  {%- endif -%}

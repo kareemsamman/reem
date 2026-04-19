@@ -1,0 +1,104 @@
+{%- comment -%}
+  https://shopify.dev/docs/themes/product-merchandising/media/support-media#launch-the-display-with-a-button
+  Renders product media item.
+  Accepts:
+
+  - media: {object} Product Media object
+  - position: {string} Position of the media. Used for accessible label.
+  - group_media_obj: {object}
+  - class: {string} a class list
+  - autoplay: {boolean} Enable media autoplay (optional)
+  - loop: {boolean} Enable video looping (optional)
+  - lazy_load: {boolean} Image should be lazy loaded. Default: true (optional)
+  - variant_images: {object} a array width image
+  - sizes: {string} a array width image
+  - selected_variant: {object} the selected variant
+  - selected_values: {string} the selected variant option values concatenated with '-'
+  - selected_values_arr: {object} the selected variant option values split into an array
+  - un_no_pick: {boolean}
+
+  Usage:
+  {%- render 'media', media: media -%}
+{%- endcomment -%}
+
+{%- liquid
+if autoplay
+  assign mute = true
+else
+  assign mute = false
+endif
+assign image = media.preview_image
+if group_media_obj.size > 0
+  assign position = position | minus: 1
+  assign media_group = group_media_obj.medias[position].values
+  if un_no_pick
+  assign media_hidden = 'hidden'
+  endif
+  if selected_values != blank
+    if media_group contains '*'
+      assign media_group_all = media_group | replace_first: '*0', selected_values_arr[0] | replace_first: '*1', selected_values_arr[1] | replace_first: '*2', selected_values_arr[2]
+    else
+      assign media_group_all = 'nt94'
+    endif
+    if media_group == selected_values or media_group_all == selected_values
+      assign media_hidden = ''
+    endif
+  endif
+endif
+-%}
+
+{%- if media.media_type == 'image' -%}
+<div {{ media_hidden }}{% if variant_images contains media.src %} data-variant-id="{{ product.images | where: 'src', image.src | map: 'variants' | map: 'id' | first }}"{% endif %} class="{{ class }} hdt-product__media-item{% if is_media_first %} hdt-media-first{% endif %}" data-media-id="{{ media.id }}" data-media-type="{{ media.media_type }}" data-group-values="{{ media_group }}">
+  <div class="hdt-product__media-wrap hdt-product__media-wrap--image">
+    <div class="hdt-ratio hdt-product__media hdt-product__media--image hdt-product-media-rounded hdt-radius-f hdt-oh" style="{% if block.settings.image_ratio == 'adapt_image' %}--aspect-ratioapt:{{ image.aspect_ratio }};{% endif %}--mw-media:{{ image.width }}px">
+      {{- media | image_url: width: media.width | image_tag: loading: lazy_load, fetchpriority: fetch_priority, sizes: sizes, widths: '246, 493, 600, 713, 823, 990, 1100, 1206, 1346, 1426, 1646, 1946', hdt-el: '' -}}
+    </div>
+  </div>
+</div>
+{%- else -%}
+<div {{ media_hidden }} class="{{ class }} hdt-product__media-item{% if is_media_first %} hdt-media-first{% endif %}" data-media-id="{{ media.id }}" data-media-type="{{ media.media_type }}" data-group-values="{{ media_group }}">
+  <div class="hdt-ratio hdt-product__media hdt-product__media--{{ media.media_type }} hdt-product-media-rounded hdt-radius-f hdt-oh" style="{% if block.settings.image_ratio == 'adapt_image' %}--aspect-ratioapt:{{ media.aspect_ratio | default: 1 }};{% endif %}--mw-media:100%">
+    {%- case media.media_type -%}
+      {%- when 'video' -%}
+        {%- liquid
+          if media.position == 1
+            assign preload = 'metadata'
+          else
+            assign preload = 'none'
+          endif
+        -%}
+        {%- capture video -%}
+          {{- media | video_tag: image_size: 'master', playsinline: true, muted: mute, loop: loop, controls: true, preload: preload -}}
+        {%- endcapture -%}
+        {%- liquid
+        unless video contains ' alt='
+          echo video | replace_first: '<img ', '<img alt="" '
+        else
+          echo video
+        endunless
+        -%}
+        <hdt-video media-group type="html5"{% if autoplay %} autoplay{% endif %}>{{- video -}}</hdt-video>
+
+      {%- when 'external_video' -%}
+          {%- capture player_id %}player-{{ section.id }}-{{ media.id }}{% endcapture -%}
+          {%- assign player_id_escape = player_id | escape -%}
+          <hdt-video media-group type="{{ media.host }}"{% if autoplay %} autoplay{% endif %} data-id="{{ player_id }}">
+            <template>
+              {%- liquid
+              if media.host == 'youtube'
+                echo media | external_video_url: autoplay: false, loop: loop, mute: mute , playlist: media.external_id, enablejsapi: true | external_video_tag
+              else
+                echo media | external_video_url: autoplay: false, loop: loop, muted: mute, api: 1, player_id: player_id_escape | external_video_tag
+              endif
+              -%}
+            </template>
+          </hdt-video>
+
+      {%- when 'model' -%}
+        <hdt-model media-group section-id="{{ section.id }}"{% if autoplay %} autoplay{% endif %}>
+          {{ media | media_tag: image_size: "1946x", reveal: 'interaction', toggleable: true, data-model-id: media.id }}
+        </hdt-model>
+    {%- endcase -%}
+  </div>
+</div>
+{%- endif -%}

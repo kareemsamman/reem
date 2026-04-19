@@ -1,0 +1,383 @@
+{%- liquid
+  assign body_font_italic = settings.type_body_font | font_modify: 'style', 'italic'
+  assign body_font_bolder = settings.type_body_font | font_modify: 'weight', 'bolder'
+  assign body_font_bolder_italic = body_font_bolder | font_modify: 'style', 'italic'
+  assign badge_sale_brightness = settings.badge_sale | color_brightness
+  assign badge_new_brightness = settings.badge_new | color_brightness
+  assign badge_soldout_brightness = settings.badge_soldout | color_brightness
+  assign badge_preorder_brightness = settings.badge_preorder | color_brightness
+  assign badge_custom_brightness = settings.badge_custom | color_brightness
+  assign body_font_w = settings.type_body_font.weight
+  assign array_weight = settings.type_body_font.variants | map: 'weight' | uniq | join: ';'  | append:"1994" | split: body_font_w | last | remove_first: ';'  | remove_last: '1994' | split: ';'
+  assign used_weight = ''
+-%}
+
+{%- capture css_variables -%}
+{% style %}
+  {%- liquid
+  echo settings.type_body_font | font_face: font_display: 'swap'
+  if body_font_italic
+    echo body_font_italic | font_face: font_display: 'swap'
+  endif
+  if array_weight.size > 0
+    for weight in array_weight limit: 3
+      echo settings.type_body_font | font_modify: 'weight', weight | font_face: font_display: 'swap'
+      assign used_weight = used_weight | append: weight
+    endfor
+  endif
+  unless used_weight contains body_font_bolder.weight or body_font_bolder == blank
+    echo body_font_bolder | font_face: font_display: 'swap'
+  endunless
+  if body_font_bolder_italic
+    echo body_font_bolder_italic | font_face: font_display: 'swap'
+  endif
+  # Heading font
+  assign heading_font = settings.type_header_font
+  if settings.type_body_font.family != heading_font.family or body_font_w != heading_font.weight
+    assign heading_font_italic = heading_font | font_modify: 'style', 'italic'
+    assign heading_font_bolder = heading_font | font_modify: 'weight', 'bolder'
+    assign heading_font_bolder_italic = heading_font_bolder | font_modify: 'style', 'italic'
+    unless settings.type_body_font.family == heading_font.family and used_weight contains heading_font.weight
+      echo heading_font | font_face: font_display: 'swap'
+    endunless
+    if heading_font_italic
+      echo heading_font_italic | font_face: font_display: 'swap'
+    endif
+    unless settings.type_body_font.family == heading_font_bolder.family and used_weight contains heading_font_bolder.weight
+      echo heading_font_bolder | font_face: font_display: 'swap'
+    endunless
+    if heading_font_bolder_italic
+      echo heading_font_bolder_italic | font_face: font_display: 'swap'
+    endif
+  endif
+  if settings.btn_font == 'body'
+    assign btn_font = settings.type_body_font
+    assign btn_font_weight = 'var(--font-[w])' | replace_first: '[w]', settings.btn_font_w
+  else
+    assign btn_font = heading_font
+    assign btn_font_weight = btn_font.weight
+  endif
+  assign color_scheme_default = settings.color_scheme_default
+  -%}
+
+  :root {
+    --hdt-header-transparent: 0;
+    --hdt-logo-transparent: 0;
+    --scrollbar-w: 0px;
+    --hdt-dark: 0 0 0;
+    --hdt-light: 255 255 255;
+    /* Spacing */
+    --spacing-0-2: 0.2rem; /* 2px */
+    --spacing-0-4: 0.4rem; /* 4px */
+    --spacing-0-6: 0.6rem; /* 6px */
+    --spacing-0-8: 0.8rem; /* 8px */
+    --spacing-1: 1rem; /* 10px */
+    --spacing-1-2: 1.2rem; /* 12px */
+    --spacing-1-4: 1.4rem; /* 14px */
+    --spacing-1-6: 1.6rem; /* 16px */
+    --spacing-1-8: 1.8rem; /* 18px */
+    --spacing-2: 2rem; /* 20px */
+    --spacing-2-2: 2.2rem; /* 22px */
+    --spacing-2-4: 2.4rem; /* 24px */
+    --spacing-2-6: 2.6rem; /* 26px */
+    --spacing-2-8: 2.8rem; /* 28px */
+    --spacing-3: 3rem; /* 30px */
+    --spacing-3-2: 3.2rem; /* 32px */
+    --spacing-3-4: 3.4rem; /* 34px */
+    --spacing-3-6: 3.6rem; /* 36px */
+    --spacing-3-8: 3.8rem; /* 38px */
+    --spacing-4: 4rem; /* 40px */
+    --spacing-4-2: 4.2rem; /* 42px */
+    --spacing-4-4: 4.4rem; /* 44px */
+    --spacing-4-8: 4.8rem; /* 48px */
+    --spacing-5: 5rem; /* 50px */
+    --spacing-5-2: 5.2rem; /* 52px */
+    --spacing-5-6: 5.6rem; /* 56px */
+    --spacing-6: 6rem; /* 60px */
+    --spacing-6-4: 6.4rem; /* 64px */
+    --spacing-7: 7rem; /* 70px */
+    --spacing-7-2: 7.2rem; /* 72px */
+    --spacing-8: 8rem; /* 80px */
+    --spacing-9: 9rem; /* 90px */
+    --spacing-10: 10rem; /* 100px */
+
+    /* Colors */
+    --color-background-rgb: {{ color_scheme_default.settings.background.rgb }};
+    --input-background: {% if color_scheme_default.settings.background_gradient != empty %}transparent{% else %}rgba({{ color_scheme_default.settings.background.rgba }}){% endif %};
+    --color-text-rgb: {{ color_scheme_default.settings.text.rgb }};
+    --color-btn-primary-rgb: {{ color_scheme_default.settings.button_primary.rgb }};
+    --color-btn-secondary-rgb: {{ color_scheme_default.settings.button_secondary.rgb }};
+    --color-btn-primary-hover: rgba({{ color_scheme_default.settings.button_primary_hover.rgba }});
+    --color-btn-secondary-hover: rgba({{ color_scheme_default.settings.button_secondary_hover.rgba }});
+    --payment-terms-background-color: rgba({{ color_scheme_default.settings.background.rgba }});
+    --color-loading-bar: rgba({{ settings.color_loading_bar.rgba }});
+    --color-focus: rgba({{ settings.color_focus.rgba }});
+    --color-sold-out: 34 34 34;
+
+    --color-background: rgb(var(--color-background-rgb));
+    --color-foreground: rgb(var(--color-text-rgb));
+    --color-background2: rgb(var(--color-text-rgb) / .06);
+    --color-line-border: rgb(var(--color-text-rgb) / .08);
+    --color-btn-primary: rgb(var(--color-btn-primary-rgb));
+    --color-btn-secondary: rgb(var(--color-btn-secondary-rgb));
+
+    /* Product badge colors */
+    --color-on-sale-badge-background: rgba({{ settings.badge_sale.rgba }});
+    --color-on-sale-badge-text: {% if badge_sale_brightness < 168 %}rgba(255 255 255 / 1.0){% else %}rgba(0 0 0 / 1.0){% endif %};
+    --color-new-badge-background: rgba({{ settings.badge_new.rgba }});
+    --color-new-badge-text: {% if badge_new_brightness < 168 %}rgba(255 255 255 / 1.0){% else %}rgba(0 0 0 / 1.0){% endif %};
+    --color-sold-out-badge-background: rgba({{ settings.badge_soldout.rgba }});
+    --color-sold-out-badge-text: {% if badge_soldout_brightness < 168 %}rgba(255 255 255 / 1.0){% else %}rgba(0 0 0 / 1.0){% endif %};
+    --color-pre-order-badge-background: rgba({{ settings.badge_preorder.rgba }});
+    --color-pre-order-badge-text: {% if badge_preorder_brightness < 168 %}rgba(255 255 255 / 1.0){% else %}rgba(0 0 0 / 1.0){% endif %};
+    --color-custom-badge-background: rgba({{ settings.badge_custom.rgba }});
+    --color-custom-badge-text: {% if badge_custom_brightness < 168 %}rgba(255 255 255 / 1.0){% else %}rgba(0 0 0 / 1.0){% endif %};
+
+    /* Notices colors */
+    --color-success-text: rgba({{ settings.color_success.rgba }});
+    --color-warning-text: rgba({{ settings.color_warning.rgba }});
+    --color-error-text: rgba({{ settings.color_error.rgba }});
+
+    --font-body-family: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
+    --font-body-style: {{ settings.type_body_font.style }};
+    --font-body-weight: {{ body_font_w }};
+
+    --font-heading-family: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    --font-heading-style: {{ heading_font.style }};
+    --font-heading-weight: {{ heading_font.weight }};
+
+    --font-body-line-height: {{ settings.body_lh }};
+    --font-body-spacing: {{ settings.body_spacing | divided_by: 100.0 }}em;
+    --heading-scale-1: 1;
+    --heading-scale-2: .68;
+    --heading-scale-3: .76;
+    --h0-size-xl: {{ settings.h0_size_xl | divided_by: 10.0 }}rem;
+    --h1-size-xl: {{ settings.h1_size_xl | divided_by: 10.0 }}rem;
+    --h2-size-xl: {{ settings.h2_size_xl | divided_by: 10.0 }}rem;
+    --h3-size-xl: {{ settings.h3_size_xl | divided_by: 10.0 }}rem;
+    --h4-size-xl: {{ settings.h4_size_xl | divided_by: 10.0 }}rem;
+    --h5-size-xl: {{ settings.h5_size_xl | divided_by: 10.0 }}rem;
+    --h6-size-xl: {{ settings.h6_size_xl | divided_by: 10.0 }}rem;
+    --h0-size: {{ settings.h0_size | divided_by: 10.0 }}rem;
+    --h1-size: {{ settings.h1_size | divided_by: 10.0 }}rem;
+    --h2-size: {{ settings.h2_size | divided_by: 10.0 }}rem;
+    --h3-size: {{ settings.h3_size | divided_by: 10.0 }}rem;
+    --h4-size: {{ settings.h4_size | divided_by: 10.0 }}rem;
+    --h5-size: {{ settings.h5_size | divided_by: 10.0 }}rem;
+    --h6-size: {{ settings.h6_size | divided_by: 10.0 }}rem;
+    --rte-h1-size-xl: {{ settings.rte_h1_size_xl | divided_by: 10.0 }}rem;
+    --rte-h2-size-xl: {{ settings.rte_h2_size_xl | divided_by: 10.0 }}rem;
+    --rte-h3-size-xl: {{ settings.rte_h3_size_xl | divided_by: 10.0 }}rem;
+    --rte-h4-size-xl: {{ settings.rte_h4_size_xl | divided_by: 10.0 }}rem;
+    --rte-h5-size-xl: {{ settings.rte_h5_size_xl | divided_by: 10.0 }}rem;
+    --rte-h6-size-xl: {{ settings.rte_h6_size_xl | divided_by: 10.0 }}rem;
+    --rte-h0-size: {{ settings.rte_h0_size | divided_by: 10.0 }}rem;
+    --rte-h1-size: {{ settings.rte_h1_size | divided_by: 10.0 }}rem;
+    --rte-h2-size: {{ settings.rte_h2_size | divided_by: 10.0 }}rem;
+    --rte-h3-size: {{ settings.rte_h3_size | divided_by: 10.0 }}rem;
+    --rte-h4-size: {{ settings.rte_h4_size | divided_by: 10.0 }}rem;
+    --rte-h5-size: {{ settings.rte_h5_size | divided_by: 10.0 }}rem;
+    --rte-h6-size: {{ settings.rte_h6_size | divided_by: 10.0 }}rem;
+    --font-heading-line-height: {{ settings.heading_lh }};
+    --font-heading-spacing: {{ settings.heading_spacing | divided_by: 100.0 }}em;
+
+    /* Font sizes */
+    --text-xs: {{ settings.body_size | minus: 4 | at_least: 10 | divided_by: 10.0 }}rem;
+    --text-sm: {{ settings.body_size | minus: 2 | at_least: 11 | divided_by: 10.0 }}rem;
+    --text-base: {{ settings.body_size | divided_by: 10.0 }}rem;
+    --text-lg: {{ settings.body_size | plus: 2 | divided_by: 10.0 }}rem;
+    --text-xl: {{ settings.body_size | plus: 4 | divided_by: 10.0 }}rem;
+    --text-2xl: {{ settings.body_size | plus: 6 | divided_by: 10.0 }}rem;
+    --text-4xl: {{ settings.body_size | plus: 8 | divided_by: 10.0 }}rem;
+    --text-6xl: {{ settings.body_size | plus: 10 | divided_by: 10.0 }}rem;
+    --text-8xl: {{ settings.body_size | plus: 12 | divided_by: 10.0 }}rem;
+    --text-10xl: {{ settings.body_size | plus: 14 | divided_by: 10.0 }}rem;
+    --text-12xl: {{ settings.body_size | plus: 16 | divided_by: 10.0 }}rem;
+
+    /* Font Weight */
+    --font-normal: {{ body_font_w }};
+    --font-medium: {{ array_weight[0] | default: 'bold' }};
+    --font-semibold: {{ array_weight[1] | default: array_weight[0] | default: 'bold' }};
+    --font-bold: {{ array_weight[2] | default: array_weight[1] | default: array_weight[0] | default: 'bold' }};
+    --spacing-x: {{ settings.spacing_grid_horizontal | divided_by: 2 }}px;
+    --spacing-y: {{ settings.spacing_grid_vertical | divided_by: 1.5 | at_least: 15 }}px;
+
+    /* Buttons */
+    --font-button-family: {{ btn_font.family }}, {{ btn_font.fallback_families }};
+    --font-button-weight: {{ btn_font_weight }};
+    --font-button-spacing: {% if settings.btn_case == 'uppercase' %}{{ settings.btn_spacing_case | divided_by: 100.0 }}{% else %}{{ settings.btn_spacing | divided_by: 100.0 }}{% endif %}em;
+    --font-button-spacing-none: {{ settings.btn_spacing | divided_by: 100.0 }}em;
+    --font-button-spacing-upper: {{ settings.btn_spacing_case | divided_by: 100.0 }}em;
+    --button-size: {% if settings.btn_case == 'uppercase' %}{{ settings.btn_size | minus: 2 | divided_by: 10.0 }}{% else %}{{ settings.btn_size | divided_by: 10.0 }}{% endif %}rem;
+    --button-case: {{ settings.btn_case }};
+    --button-line-height: 1.2;
+
+    --container-max-width: {{ settings.page_width | divided_by: 10 }}rem;
+    --container-max-width-padding-xl: {{ settings.page_width | plus: 100 | divided_by: 10 }}rem;
+    --container-max-width-padding-md: {{ settings.page_width | plus: 60 | divided_by: 10 }}rem;
+    --container-width-margin: {% if settings.page_width == '1600' %}2{% else %}0{% endif %}rem;
+    --pr-clamp-count: {{ settings.pr_line_max }};
+
+    /** Swatches */
+    --sw-w-num: {{ settings.swatch_width | divided_by: 10.0 }};
+    --sw-h: {{ settings.swatch_height | divided_by: 10.0 }}rem;
+    --sw-r-num: {{ settings.swatch_radius | divided_by: 10.0 }};
+
+    /** Focus */
+    --focus-outline-width: 0.1rem;
+    --focus-outline-offset: 0.32rem;
+
+    /** Z-Index / Layering */
+    --layer-section-background: -2;
+    --layer-lowest: -1;
+    --layer-base: 0;
+    --layer-flat: 1;
+    --layer-raised: 2;
+    --layer-heightened: 4;
+    --layer-sticky: 8;
+    --layer-window-overlay: 10;
+    --layer-header-menu: 12;
+    --layer-overlay: 16;
+    --layer-menu-drawer: 18;
+    --layer-temporary: 20;
+
+    /* Border Radius */
+    --rounded-full: 9999px;
+    --rounded-button: {{ settings.button_radius | divided_by: 10.0 }}rem;
+    --rounded-input: {{ settings.input_radius | divided_by: 10.0 }}rem;
+    --rounded-2xs: {{ settings.block_radius | divided_by: 4.5 | at_most: 4 | divided_by: 10.0 }}rem;
+    --rounded-xs: {{ settings.block_radius | divided_by: 10.0 | divided_by: 3.0 }}rem;
+    --rounded-sm: {{ settings.block_radius | divided_by: 10.0 | divided_by: 1.5 }}rem;
+    --rounded: {{ settings.block_radius | divided_by: 10.0 }}rem;
+    --rounded-lg: {{ settings.block_radius | divided_by: 10.0 | times: 1.5 }}rem;
+    --rounded-product-card: {{ settings.pr_card_radius | divided_by: 10.0 }}rem;
+    --rounded-product-media: {{ settings.pr_media_radius | divided_by: 10.0 }}rem;
+    --rounded-collection-card: {{ settings.collection_card_radius | divided_by: 10.0 }}rem;
+    --rounded-blog-card: {{ settings.blog_card_radius | divided_by: 10.0 }}rem;
+
+    --padding-block-input: var(--spacing-1);
+    --padding-inline-input: var(--spacing-2);
+    --height-input: var(--spacing-5-2);
+    --thickness-btn: {{ settings.thickness_btn | divided_by: 10.0 }}rem;
+    --cursor-zoom-in-icon: url({{ 'cursor-zoom-in.svg' | asset_url }});
+    --cursor-close-icon: url({{ 'cursor-close.svg' | asset_url }});
+    --cursor-open-link: url({{ 'cursor-open-link.svg' | asset_url }});
+    --icon-quote-rte: url({{ 'icon-quote-rte.svg' | asset_url }});
+    --carret-select: url({{ 'icon-select-arrow.svg' | asset_url }});
+    --icon-star-rate: url({{ 'icon-star.svg' | asset_url }});
+
+    {%- if is_rtl %}
+      --value-logical-flip: -1;
+      --value-origin-start: right;
+      --value-origin-end: left;
+    {%- else %}
+      --value-logical-flip: 1;
+      --value-origin-start: left;
+      --value-origin-end: right;
+    {%- endif -%}
+  }
+
+  /* Color schemes */
+  {%- for scheme in settings.color_schemes -%}
+    [color-scheme="{{ scheme.id }}"] {
+      --gradient-background: {% if scheme.settings.background_gradient != empty %}{{ scheme.settings.background_gradient }}{% else %}rgba({{ scheme.settings.background.rgba }}){% endif %};
+      --input-background: {% if scheme.settings.background_gradient != empty %}transparent{% else %}rgba({{ scheme.settings.background.rgba }}){% endif %};
+      --color-background-rgb: {{ scheme.settings.background.rgb }};
+      --color-text-rgb: {{ scheme.settings.text.rgb }};
+      --color-btn-primary-rgb: {{ scheme.settings.button_primary.rgb }};
+      --color-btn-secondary-rgb: {{ scheme.settings.button_secondary.rgb }};
+      --color-btn-primary-hover: rgba({{ scheme.settings.button_primary_hover.rgba }});
+      --color-btn-secondary-hover: rgba({{ scheme.settings.button_secondary_hover.rgba }});
+      --color-overlay-rgb: {{ scheme.settings.overlay.rgb }};
+      --payment-terms-background-color: rgba({{ scheme.settings.background.rgba }});
+      /* Product colors */
+      --color-pr-background: rgba({{ scheme.settings.pr_background.rgba }});
+      --color-pr-text-rgb: {{ scheme.settings.pr_text.rgb }};
+      --color-pr-sale-price: rgba({{ scheme.settings.sale_price.rgba }});
+    }
+  {%- endfor -%}
+  [color-scheme] {
+    --color-background: rgb(var(--color-background-rgb));
+    --color-foreground: rgb(var(--color-text-rgb));
+    --color-background2: rgb(var(--color-text-rgb) / .06);
+    --color-foreground2: rgb(var(--color-text-rgb) / .65);
+    --color-line-border: rgb(var(--color-text-rgb) / .08);
+    --color-btn-primary: rgb(var(--color-btn-primary-rgb));
+    --color-btn-secondary: rgb(var(--color-btn-secondary-rgb));
+    --color-btn-primary-reverse: rgb(var(--color-btn-secondary-rgb));
+    --color-btn-secondary-reverse: rgb(var(--color-btn-primary-rgb));
+    --color-overlay: rgb(var(--color-overlay-rgb));
+    --color-pr-text: rgb(var(--color-pr-text-rgb));
+  }
+
+  @media screen and (min-width: 768px) {
+    :root {
+    /* Font sizes */
+    --text-xs: {{ settings.body_size_md | minus: 4 | at_least: 10 | divided_by: 10.0 }}rem;
+    --text-sm: {{ settings.body_size_md | minus: 2 | at_least: 11 | divided_by: 10.0 }}rem;
+    --text-base: {{ settings.body_size_md | divided_by: 10.0 }}rem;
+    --text-lg: {{ settings.body_size_md | plus: 2 | divided_by: 10.0 }}rem;
+    --text-xl: {{ settings.body_size_md | plus: 4 | divided_by: 10.0 }}rem;
+    --text-2xl: {{ settings.body_size_md | plus: 6 | divided_by: 10.0 }}rem;
+    --text-4xl: {{ settings.body_size_md | plus: 8 | divided_by: 10.0 }}rem;
+    --text-6xl: {{ settings.body_size_md | plus: 10 | divided_by: 10.0 }}rem;
+    --text-8xl: {{ settings.body_size_md | plus: 12 | divided_by: 10.0 }}rem;
+    --text-10xl: {{ settings.body_size_md | plus: 14 | divided_by: 10.0 }}rem;
+    --text-12xl: {{ settings.body_size_md | plus: 16 | divided_by: 10.0 }}rem;
+    --spacing-x: {{ settings.spacing_grid_horizontal }}px;
+    --spacing-y: {{ settings.spacing_grid_vertical }}px;
+    --button-size: {% if settings.btn_case == 'uppercase' %}{{ settings.btn_size_md | minus: 2 | divided_by: 10.0 }}{% else %}{{ settings.btn_size_md | divided_by: 10.0 }}{% endif %}rem;
+    }
+  }
+  @media screen and (min-width: 1025px) {
+    :root {
+    --rounded-2xs: {{ settings.block_radius_xl | divided_by: 6.0 | at_most: 4 | divided_by: 10.0 }}rem;
+    --rounded-xs: {{ settings.block_radius_xl | divided_by: 10.0 | divided_by: 4.0 }}rem;
+    --rounded-sm: {{ settings.block_radius_xl | divided_by: 10.0 | divided_by: 2.0 }}rem;
+    --rounded: {{ settings.block_radius_xl | divided_by: 10.0 }}rem;
+    --rounded-lg: {{ settings.block_radius_xl | divided_by: 10.0 | times: 2.0 }}rem;
+    --rounded-product-card: {{ settings.pr_card_radius_xl | divided_by: 10.0 }}rem;
+    --rounded-product-media: {{ settings.pr_media_radius_xl | divided_by: 10.0 }}rem;
+    --rounded-collection-card: {{ settings.collection_card_radius_xl | divided_by: 10.0 }}rem;
+    --rounded-blog-card: {{ settings.blog_card_radius_xl | divided_by: 10.0 }}rem;
+    }
+  }
+  @media (min-width: {{  settings.page_width }}px) {
+    .hdt-header-container.hdt-container {
+      --header-container-max-width: {{ settings.page_width | divided_by: 10 }}rem;
+    }
+    .hdt-section-header--main {
+      &:has(.hdt-header-container.hdt-container-xl) {
+        --header-p-minus: 9.6rem;
+      }
+    }
+  }
+  {%- if settings.pr_line_max > 0 -%}
+    .hdt-card-product .hdt-card-product__title {
+      -webkit-line-clamp: var(--pr-clamp-count, 2);
+      -webkit-box-orient: vertical;
+      line-clamp: var(--pr-clamp-count, 2);
+      display: -webkit-box;
+      overflow: hidden;
+    }
+  {%- endif -%}
+{%- endstyle -%}
+{%- endcapture -%}
+
+{%- if request.design_mode -%}
+{{ css_variables }}
+{%- else -%}
+{{ css_variables  | strip_newlines | remove: '  ' | remove: '  ' }}
+{%- endif -%}
+
+{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
+
+{%- # theme-check-disable AssetPreload -%}
+{%- unless settings.type_body_font.system? -%}
+  <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin fetchpriority="low">
+{%- endunless -%}
+{%- unless heading_font.system? -%}
+  <link rel="preload" as="font" href="{{ heading_font | font_url }}" type="font/woff2" crossorigin fetchpriority="low">
+{%- endunless -%}
+{%- # theme-check-enable AssetPreload -%}
+<link rel="stylesheet" as="style" href="{{ 'theme.css' | asset_url }}" media="print" onload="this.media='all'">

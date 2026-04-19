@@ -1,0 +1,286 @@
+
+{%- liquid
+    case section.settings.sort
+      when 'products_high', 'products_low'
+        assign collections = collections | sort: 'all_products_count'
+      when 'date', 'date_reversed'
+        assign collections = collections | sort: 'published_at'
+    endcase
+  
+    if section.settings.sort == 'products_high' or section.settings.sort == 'date_reversed' or section.settings.sort == 'alphabetical_reversed'
+      assign collections = collections | reverse
+    endif
+  
+    assign modulo_result = 28 | modulo: section.settings.columns_desktop
+    assign paginate_by = 30
+    if modulo_result == 0
+      assign paginate_by = 28
+    endif
+    if section.index == 1
+      assign fetch_priority = 'high'
+      assign loading = 'eager'
+    else
+      assign fetch_priority = 'auto'
+      assign loading = 'lazy'
+    endif
+    assign widths = '100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200'
+    if section.settings.reveal_on_scroll and settings.sections_reveal_on_scroll
+      assign reveal = 'reveal'
+    else
+      assign reveal = ''
+    endif
+
+    if section.settings.tilt_card_hover == 'tilt'
+        assign tag_card = 'hdt-tilt-card'
+        assign class_hover = ''
+    else
+        assign tag_card = 'div'
+        assign class_hover = ' hdt-hover-effblur'
+    endif
+  -%}
+  {%- capture sizes -%}
+    {%- if section.settings.full_width -%}
+      (min-width: 1150px) calc((100vw - 100px) / {{ section.settings.columns_desktop }}), (min-width: 768px) calc((100vw - 60px) / {{ section.settings.columns_desktop | at_most: 3 }}), (min-width: 480px) calc(50vw - 22.5), calc(100vw - 30px)
+    {%- else -%}
+      (min-width: {{ settings.page_width }}px) {{ settings.page_width | divided_by: section.settings.columns_desktop }}px, (min-width: 1150px) calc((100vw - 100px) / {{ section.settings.columns_desktop }}), (min-width: 768px) calc((100vw - 60px) / {{ section.settings.columns | at_most: 3 }}), (min-width: 480px) calc(50vw - 22.5), calc(100vw - 30px)
+    {%- endif -%}
+  {%- endcapture -%}
+  
+  {{- 'collection-list.css' | asset_url | stylesheet_tag -}}
+  
+  <div data-hdt-init="{{ section.id }}" id="Section-{{ section.id }}" color-scheme="{{ section.settings.color_scheme }}" class="hdt-section__main-collection-list hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-main-collection-list hdt-container{% if section.settings.full_width %}-xl{% endif %}">
+      <h1 class="hdt-h1 hdt-text-left">{{ 'general.meta.list_collections' | t | escape }}</h1>
+      {%- if section.settings.display_type == 'all' or section.settings.collection_list.count == 0 -%}
+        {%- paginate collections by paginate_by -%}
+          <hdt-reval-items selector="[reveal]"{% if reveal == 'reveal' %} reveal-on-scroll="true"{% endif %} role="list" class="hdt-collection-list hdt-row-grid xl:hdt-grid-cols-{{ section.settings.columns_desktop }} md:hdt-grid-cols-{{ section.settings.columns_desktop | at_most: 3 }} hdt-grid-cols-2 hdt-ratio--{{ section.settings.image_ratio }}">
+            {%- for collection in collections -%}
+              <{{ tag_card }} max-tilt="8" role="listitem" class="hdt-collection-list__item {{ class_hover }}">
+                <a href="{{ collection.url }}" class="hdt-collection-list__link" {{ reveal }}>
+                  <div class="hdt-collection-list__image-wrapper">
+                    <div class="hdt-collection-list__image hdt-ratio hdt-collection-card-rounded{% if collection.featured_image == blank %} hdt-collection-list__no-image{% endif %}"{% if section.settings.image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ collection.featured_image.aspect_ratio | default: 1 }};"{% endif %}>
+                      {%- liquid
+                      if collection.featured_image != blank
+                        echo collection.featured_image | image_url: width: collection.featured_image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes, widths: widths, class: 'hdt-zoom-img'
+                      endif
+                      -%}
+                    </div>
+                  </div>
+                <div class="hdt-collection-list__title hdt-collection-card__title hdt-h6 hdt-link">
+                    <span>{{ collection.title }}</span>
+                </div>
+                </a>
+            </{{ tag_card }}>
+            {%- endfor -%}
+          </hdt-reval-items>
+          {%- render 'pagination', paginate: paginate -%}
+        {%- endpaginate -%}
+      {%- else -%}
+        {%- paginate section.settings.collection_list by paginate_by -%}
+          <hdt-reval-items selector="[reveal]"{% if reveal == 'reveal' %} reveal-on-scroll="true"{% endif %} role="list" class="hdt-collection-list hdt-row-grid xl:hdt-grid-cols-{{ section.settings.columns_desktop }} md:hdt-grid-cols-{{ section.settings.columns_desktop | at_most: 3 }} hdt-grid-cols-2 hdt-ratio--{{ section.settings.image_ratio }}">
+            {%- for collection in section.settings.collection_list -%}
+                <{{ tag_card }} max-tilt="8" role="listitem" class="hdt-collection-list__item {{ class_hover }}">
+                    <a href="{{ collection.url }}" class="hdt-collection-list__link" {{ reveal }}>
+                        <div class="hdt-collection-list__image-wrapper">
+                            <div class="hdt-collection-list__image hdt-ratio hdt-collection-card-rounded{% if collection.featured_image == blank %} hdt-collection-list__no-image{% endif %}"{% if section.settings.image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ collection.featured_image.aspect_ratio | default: 1 }};"{% endif %}>
+                            {%- liquid
+                            if collection.featured_image != blank
+                                echo collection.featured_image | image_url: width: collection.featured_image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes, widths: widths, class: 'hdt-zoom-img'
+                            endif
+                            -%}
+                            </div>
+                        </div>
+                        <div class="hdt-collection-list__title hdt-collection-card__title hdt-h6 hdt-link">
+                            <span>{{ collection.title }}</span>
+                        </div>
+                    </a>
+                </{{ tag_card }}>
+            {%- endfor -%}
+          </hdt-reval-items>
+          {%- render 'pagination', paginate: paginate -%}
+        {%- endpaginate -%}
+      {%- endif -%}
+    </div>
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.collection_list_page",
+    "tag": "section",
+    "class": "hdt-section hdt-main-collection-list",
+    "settings": [
+        {
+            "type": "paragraph",
+            "content": "t:content.main_list_collections"
+        },
+        {
+            "type": "radio",
+            "id": "display_type",
+            "label": "t:settings.select_collections_show",
+            "options": [
+            {
+                "value": "all",
+                "label": "t:options.all"
+            },
+            {
+                "value": "selected",
+                "label": "t:options.selected"
+            },
+            ],
+            "default": "all",
+        },
+        {
+            "type": "collection_list",
+            "id": "collection_list",
+            "label": "t:settings.select_collection_list"
+        },
+        {
+            "type": "select",
+            "id": "sort",
+            "options": [
+            {
+                "value": "alphabetical",
+                "label": "t:options.alphabetical"
+            },
+            {
+                "value": "alphabetical_reversed",
+                "label": "t:options.alphabetical_reversed"
+            },
+            {
+                "value": "date_reversed",
+                "label": "t:options.sort_date"
+            },
+            {
+                "value": "date",
+                "label": "t:options.sort_date__reversed"
+            },
+            {
+                "value": "products_high",
+                "label": "t:options.products_high"
+            },
+            {
+                "value": "products_low",
+                "label": "t:options.products_low"
+            }
+            ],
+            "default": "alphabetical",
+            "label": "t:settings.sort_collections_by",
+            "visible_if": "{{ section.settings.display_type == 'all' }}"
+        },
+        {
+          "type": "select",
+          "id": "tilt_card_hover",
+          "label": "t:settings.hover_effect",
+          "options": [
+              {
+                  "value": "blur",
+                  "label": "t:options.blur"
+              },
+              {
+                  "value": "tilt",
+                  "label": "t:options.tilt"
+              }
+          ],
+          "default": "tilt"
+        },
+        {
+            "type": "select",
+            "id": "image_ratio",
+            "options": [
+            {
+                "value": "adapt_image",
+                "label": "t:options.adapt_to_image"
+            },
+            {
+                "value": "portrait",
+                "label": "t:options.portrait"
+            },
+            {
+                "value": "square",
+                "label": "t:options.square"
+            },
+            ],
+            "default": "square",
+            "label": "t:settings.image_ratio",
+            "info": "t:info.image_ratio_collection_list"
+        },
+        {
+            "type": "range",
+            "id": "columns_desktop",
+            "min": 2,
+            "max": 4,
+            "step": 1,
+            "default": 4,
+            "label": "t:settings.collections_desktop_column"
+        },
+        {
+            "type": "header",
+            "content": "t:content.appearance"
+        },
+        {
+            "type": "checkbox",
+            "id": "reveal_on_scroll",
+            "label": "t:settings.reveal_on_scroll",
+            "info": "t:info.reveal_on_scroll",
+            "default": true,
+            "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+        },
+        {
+            "type": "checkbox",
+            "id": "full_width",
+            "label": "t:settings.make_full_width",
+            "default": false
+        },
+        {
+            "type": "color_scheme",
+            "id": "color_scheme",
+            "label": "t:settings.color_scheme",
+            "default": "scheme-1"
+        },
+        {
+            "type": "header",
+            "content": "t:content.section_padding"
+        },
+        {
+            "type": "range",
+            "id": "padding_top_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top",
+            "default": 40
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom_xl",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom",
+            "default": 40
+        },
+        {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_top_mb",
+            "default": 20
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 200,
+            "step": 4,
+            "unit": "px",
+            "label": "t:settings.padding_bottom_mb",
+            "default": 20
+        }
+    ]
+  }
+  {% endschema %}

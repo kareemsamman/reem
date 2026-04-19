@@ -1,0 +1,188 @@
+{%- liquid
+    if section.index == 1
+      assign loading = 'eager'
+    else
+      assign loading = 'lazy'
+    endif
+    if block.settings.image_mb.presentation.focal_point != blank
+      assign class_object_mb = 'hdt-object-pos-mb'
+    endif
+    assign media_overlay_opacity = 100 | minus: block.settings.media_overlay_opacity
+-%}
+
+<div class="hdt-scroll-hero-media__second hdt-grid" color-scheme="{{ block.settings.color_scheme }}" id="block-{{ block.id }}" style="--overlay-opacity: {{ media_overlay_opacity }}%; {%- if block.settings.image_mb.presentation.focal_point != blank %}--object-pos-mb: {{ block.settings.image_mb.presentation.focal_point }};{% endif -%}" {{ block.shopify_attributes }}>
+    <div class="hdt-scroll-hero-media__media hdt-grid-1x1">
+        {%- if block.settings.media_type == 'image'  -%}
+            {%- liquid
+              if block.settings.image != blank
+                assign append_w = block.settings.image.width | default: 4000
+                assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3400,3600' | append: append_w
+                echo '<picture class="hdt-hero-media-wrapper">'
+                if block.settings.image_mb != blank and block.settings.image_mb != block.settings.image
+                  assign append_w_mb = block.settings.image_mb.width | default: 1000
+                  assign widths_mb = '200,400,600,800,1000,' | append: append_w_mb
+                  assign srcset = block.settings.image_mb | image_url: width: block.settings.image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+                  unless srcset contains 'src='
+                    echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+                  endunless
+                endif
+                echo block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: '100vw', class: class_object_mb, widths: widths
+                echo '</picture>'
+              else
+                echo '<div class="hdt-hero-media-wrapper">'
+                echo 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                echo '</div>'
+              endif
+          -%}
+        {%- else -%}
+            <div class="hdt-hero-media-wrapper">
+            {%- if block.settings.video_source == 'shopify_hosted' -%}
+              {%- if block.settings.video != blank -%}
+                <hdt-video notInView duration autoplay type="html5" data-loop="true" id="Video-{{ block.id }}" is--lazy>
+                  {%- render 'video', video: block.settings.video, show_image: true, image: block.settings.image_video, sizes: '100vw', hidden_poster: true, lazyload: true, widths: '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200' -%}
+                </hdt-video>
+              {%- else -%}
+                {%- liquid
+                  if block.settings.image_video != blank
+                    assign widths = '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: block.settings.image_video.width
+                    echo block.settings.image_video | image_url: width: block.settings.image_video.width | image_tag: widths: widths, loading: loading, sizes: '100vw'
+                  else
+                    echo 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                  endif
+                -%}
+              {%- endif -%}
+            {%- else -%}
+              {%- capture player_id %}player-{{ block.id }}{%-endcapture -%}
+              <hdt-video duration class="hdt-video" autoplay type="{{ block.settings.video_url.type }}" background data-id="{{ player_id }}">
+                {%- liquid
+                assign image = block.settings.image_video | default: block.settings.video.preview_image
+                if image != blank
+                assign widths = '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: image.width
+                echo image | image_url: width: image.width | image_tag: widths: widths, loading: loading, sizes: '100vw'
+                endif
+                -%}
+                <template>
+                  {%- render 'iframe', video_url: block.settings.video_url, player_id: player_id, description: block.settings.description -%}
+                </template>
+              </hdt-video>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+    </div>
+    <div class="hdt-scroll-hero-media__content hdt-grid-1x1 hdt-place-self-center">
+        {% content_for 'block', type: '_scrolling_hero_content', id: 'scrolling_hero_content' %}
+    </div>
+</div>
+
+{% schema %}
+    {
+        "name": "t:names.secondary_media",
+        "tag": null,
+        "blocks": [
+            {"type": "_scrolling_hero_content"}
+        ],
+        "settings": [
+          {
+            "type": "select",
+            "id": "media_type",
+            "label": "t:settings.media_type",
+            "options": [
+                {
+                    "label": "t:options.image",
+                    "value": "image"
+                },
+                {
+                    "label": "t:options.video",
+                    "value": "video"
+                }
+            ],
+            "default": "image"
+          },
+          {
+              "type": "image_picker",
+              "id": "image",
+              "label": "t:settings.image",
+              "visible_if": "{{ block.settings.media_type == 'image' }}"
+          },
+          {
+              "type": "image_picker",
+              "id": "image_mb",
+              "label": "t:settings.image_mb",
+              "info": "t:info.image_mb",
+              "visible_if": "{{ block.settings.media_type == 'image' }}"
+          },
+          {
+              "type": "select",
+              "id": "video_source",
+              "label": "t:settings.video_source",
+              "options": [
+                  {
+                      "value": "shopify_hosted",
+                      "label": "t:options.shopify_hosted"
+                  },
+                  {
+                      "value": "from_url",
+                      "label": "t:options.embed_video_url"
+                  }
+              ],
+              "default": "from_url",
+              "visible_if": "{{ block.settings.media_type == 'video' }}"
+          },
+          {
+            "type": "video",
+            "id": "video",
+            "label": "t:settings.video",
+            "visible_if": "{{ block.settings.media_type == 'video' and block.settings.video_source == 'shopify_hosted' }}"
+          },
+          {
+            "type": "video_url",
+            "id": "video_url",
+            "accept": ["youtube", "vimeo"],
+            "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+            "label": "t:settings.video_url",
+            "info": "t:info.video_url",
+            "visible_if": "{{ block.settings.media_type == 'video' and block.settings.video_source == 'from_url' }}"
+          },
+          {
+            "type": "checkbox",
+            "id": "video_control",
+            "label": "t:settings.video_control",
+            "default": false,
+            "visible_if": "{{block.settings.media_type == 'video' }}"
+          },
+          {
+            "type": "image_picker",
+            "id": "image_video",
+            "label": "t:settings.image_video",
+            "info": "t:info.image_video",
+            "visible_if": "{{ block.settings.media_type == 'video' }}"
+          },
+          {
+            "type": "text",
+            "id": "description",
+            "label": "t:settings.video_alt_text",
+            "info": "t:info.video_alt_text",
+            "visible_if": "{{ block.settings.media_type == 'video' and block.settings.video_source == 'from_url' }}"
+          },
+          {
+            "type": "range",
+            "id": "media_overlay_opacity",
+            "label": "t:settings.media_overlay_opacity",
+            "min": 0,
+            "max": 100,
+            "unit": "%",
+            "default": 0
+          },
+          {
+            "type": "header",
+            "content": "t:content.appearance"
+          },
+          {
+            "type": "color_scheme",
+            "id": "color_scheme",
+            "label": "t:settings.color_scheme",
+            "default": "scheme-1"
+          },
+        ]
+    }
+{% endschema %}

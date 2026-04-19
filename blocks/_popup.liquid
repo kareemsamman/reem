@@ -1,0 +1,43 @@
+<div class="hdt-product-info__item hdt-product__popup hdt-product-info__item--text-box" data-type="popup" {{ block.shopify_attributes }}>
+  <button class="hdt-btn-link" aria-controls="modal-{{ block.id }}">{{ block.settings.text | default: block.settings.page.title | escape }}{{ 'icon-slide.svg' | inline_asset_content }}</button>
+  {%- if block.settings.page != '' -%}
+    <hdt-modal class="hdt-contents">
+      <dialog color-scheme="{{ settings.modal_color_scheme }}" id="modal-{{ block.id }}" class="hdt-modal hdt-modal__product rte hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+        <div class="hdt-modal__header">
+          <p class="hdt-h6 hdt-modal-title--size_chart hdt-s-text">{{ block.settings.page.title }}</p>
+          <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn" aria-controls="modal-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">
+            {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+            {{- 'icon-close.svg' | inline_asset_content -}}
+          </button>
+        </div>
+        <div class="hdt-modal__inner hdt-scrollbar">
+          {{- block.settings.page.content -}}
+        </div>
+      </dialog>
+    </hdt-modal>
+  {%- endif -%}
+</div>
+{% schema %}
+{
+  "name": "t:names.popup",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "t:settings.link_label",
+      "default": "t:text_defaults.popup_link_text"
+    },
+    {
+      "id": "page",
+      "type": "page",
+      "label": "t:settings.page"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.popup",
+    }
+  ]
+}
+{% endschema %}

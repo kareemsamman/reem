@@ -1,0 +1,27 @@
+{%- liquid
+  assign product = closest.product
+  if request.visual_preview_mode and product == blank
+    assign product = collections.all.products.first
+  endif
+  if settings.pick_mode == 'no' and product.variants_count > 1
+    assign selected_variant = product.selected_variant
+  elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+    assign selected_variant = product.selected_variant | default: product.variants.first
+  else
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+-%}
+
+<div class="hdt-product-info__item hdt-product__sku hdt-product-info__item--text" data-type="sku" data-need-update {{ block.shopify_attributes }}>{% if selected_variant.sku != blank %}{{ 'products.product.sku' | t }}: <span>{{ selected_variant.sku }}</span>{% endif %}</div>
+
+{% schema %}
+{
+  "name": "t:names.sku",
+  "tag": null,
+  "presets": [
+    {
+      "name": "t:names.sku",
+    }
+  ]
+}
+{% endschema %}

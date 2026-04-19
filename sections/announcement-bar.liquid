@@ -1,0 +1,346 @@
+<div class="hdt-announcement-bar hdt-s-gradient{% if section.settings.show_separator_line %} hdt-section-separator-bottom{% endif %}" color-scheme="{{ section.settings.color_scheme }}" style="--announcement-mw: {{ section.settings.announcement_mx | plus: 211 }}px;--fs:{{ section.settings.font_size }}px; --fs-lg:{{ section.settings.font_size_lg }}px;--gap-item-lg: {{ section.settings.gap_content_lg }}px;--gap-item: {{ section.settings.gap_content }}px; --section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px">
+  {%- if section.settings.type == 'carousel' -%}
+    <hdt-slider eff2 id="Slider-{{ section.id }}" class="hdt-slider hdt-slider-announcement hdt-section-spacing" config='{"customEffect": true, "loop": true}'{% if section.settings.auto_rotate and section.blocks.size > 1 %}{% if section.settings.pause_carousel_on_hover %} pause-on-hover{% endif %} autoplay="{{ section.settings.duration }}000"{% endif %}>
+      <div class="hdt-slider__viewport">
+        <div class="hdt-slider__container hdt-slides-1">
+          {%- for block in section.blocks -%}
+          <div class="hdt-slider__slide" {{ block.shopify_attributes }}>
+            <div class="hdt-announcement-inner hdt-marquee-item__mess hdt-s-text hdt-text-center rte hdt-{{ section.settings.text_font }}{% if section.settings.uppercase %} hdt-uppercase{% endif %}">{{ block.settings.text }}</div>
+          </div>
+          {%- endfor -%}
+        </div>
+      </div>
+      <hdt-slider-nav class="hdt-slider-nav" aria-controls="Slider-{{ section.id }}">
+        <button type="button" aria-label="{{ 'accessibility.go_prev_slide' | t }}" name="previous" class="focus-inset-1">{{ 'icon-back.svg' | inline_asset_content }}</button>
+        <button type="button" aria-label="{{ 'accessibility.go_next_slide' | t }}" name="next" class="focus-inset-1">{{-'icon-next.svg' | inline_asset_content }}</button>
+      </hdt-slider-nav>
+    </hdt-slider>
+  {%- else -%}
+    {%- capture shape -%}
+      {%- if section.settings.shape != 'none' -%}
+      <div class="hdt-shape-block hdt-shape__{{ section.settings.shape }}"></div>
+      {%- endif -%}
+    {%- endcapture -%}
+    <hdt-marquee speed-factor="{{ section.settings.speed }}" direction="{{ section.settings.dir }}"{% if section.settings.pause_on_hover %} pausable{% endif %} class="hdt-marquee hdt-section-spacing">
+      <div class="hdt-marquee-inner"><div class="hdt-marquee-item hdt-inline-flex hdt-align-center hdt-s-text">
+        {%- for block in section.blocks -%}
+          {%- if block.settings.text != blank -%}
+          {%- liquid
+          assign hdt_un_style_link = ''
+          if block.settings.text contains '<a'
+            assign text_size = block.settings.text | size | minus: 1
+            assign text_size_start = text_size | minus: 3
+            assign star_text = block.settings.text | slice: 0, 2
+            assign end_text = block.settings.text | slice: text_size_start, text_size
+            assign arr_a = block.settings.text | split: '<a'
+            if arr_a.size == 2 and star_text == '<a' and end_text contains '</a>'
+              assign hdt_un_style_link = ' rte---un-style-link'
+            endif
+          endif
+          -%}
+          <div class="hdt-marquee-item__mess rte{{ hdt_un_style_link }} hdt-{{ section.settings.text_font }}{% if section.settings.uppercase %} hdt-uppercase{% endif %}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+          {{- shape -}}
+          {%- endif -%}
+      {%- endfor -%}
+      </div></div>
+    </hdt-marquee>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.announcement-bar",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_separator_line",
+      "label": "t:settings.show_separator_line",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "t:settings.type",
+      "options": [
+        {
+          "value": "carousel",
+          "label": "t:options.carousel"
+        },
+        {
+          "value": "marquee",
+          "label": "t:options.marquee"
+        }
+      ],
+      "default": "carousel"
+    },
+    {
+      "type": "header",
+      "content": "t:content.carousel_settings",
+      "visible_if": "{{ section.settings.type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "announcement_mx",
+      "min": 300,
+      "max": 1300,
+      "step": 10,
+      "unit": "px",
+      "label": "t:settings.announcement_mx",
+      "default": 300,
+      "visible_if": "{{ section.settings.type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "label": "t:settings.auto_rotate",
+      "default": true,
+      "visible_if": "{{ section.settings.type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_carousel_on_hover",
+      "label": "t:settings.pause_on_hover",
+      "default": true,
+      "visible_if": "{{ section.settings.type == 'carousel' }}"
+    },
+    {
+      "type": "range",
+      "id": "duration",
+      "min": 3,
+      "max": 20,
+      "step": 1,
+      "unit": "s",
+      "label": "t:settings.duration",
+      "default": 5,
+      "visible_if": "{{ section.settings.type == 'carousel' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.marquee_settings",
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "unit": "sec",
+      "label": "t:settings.speed",
+      "default": 0.3,
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "select",
+      "id": "dir",
+      "options": [
+        {
+          "value": "rtl",
+          "label": "t:options.rtl"
+        },
+        {
+          "value": "ltr",
+          "label": "t:options.ltr"
+        }
+      ],
+      "default": "rtl",
+      "label": "t:settings.direction",
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "select",
+      "id": "shape",
+      "default": "slash",
+      "label": "t:settings.divider_shape",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "slash",
+          "label": "t:options.slash"
+        },
+        {
+          "value": "line",
+          "label": "t:options.line"
+        },
+        {
+          "value": "circle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "diamond",
+          "label": "t:options.diamond"
+        }
+      ],
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "t:settings.pause_on_hover",
+      "default": true,
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "range",
+      "id": "gap_content_lg",
+      "min": 10,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.gap_content_lg",
+      "default": 20,
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "range",
+      "id": "gap_content",
+      "min": 10,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.gap_content",
+      "default": 16,
+      "visible_if": "{{ section.settings.type == 'marquee' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.typography"
+    },
+    {
+      "type": "checkbox",
+      "id": "uppercase",
+      "label": "t:settings.uppercase",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "text_font",
+      "options": [
+        {
+          "value": "body",
+          "label": "t:options.body"
+        },
+        {
+          "value": "heading",
+          "label": "t:options.heading"
+        }
+      ],
+      "default": "body",
+      "label": "t:settings.font"
+    },
+    {
+      "type": "range",
+      "id": "font_size_lg",
+      "min": 10,
+      "max": 20,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.font_size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 10,
+      "max": 15,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.font_size_mb",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 9,
+      "max": 20,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 9,
+      "max": 20,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 9,
+      "max": 20,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 9,
+      "max": 20,
+      "step": 0.5,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 9
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "t:names.announcement",
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "t:settings.text",
+          "default": "t:text_defaults.welcome_store"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.announcement-bar",
+      "settings": {
+        "type": "marquee",
+        "shape": "circle",
+      },
+      "blocks": [
+        {
+          "type": "announcement"
+        },
+        {
+          "type": "announcement"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,31 @@
+<div class="hdt-section-title" {{  block.shopify_attributes }}>
+    <div class="hdt-inner-section-title"{% if block.settings.custom_width %} style="--title-custom-width: {{  block.settings.maximum_width }}px"{% endif %}>
+        {%- content_for 'blocks' -%}
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.section_header",
+        "tag": null,
+        "blocks": [{"type": "heading"},{"type": "text"},{"type": "spacer"},{"type": "subtext"}],
+        "settings": [
+            {
+                "type": "checkbox",
+                "id": "custom_width",
+                "label": "t:settings.custom_width",
+                "default": false
+            },
+            {
+                "type": "range",
+                "id": "maximum_width",
+                "label": "t:settings.maximum_width",
+                "min": 400,
+                "max": 900,
+                "step": 5,
+                "default": 565,
+                "unit": "px",
+                "visible_if": "{{ block.settings.custom_width == true }}"
+            }
+        ],
+    }
+{% endschema %}

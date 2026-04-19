@@ -1,0 +1,76 @@
+<p can-reveal class="hdt-theme-block hdt-subtext-block hdt-{{ block.settings.text_font }} hdt-text-{{ block.settings.text_size }} hdt-s-text{{ block.settings.text_color }}{% if block.settings.uppercase %} hdt-uppercase{% endif %}" {{ block.shopify_attributes }}>{{ block.settings.text }}</p>
+
+{% schema %}
+{
+  "name": "t:names.subtext",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "text",
+      "label": "t:settings.text",
+      "default": "t:text_defaults.subtext"
+    },
+    {
+      "type": "select",
+      "id": "text_font",
+      "label": "t:settings.font",
+      "visible_if": "{{ settings.type_body_font != settings.type_header_font }}",
+      "options": [
+        {
+          "value": "caption",
+          "label": "t:options.body"
+        },
+        {
+          "value": "subheading",
+          "label": "t:options.heading"
+        }
+      ],
+      "default": "caption"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:settings.text_size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "t:options.small"
+        },
+        {
+          "value": "base",
+          "label": "t:options.medium"
+        }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "t:settings.color",
+      "options": [
+        {
+          "value": "",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "2",
+          "label": "t:options.secondary"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "checkbox",
+      "id": "uppercase",
+      "label": "t:settings.uppercase",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.subtext"
+    },
+  ]
+}
+{% endschema %}

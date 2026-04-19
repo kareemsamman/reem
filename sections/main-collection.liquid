@@ -1,0 +1,377 @@
+{%- liquid
+    assign products_id = 'products-' | append: section.id
+    assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+    assign col_mobile = section.settings.columns_mobile | plus: 0
+    assign col_tablet = section.settings.columns_desktop | at_most: 3
+    assign col_desktop_lg = section.settings.columns_desktop | at_most: 4
+    assign col_desktop = section.settings.columns_desktop
+    assign full_width = true
+    capture sizes
+        render 'util-product-card-size', is_full: full_width, use_col_lg: full_width, closest_settings: section.settings
+    endcapture
+    assign sizes = sizes | strip
+-%}
+
+{{- 'collection-main.css' | asset_url | stylesheet_tag -}}
+{%- if section.settings.enable_filtering or section.settings.enable_sorting or collection.filters != blank %}{{- 'facets.css' | asset_url | stylesheet_tag -}}{% endif -%}
+<div data-hdt-init="{{ section.id }}" color-scheme="{{ section.settings.color_scheme }}" class="hdt-s-gradient">
+    <hdt-main-collection scroll-into-view main-content class="hdt-main-collection-wrap hdt-container-xl hdt-section-spacing hdt-facets-{{ section.settings.filter_type }}{% unless section.settings.enable_filtering and collection.filters.size != 0 %} hdt-facets--no-filters{% endunless %}" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px">
+    {%- paginate collection.products by section.settings.products_per_page -%}
+        {%- if collection.all_products_count == 0 -%}
+            <div class="hdt-container hdt-product-grid-container--empty">
+                <div class="hdt-collection--empty">
+                    <p class="hdt-collection--empty-title hdt-h4 hdt-font-medium">{{ 'collection.empty' | t -}}</p>
+                    <a circle-bg-wrap href="{{ routes.all_products_collection_url }}" class="hdt-btn hdt-btn-solid hdt-btn--size-s">
+                        {{- 'collection.continue_shopping' | t -}}
+                        <hdt-circle-bg mousemove></hdt-circle-bg>
+                    </a>
+                </div>
+            </div>
+        {%- else -%}
+            {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+            <aside class="hdt-facets-wrapper hdt-flex hdt-justify-between hdt-align-center{% unless section.settings.enable_filtering or collection.filters.size == 0 %} hdt-facets-wrapper--no-filters{% endunless %}">
+                {%- if section.settings.enable_filtering-%}
+                    {% if section.settings.filter_type == 'sidebar' %}
+                        <button circle-bg-wrap type="button" aria-controls='hdt-sidebar-filters' class="hdt-facets__open hdt-hidden lg:hdt-grid hdt-btn-effhover" aria-expanded="false">
+                            <span class="hdt-show-filter">
+                                {{- 'products.facets.filter_button' | t -}}
+                                {{- 'icon-filter.svg' | inline_asset_content -}}
+                            </span>
+                            <span class="hdt-hidden-filter">
+                                {{- 'products.facets.filter_button_close' | t -}}
+                                {{- 'icon-filter-close.svg' | inline_asset_content -}}
+                            </span>
+                            <hdt-circle-bg mousemove></hdt-circle-bg>
+                        </button>
+                    {% endif %}
+                    <button circle-bg-wrap type="button" aria-controls="drawer-filters" class="hdt-facets__open hdt-btn-effhover hdt-grid{% if section.settings.filter_type == 'sidebar' %} lg:hdt-hidden{% endif %}">
+                        <span class="hdt-show-filter">
+                            <span class="hdt-hidden md:hdt-inline">{{- 'products.facets.filter_button' | t -}}</span>
+                            <span class="hdt-inline md:hdt-hidden">{{- 'products.facets.filter_by_label' | t -}}</span>
+                            {{- 'icon-filter.svg' | inline_asset_content -}}
+                        </span>
+                        <span class="hdt-hidden-filter">
+                            <span class="hdt-hidden md:hdt-inline">{{- 'products.facets.filter_button_close' | t -}}</span>
+                            <span class="hdt-inline md:hdt-hidden">{{- 'products.facets.filter_by_label' | t -}}</span>
+                            {{- 'icon-filter-close.svg' | inline_asset_content -}}
+                        </span>
+                        <hdt-circle-bg mousemove></hdt-circle-bg>
+                    </button>
+                {%- endif -%}
+                {%- if section.settings.enable_sorting -%}
+                    {%- render 'sort-by-popover', results: collection, section_id: section.id, class_display: "hdt-btn-effhover hdt-flex", sortby_pos: 'Sidebar-' -%}
+                {%- endif -%}
+            </aside>
+            {%- endif -%}
+            <div class="hdt-collection-maincontent">
+                {%- if section.settings.enable_filtering and section.settings.filter_type == 'sidebar' and collection.filters.size > 0 -%}
+                    <hdt-safe-sticky id="hdt-sidebar-filters" class="hdt-facets-sidebar-wrapper hdt-hidden lg:hdt-block{% unless section.settings.enable_filtering or collection.filters.size == 0 %} hdt-facets-wrapper--no-filters{% endunless %}">
+                        <div class="hdt-facets-inner-filter">
+                            <div class="hdt-inner-filter">
+                                {%- render 'facets', results: collection, section_id: section.id, enable_sorting: false, enable_render_on_change: true, filter_type: section.settings.filter_type -%}
+                            </div>
+                        </div>
+                    </hdt-safe-sticky>
+                {%- endif -%}
+                <div class="hdt-product-grid-wrapper">
+                    {%- render 'active-filters', results: collection -%}
+                    {%- if collection.products.size == 0 -%}
+                        <div class="hdt-collection--empty">
+                            <p class="hdt-collection--empty-title hdt-h4 hdt-font-medium">{{ 'products.facets.empty' | t -}}</p>
+                            {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+                            <wrapp-hdt-facet-url>
+                                <a circle-bg-wrap class="hdt-btn hdt-btn-solid hdt-btn--size-s" href="{{ collection.url | append: '?sort_by=' | append: sort_by }}">
+                                    {{- 'products.facets.clear_filters' | t | escape -}}
+                                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                                </a>
+                            </wrapp-hdt-facet-url>
+                        </div>
+                    {%- else -%}
+                    <hdt-reval-items selector=".hdt-card-product, .hdt-banner_product-card" data-size="{{ collection.products.size }}" reveal-on-scroll="true" id="{{ products_id }}" class="hdt-row-grid hdt-row-grid--dense xl:hdt-grid-cols-{{ col_desktop }}{% if full_width %} lg:hdt-grid-cols-{{ col_desktop_lg }}{% endif %} md:hdt-grid-cols-{{ col_tablet }} hdt-grid-cols-{{ col_mobile }}" style="--col-desktop: {{ col_desktop }}; --col-tablet: {{ col_tablet }}; --col-mb: {{ col_mobile }}">
+                        {%- capture media_overlay -%}{% content_for 'blocks' %}{%- endcapture -%}
+                        {%- liquid
+                        assign media_overlay_arr = media_overlay | split:'[split94]'
+                        assign index_array = ""
+                        for item in media_overlay_arr
+                            assign val = item | split: 'index="' | last | split: '"' | first
+                            assign index_array = index_array | append: val | append: ","
+                        endfor
+                        for product in collection.products
+                            assign key_index = ':[i]__' | replace_first: '[i]', forloop.index
+                            if index_array contains key_index
+                                assign block_index = index_array | split: key_index | last  | split: ',' | first | plus: 0
+                                echo media_overlay_arr[block_index]
+                            endif
+                            unless settings.remove_collection_url
+                            assign product_url = product.url | within: collection
+                            endunless
+                            content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, swatch_list: swatch_list, section_id: section.id, image_ratio: section.settings.pr_image_ratio, sizes: sizes, show_vendor: section.settings.show_vendor, card_style: section.settings.card_style, product_url: product_url
+                        endfor
+                        -%}
+                    </hdt-reval-items>
+                    {%- render 'pagination-main', paginate: paginate, section_id: section.id , pagination_type: section.settings.pagination_type, append_id: products_id -%}
+                    {%- endif -%}
+                </div>
+            </div>
+        {%- endif -%}
+    {%- endpaginate -%}
+    {%- if collection.filters != empty -%}
+    <hdt-drawer class="hdt-contents">
+        <dialog id="drawer-filters" class="hdt-dialog hdt-drawer hdt-drawer--filters{% if settings.drawer_indent %} hdt-drawer--indent{% endif %}{% if settings.drawer_blur %} hdt-drawer--blur{% endif %}" color-scheme="{{ settings.drawer_color_scheme }}" pos="left" scroll-lock>
+            <div class="hdt-drawer_wrapper">
+                <div class="hdt-drawer__header">
+                    <p class="hdt-filter-heading hdt-h5 hdt-s-text">{{ 'products.facets.filter_by_label' | t }}</p>
+                    <button class="hdt-s-text hdt-close-dialog-btn" aria-controls="drawer-filters" aria-label="{{ 'accessibility.close' | t | escape }}">
+                        {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+                        {{- 'icon-close.svg' | inline_asset_content -}}
+                    </button>
+                </div>
+                <hdt-scroll-hint class="hdt-drawer__inner hdt-scrollbar">
+                    {%- if section.settings.enable_sorting -%}
+                        {%- render 'sort-by-popover', results: collection, section_id: section.id, sortby_pos: 'Drawer-' -%}
+                    {%- endif -%}
+                    {%- render 'facets',
+                    results: collection,
+                    section_id: section.id,
+                    enable_sorting: false,
+                    enable_render_on_change: true
+                    -%}
+                </hdt-scroll-hint>
+            </div>
+        </dialog>
+    </hdt-drawer>
+    {%- endif -%}
+    </hdt-main-collection>
+</div>
+{% schema %}
+    {
+        "name": "t:names.collection_page",
+        "class": "hdt-section hdt-main-collection",
+        "tag": "section",
+        "max_blocks": 5,
+        "settings": [
+            {
+                "type": "range",
+                "id": "products_per_page",
+                "label": "t:settings.products_per_page",
+                "min": 8,
+                "max": 50,
+                "step": 1,
+                "default": 13
+            },
+            {
+                "type": "range",
+                "id": "columns_desktop",
+                "label": "t:settings.columns_desktop",
+                "min": 2,
+                "max": 5,
+                "step": 1,
+                "default": 5
+            },
+            {
+                "type": "select",
+                "id": "columns_mobile",
+                "default": "2",
+                "label": "t:settings.columns_mobile",
+                "options": [
+                  {
+                    "value": "1",
+                    "label": "t:options.1_column"
+                  },
+                  {
+                    "value": "2",
+                    "label": "t:options.2_column"
+                  }
+                ]
+            },
+            {
+                "type": "select",
+                "id": "pagination_type",
+                "label": "t:settings.pagination",
+                "info": "t:info.pagination_type",
+                "options": [
+                  {
+                    "value": "links",
+                    "label": "t:options.links"
+                  },
+                  {
+                    "value": "load_more",
+                    "label": "t:options.load_more_button"
+                  },
+                  {
+                    "value": "infinite",
+                    "label": "t:options.infinit_scrolling"
+                  }
+                ],
+                "default": "links"
+            },
+            {
+                "type": "header",
+                "content": "t:content.product_card"
+            },
+            {
+                "type": "select",
+                "id": "pr_image_ratio",
+                "label": "t:settings.image_ratio",
+                "options": [
+                    {
+                        "value": "adapt_image",
+                        "label": "t:options.adapt_to_image"
+                    },
+                    {
+                        "value": "portrait",
+                        "label": "t:options.portrait"
+                    },
+                    {
+                        "value": "square",
+                        "label": "t:options.square"
+                    }
+                ],
+                "default": "portrait"
+            },
+            {
+                "type": "checkbox",
+                "id": "show_vendor",
+                "label": "t:settings.show_vendor",
+                "default": true
+            },
+            {
+                "type": "select",
+                "id": "card_style",
+                "label": "t:settings.style",
+                "options": [
+                    {
+                        "value": "standard",
+                        "label": "t:options.standard"
+                    },
+                    {
+                        "value": "card",
+                        "label": "t:options.card"
+                    }
+                ],
+                "default": "standard"
+            },
+            {
+                "type": "header",
+                "content": "t:content.filtering_sorting"
+            },
+            {
+                "type": "checkbox",
+                "id": "enable_filtering",
+                "default": true,
+                "label": "t:settings.enable_filtering",
+                "info": "t:info.enable_filtering"
+            },
+            {
+                "type": "select",
+                "id": "filter_type",
+                "label": "t:settings.filter_type",
+                "info": "t:info.filter_type",
+                "options": [
+                    {
+                        "value": "drawer",
+                        "label": "t:options.drawer"
+                    },
+                    {
+                        "value": "sidebar",
+                        "label": "t:options.sidebar"
+                    }
+                ]
+            },
+            {
+                "type": "select",
+                "id": "price_behavior",
+                "label": "t:settings.price_behavior",
+                "options": [
+                  {
+                    "value": "auto",
+                    "label": "t:options.auto"
+                  },
+                  {
+                    "value": "click",
+                    "label": "t:options.click"
+                  }
+                ],
+                "default": "click"
+            },
+            {
+                "type": "checkbox",
+                "id": "enable_sorting",
+                "default": true,
+                "label": "t:settings.enable_sorting"
+            },
+            {
+                "type": "checkbox",
+                "id": "show_filter_count",
+                "label": "t:settings.show_filter_count",
+                "default": true
+            },
+            {
+                "type": "checkbox",
+                "id": "show_filter_label",
+                "label": "t:settings.show_filter_label",
+                "info": "t:info.show_filter_label",
+                "default": true
+            },
+            {
+                "type": "header",
+                "content": "t:content.appearance"
+            },
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 40
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 40
+            }
+        ],
+        "blocks": [
+            {
+            "type": "_media-overlay2"
+            }
+        ]
+    }
+{% endschema %}

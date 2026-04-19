@@ -1,0 +1,34 @@
+{% comment %}
+ {%- render 'quantity-cart', item: item -%}
+{% endcomment %}
+{%- liquid
+    unless id
+    assign id = 'Quantity'
+    endunless
+    if item.variant.inventory_management != null and item.variant.inventory_quantity > 0 and item.variant.inventory_policy != 'continue'
+      assign qty = item.variant.inventory_quantity
+    else
+      assign qty = 9999
+    endif
+    assign qty_rule_max = item.variant.quantity_rule.max | default: 0
+    assign max_qty = qty | at_least: qty_rule_max
+  -%}
+  
+  <div class="hdt-cart-item__quantity-wrapper">
+    <label class="sr-only" for="{{id}}-{{ item.index | plus: 1 }}">{{ 'products.product.quantity.label' | t }}</label>
+    <hdt-quantity-wrapp class="hdt-quantity-wrapp hdt-cart-quantity">
+      <button class="hdt-quantity__button hdt-point-area" name="minus" type="button">
+        <span class="sr-only">{{ 'products.product.quantity.decrease' | t: product: item.product.title | escape }}</span>
+        {{- 'icon-qty-minus.svg' | inline_asset_content -}}
+      </button>
+      <input class="hdt-quantity__input" type="number" data-variant-id="{{ item.variant.id }}" name="updates[]" value="{{ item.quantity }}" id="{{ id }}-{{ item.index | plus: 1 }}" data-line="{{ item.index | plus: 1 }}" aria-label="{{ 'products.product.quantity.input_label' | t: product: item.product.title | escape }}"
+        {%- # theme-check-disable %}
+        data-cart-quantity="{{ cart | item_count_for_variant: item.variant.id }}" data-min="{{ item.variant.quantity_rule.min }}"
+        min="1" -max="{{ max_qty }}" step="{{ item.variant.quantity_rule.increment }}"
+        {%- # theme-check-enable %}>
+      <button class="hdt-quantity__button hdt-point-area" name="plus" type="button">
+        <span class="sr-only">{{ 'products.product.quantity.increase' | t: product: product.title  | escape }}</span>
+        {{- 'icon-qty-plus.svg' | inline_asset_content -}}
+      </button>
+    </hdt-quantity-wrapp>
+  </div>

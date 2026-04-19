@@ -1,0 +1,213 @@
+{%- capture id_form -%}
+    Newsletter--{{ block.id }}
+{%- endcapture -%}
+{%- liquid 
+    assign translate = ''
+    if section.settings.image != blank
+        if block.settings.newsletter_postion == 'start' or block.settings.newsletter_postion == 'center-start' or block.settings.newsletter_postion == 'end-start'
+            assign translate = 'transLeft'
+        elsif block.settings.newsletter_postion == 'start-end' or block.settings.newsletter_postion == 'center-end' or block.settings.newsletter_postion == 'end'
+            assign translate = 'transRight'
+        endif
+    endif
+    
+   -%}
+  <div id="block-{{ block.id }}" class="hdt-newsletter-block hdt-newsletter-style__{{ block.settings.newsletter_style }} hdt-theme-block {% if section.settings.layout == 'overlay' %} md:hdt-place-self-{{ block.settings.newsletter_postion }}{% endif %}{% if block.settings.enabel_background == true %} hdt-newsletter-background{% endif %}" {{ block.shopify_attributes }}{% if section.settings.layout != 'standard' and block.settings.enabel_background == true and block.settings.inherit_color_scheme == false %} color-scheme="{{ block.settings.color_scheme }}"{% endif %}>
+    <div class="hdt-inner-newsletter{% if section.settings.layout != 'standard' %} md:hdt-text-{{ block.settings.newsletter_align }}{% else %} md:hdt-text-center{% endif %} hdt-text-center"{% if section.settings.layout == 'overlay' %} {{ translate }}{% endif %}>
+        {%- content_for 'blocks' -%}
+        {%- assign id_form = 'Newsletter-' | append: section.id -%}
+        {%- form 'customer', class: 'hdt-newsletter-form hdt-s-text', id: id_form -%}
+            {%- unless form.posted_successfully? -%}
+            {%- if form.errors -%}
+                <div class="hdt-form__alert hdt-form__alert--error" id="Newsletter-error--{{ section.id }}">
+                <span>
+                    {{- 'icon-error.svg' | inline_asset_content -}}
+                    {{- form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email -}}
+                </span>
+                </div>
+            {%- elsif form.posted_successfully != true and form.email != blank -%}
+                <div class="hdt-form__alert hdt-form__alert--warning" id="Newsletter-error--{{ section.id }}">
+                    <span>
+                    {{- 'icon-warning.svg' | inline_asset_content -}}
+                    {{- 'newsletter.email_warning' | t : email: form.email -}}
+                    </span>
+                </div>
+            {%- endif -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            <div class="hdt-newsletter-form__field-wrapper">
+                <div class="hdt-field hdt-field--newsletter hdt-field-gr-has-btn">
+                    <label class="sr-only" for="NewsletterForm--{{ section.id }}">{{ 'newsletter.label' | t }}</label>
+                    <input id="NewsletterForm--{{ section.id }}" type="email" name="contact[email]" class="hdt-input hdt-field__input" value="{{ form.email }}" aria-required="true" autocorrect="off" autocapitalize="off" autocomplete="email" {% if form.errors %}autofocus aria-invalid="true" aria-describedby="Newsletter-error--{{ section.id }}"{% elsif form.posted_successfully? %}aria-describedby="Newsletter-success--{{ section.id }}"{% endif %} placeholder="{{ 'newsletter.label' | t }}" required>
+                    <button circle-bg-wrap  type="submit" class="hdt-newsletter-form__button hdt-btn hdt-btn-solid{% if block.settings.show_icon %} hdt-btn--with-icon{% endif %}" name="commit" id="Subscribe--{{ section.id }}" aria-label="{{ 'newsletter.button_label' | t | escape }}">
+                        <span>{{ 'newsletter.button_label' | t }}</span>
+                        {% if block.settings.show_icon %}{{ 'icon-' | append: block.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{% endif %}
+                        <hdt-circle-bg mousemove></hdt-circle-bg>
+                    </button>
+                </div>
+            </div>
+            {%- else -%}
+            <div class="hdt-form__alert hdt-form__alert--success" id="Newsletter-success--{{ section.id }}"><span tabindex="-1" autofocus>{{ 'icon-success.svg' | inline_asset_content }} {{ 'newsletter.success' | t }}</span></div>
+            {%- endunless -%}
+        {%- endform -%}
+    </div>
+</div>
+  
+  {% schema %}
+  {
+      "name": "t:names.newsletter",
+      "tag": null,
+      "settings": [
+        {
+            "type": "paragraph",
+            "content": "t:info.newsletter" 
+        },
+        {
+            "type": "checkbox",
+            "id": "enabel_background",
+            "label": "t:settings.background",
+            "default": true,
+            "visible_if": "{{ section.settings.layout != 'standard' }}"
+        },
+        {
+            "type": "checkbox",
+            "id": "inherit_color_scheme",
+            "label": "t:settings.inherit_color_scheme",
+            "default": true,
+            "visible_if": "{{ section.settings.layout != 'standard' and block.settings.enabel_background }}"
+        },
+        {
+            "type": "color_scheme",
+            "id": "color_scheme",
+            "label": "t:settings.color_scheme",
+            "default": "scheme-1",
+            "visible_if": "{{ section.settings.layout != 'standard' and block.settings.enabel_background and block.settings.inherit_color_scheme == false }}"
+        },
+        {
+            "type": "select",
+            "id": "newsletter_style",
+            "label": "t:settings.style",
+            "options": [
+                {
+                    "value": "standard",
+                    "label": "t:options.standard"
+                },
+                {
+                    "value": "card",
+                    "label": "t:options.card"
+                }
+            ]
+        },
+        {
+            "type": "select",
+            "id": "newsletter_postion",
+            "label": "t:settings.newsletter_postion",
+            "info": "t:info.newsletter_postion",
+            "default": "center",
+            "options": [
+                {
+                    "value": "start",
+                    "label": "t:options.top_left"
+                },
+                {
+                    "value": "start-center",
+                    "label": "t:options.top_center"
+                },
+                {
+                    "value": "start-end",
+                    "label": "t:options.top_right"
+                },
+                {
+                    "value": "center-start",
+                    "label": "t:options.middle_left"
+                },
+                {
+                    "value": "center",
+                    "label": "t:options.middle_center"
+                },
+                {
+                    "value": "center-end",
+                    "label": "t:options.middle_right"
+                },
+                {
+                    "value": "end-start",
+                    "label": "t:options.bottom_left"
+                },
+                {
+                    "value": "end-center",
+                    "label": "t:options.bottom_center"
+                },
+                {
+                    "value": "end",
+                    "label": "t:options.bottom_right"
+                }
+            ],
+            "visible_if": "{{ section.settings.layout == 'overlay' }}"
+        },
+        {
+            "type": "text_alignment",
+            "id": "newsletter_align",
+            "label": "t:settings.alignment",
+            "visible_if": "{{ section.settings.layout != 'standard' }}"
+        },
+        {
+            "type": "checkbox",
+            "id": "show_icon",
+            "label": "t:settings.show_icon_btn",
+            "default": true
+          },
+          {
+            "type": "select",
+            "label": "t:settings.icon_button",
+            "id": "icon_btn_custom",
+            "options": [
+              {
+                "value": "angle-right",
+                "label": "t:options.ic_angle_right"
+              },
+              {
+                "value": "angles-right",
+                "label": "t:options.ic_angles_right"
+              },
+              {
+                "value": "arrow-45deg",
+                "label": "t:options.ic_arrow_45deg"
+              },
+              {
+                "value": "arrow-45deg-2",
+                "label": "t:options.ic_arrow_45deg_2"
+              },
+              {
+                "value": "arrow-right-2",
+                "label": "t:options.ic_arrow_right"
+              },
+              {
+                "value": "arrow-circle-45deg-fill",
+                "label": "t:options.ic_circle_arrow_45deg"
+              },
+              {
+                "value": "arrow-circle-45deg-outline",
+                "label": "t:options.ic_circle_arrow_45deg_outline"
+              },
+              {
+                "value": "arrow-circle-right-fill",
+                "label": "t:options.ic_circle_arrow_right"
+              },
+              {
+                "value": "arrow-circle-right-outline",
+                "label": "t:options.ic_circle_arrow_right_outline"
+              }
+            ],
+            "default": "arrow-circle-45deg-fill",
+            "visible_if": "{{ block.settings.show_icon == true }}"
+        },
+      ],
+      "blocks": [
+        {"type": "heading"}, {"type": "text"}, {"type": "spacer"}
+      ],
+      "presets": [
+          {
+              "name": "t:names.newsletter",
+          }
+      ]
+  }
+  {% endschema %}

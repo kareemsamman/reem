@@ -1,0 +1,165 @@
+{%- doc -%}
+- @param {object} target_product - The product
+{%- enddoc -%}
+{%- liquid
+  unless target_product
+  assign target_product = collections['all'].products.first
+  assign intent = 'complementary'
+  assign limit = 1
+  else
+  assign intent = 'related'
+  assign limit = block.settings.products_to_show
+  endunless
+-%}
+
+{%- if recommendations.performed? == false -%}
+  {%- if target_product != blank -%}<product-recommendations data-url="{{ routes.product_recommendations_url }}?product_id={{ target_product.id }}&limit={{ limit }}&section_id={{ section.id }}&intent={{ intent }}"></product-recommendations>{%- endif -%}
+{%- elsif recommendations.products_count == 0 and block.settings.product_list == blank -%}
+  no_000
+{%- else -%}
+  {%- liquid
+    if recommendations.products_count > 0 and recommendations.intent == 'related'
+      assign products = recommendations.products
+      assign products_to_display = recommendations.products_count
+    else
+      assign products = block.settings.product_list
+      assign products_to_display = block.settings.product_list.count
+    endif
+      assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+      assign columns_mobile_int = block.settings.columns_desktop | at_most: 2
+      assign show_mobile_slider = false
+      if block.settings.enable_carousel and products_to_display > 1
+        assign show_mobile_slider = true
+      endif
+      assign show_mobile_slider_sm = false
+      if products_to_display > columns_mobile_int
+      assign show_mobile_slider_sm = true
+      endif
+
+      assign col_tablet = block.settings.columns_desktop | at_most: 3
+      assign show_tablet_slider = false
+      if block.settings.enable_carousel and products_to_display > col_tablet
+        assign show_tablet_slider = true
+      endif
+      assign show_desktop_slider = false
+      if block.settings.enable_carousel and products_to_display > block.settings.columns_desktop
+        assign show_desktop_slider = true
+      endif
+      capture sizes
+        render 'util-product-card-size', is_full: section.settings.full_width, closest_settings: section.settings
+      endcapture
+      assign sizes = sizes | strip
+  -%}
+
+  <hdt-slider-reveal {% if section.settings.reveal_on_scroll %}reveal-on-scroll="true"{% endif %} id="Slider-relate-{{ section.id }}" autoheight class="hdt-products_wrapper hdt-slider-recommended hdt-slider hdt-slider__active-{{ show_mobile_slider }} sm:hdt-slider__active-{{ show_mobile_slider_sm }} md:hdt-slider__active-{{ show_tablet_slider }} xl:hdt-slider__active-{{ show_desktop_slider }} xl:hdt-slides-{{ block.settings.columns_desktop }} md:hdt-slides-{{ col_tablet }} sm:hdt-slides-{{ columns_mobile_int }} hdt-slide-spacing-x" config='{ "active": {{ show_mobile_slider }}, "autoHeight": true, "ntCenter": false, "loop": false, "align": "center", "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(min-width: 576px)": { "active": {{ show_mobile_slider_sm }} }, "(min-width: 768px)": { "active": {{ show_tablet_slider }} },"(min-width: 1150px)": { "active": {{ show_desktop_slider }} } } }'>
+    <div class="hdt-slider__viewport" {{ recommendations.products_count | json }}>
+        <div class="hdt-slider__container">
+            {%- liquid
+            for product_card in products
+              content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product_card, swatch_list: swatch_list, section_id: block.id, image_ratio: block.settings.pr_image_ratio, sizes: sizes, show_vendor: block.settings.show_vendor, card_style: block.settings.card_style, class_card: 'hdt-slider__slide'
+            endfor
+            -%}
+        </div>
+    </div>
+    <hdt-slider-nav center class="hdt-slider-nav hdt-slider-nav--soh hdt-slider-nav--solid" aria-controls="Slider-relate-{{ section.id }}">
+      <button class="hdt-btn--inner" type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+        <span circle-bg-wrap class="hdt-inner-btn">
+          {{- 'icon-nav-prev.svg' | inline_asset_content -}}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </span>
+      </button>
+      <button class="hdt-btn--inner" type="button" name="next" aria-label="{{ 'accessibility.slider.next_slide' | t }}">
+        <span circle-bg-wrap class="hdt-inner-btn">
+          {{- 'icon-nav-next.svg' | inline_asset_content -}}
+          <hdt-circle-bg mousemove></hdt-circle-bg>
+        </span>
+      </button>
+    </hdt-slider-nav>
+  </hdt-slider-reveal>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.product_grid",
+  "tag": null,
+  "settings": [
+      {
+        "type": "product_list",
+        "id": "product_list",
+        "label": "t:settings.product_list",
+        "limit": 10,
+        "info": "t:info.product_recommendations"
+      },
+      {
+          "type": "range",
+          "id": "products_to_show",
+          "min": 2,
+          "max": 10,
+          "step": 1,
+          "default": 8,
+          "label": "t:settings.max_product_show"
+      },
+      {
+          "type": "range",
+          "id": "columns_desktop",
+          "min": 2,
+          "max": 6,
+          "step": 1,
+          "default": 4,
+          "label": "t:settings.columns_desktop"
+      },
+      {
+          "type": "checkbox",
+          "id": "enable_carousel",
+          "label": "t:settings.enable_carousel",
+          "default": true
+      },
+      {
+          "type": "header",
+          "content": "t:content.product_card"
+      },
+      {
+          "type": "select",
+          "id": "pr_image_ratio",
+          "label": "t:settings.image_ratio",
+          "options": [
+              {
+                  "value": "adapt_image",
+                  "label": "t:options.adapt_to_image"
+              },
+              {
+                  "value": "portrait",
+                  "label": "t:options.portrait"
+              },
+              {
+                  "value": "square",
+                  "label": "t:options.square"
+              }
+          ],
+          "default": "portrait"
+      },
+      {
+          "type": "checkbox",
+          "id": "show_vendor",
+          "label": "t:settings.show_vendor",
+          "default": true
+      },
+      {
+          "type": "select",
+          "id": "card_style",
+          "label": "t:settings.style",
+          "options": [
+              {
+                  "value": "standard",
+                  "label": "t:options.standard"
+              },
+              {
+                  "value": "card",
+                  "label": "t:options.card"
+              }
+          ],
+          "default": "standard"
+      }
+  ]
+}
+{% endschema %}

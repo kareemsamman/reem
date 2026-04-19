@@ -1,0 +1,149 @@
+{%- liquid
+  assign product = section.settings.product | default: product
+  if settings.pick_mode == 'no' and product.variants_count > 1
+    assign selected_variant = product.selected_variant | default: product
+  elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+    assign selected_variant = product.selected_variant | default: product.variants.first
+  else
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+  if block.settings.button_pos == 'right'
+    assign placement = 'top-end'
+  else
+    assign placement = 'top-start'
+  endif
+  assign form_id = 'ContactForm' | append: block.id
+  assign form_msg = ''
+-%}
+<div class="hdt-product-info__item hdt-product__share hdt-product-info__item--box-text hdt-flex hdt-justify-{{ block.settings.button_pos }}" data-type="share" {{ block.shopify_attributes }}>
+  {%- if block.settings.enable_contact -%}
+    <button class="hdt-ask-button hdt-s-text hdt-inline-flex hdt-align-center" aria-controls="modal-{{ block.id }}" aria-expanded="false">
+      <span>{{ 'icon-question.svg' | inline_asset_content }}</span>
+      <span class="hdt-link hdt-font-medium">{{ 'products.product.ask_question' | t }}</span>
+    </button>
+    <hdt-modal class="hdt-contents">
+    <dialog color-scheme="{{ settings.modal_color_scheme }}" id="modal-{{ block.id }}" class="hdt-dialog hdt-modal hdt-modal__product hdt-modal__ask hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+      <div class="hdt-modal__header hdt-s-text">
+        <h2 class="hdt-heading hdt-modal-title--ask hdt-h5">{{ 'products.product.ask_question' | t }}</h2>
+        <button ref="closeButton" class="hdt-close-dialog-btn" aria-controls="modal-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">
+          {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </button>
+      </div>
+      <div class="hdt-modal__inner hdt-scrollbar">
+        {%- form 'contact', id: form_id, class: 'hdt-form--move-text' -%}
+          {%- capture form_msg -%}
+            {%- if form.posted_successfully? -%}
+                <div class="hdt-form__alert hdt-form__alert--success hdt-rounded-sm" tabindex="-1" autofocus><span>{{ 'icon-success.svg' | inline_asset_content }}{{ 'contact.form.post_success' | t }}</span></div>
+            {%- elsif form.errors -%}
+              <div class="hdt-form__alert hdt-form__alert--error hdt-rounded-sm">
+                <p class="hdt-form-alert__title hdt-h6" role="alert" tabindex="-1" autofocus>{{ 'icon-error.svg' | inline_asset_content }}{{ 'contact.form.error_heading' | t }}</p>
+                <ul role="list"><li><a href="#{{ form_id }}-email" class="link">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</a></li></ul>
+              </div>
+            {%- endif -%}
+          {%- endcapture -%}
+          {{- form_msg -}}
+          <div class="sr-only">
+            <label class="hdt-field__label" for="{{ form_id }}-product">{{ 'contact.form.product' | t }}</label>
+            <textarea rows="10" id="{{ form_id }}-product" class="hdt-textarea" name="contact[product]" readonly>{{ product.title | escape }} - {{ request.origin | escape }}{{ product.url | escape }}</textarea>
+          </div>  
+          <div class="hdt-field">
+            <input class="hdt-field__input hdt-input" autocomplete="name" type="text" id="{{ form_id }}-name" name="contact[{{ 'contact.form.name' | t }}]" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" placeholder="{{ 'contact.form.name' | t }}">
+            <label class="hdt-field__label sr-only" for="{{ form_id }}-name"><span class="hdt-truncate">{{ 'contact.form.name' | t }}</span></label>
+          </div>
+          <div class="hdt-field{% if form.errors contains 'email' %} hdt-field--with-error{% endif %}">
+            <input required="required" autocomplete="email" type="email" id="{{ form_id }}-email" class="hdt-field__input hdt-input" name="contact[email]" spellcheck="false" autocapitalize="off"
+              value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" aria-required="true"{% if form.errors contains 'email' %} aria-invalid="true" aria-describedby="{{ form_id }}-email-error"{% endif %} placeholder="{{ 'contact.form.email' | t }} *">
+            <label class="hdt-field__label sr-only" for="{{ form_id }}-email"><span class="hdt-truncate">{{- 'contact.form.email' | t }} <i aria-hidden="true">*</i></span></label>
+            {%- if form.errors contains 'email' -%}
+              <small class="hdt-contact__field-error hdt-form-field__msg hdt-s-text" id="{{ form_id }}-email-error">
+                <span class="sr-only">{{ 'accessibility.error' | t }}</span>{{ 'icon-error.svg' | inline_asset_content }}<span>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</span>
+              </small>
+            {%- endif -%}
+          </div>
+          {%- if block.settings.show_contact_phone -%}
+          <div class="hdt-field">
+            <input type="tel" id="{{ form_id }}-tel" class="hdt-field__input hdt-input" name="contact[phone]" spellcheck="false" autocapitalize="off"
+              value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.default_address.phone }}{% endif %}" placeholder="{{ 'contact.form.phone' | t }}">
+            <label class="hdt-field__label sr-only" for="{{ form_id }}-tel"><span class="hdt-truncate">{{- 'contact.form.phone' | t }}</span></label>
+          </div>
+          {%- endif -%}
+          <div class="hdt-field hdt-field-has-textarea-limit">
+            <textarea rows="6" id="{{ form_id }}-body" class="hdt-textarea hdt-textarea-round-limit" name="contact[body]" placeholder="{{ 'contact.form.comment' | t }}">{{ form.body }}</textarea>
+          </div>
+          <span class="hdt-form-info-msg hdt-text-sm">{{ 'contact.form.required_fields' | t }}</span>
+          <div class="hdt-contact__button hdt-text-center">
+            <button circle-bg-wrap type="submit" class="hdt-btn hdt-btn--with-icon">
+              {{- 'contact.form.send_question' | t -}}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+          </div>
+        {%- endform -%}
+      </div>
+    </dialog>
+    </hdt-modal>
+  {%- endif -%}
+  {%- if block.settings.enable_share -%}
+    {%- render 'share-button', id: block.id, share_url: selected_variant.url, share_title: product.title, placement: placement -%}
+  {%- endif -%}
+</div>
+{%- if form_msg != blank and block.settings.enable_contact -%}
+  <div class="hdt-product-info__item hdt-product-info__item--form-msg hdt-product-info__item--box">{{ form_msg }}</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.contact_share",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "button_pos",
+      "options": [
+        {
+          "value": "start",
+          "label": "t:options.left"
+        },
+        {
+          "value": "end",
+          "label": "t:options.right"
+        }
+      ],
+      "default": "start",
+      "label": "t:settings.position"
+    },
+    {
+      "type": "header",
+      "content": "t:content.contact"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_contact",
+      "label": "t:settings.enable_contact_form",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact_phone",
+      "label": "t:settings.show_contact_phone",
+      "default": true,
+      "visible_if": "{{ block.settings.enable_contact == true }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.share"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_share",
+      "label": "t:settings.enable_share",
+      "default": true
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.contact_share",
+    }
+  ]
+}
+{% endschema %}

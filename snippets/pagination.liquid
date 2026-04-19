@@ -1,0 +1,40 @@
+{%- doc -%}
+  Renders a set of links for paginated results. Must be used within paginate tags.
+
+  @param {object} paginate - The paginate object from the paginate tag.
+  @param {string} [anchor] - This can be added so that on page reload it takes you to wherever you've placed your anchor tag.
+  @param {boolean} [atrr_current_page]
+
+  @example
+  {% paginate results by 2 %}
+    {%- render 'pagination', paginate: paginate -%}
+  {% endpaginate %}
+{%- enddoc -%}
+
+{%- if paginate.parts.size > 0 -%}
+<div class="hdt-pagination-wrapper">
+  <nav class="hdt-pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}"{% if atrr_current_page %} data-current_page="{{ paginate.current_page }}"{% endif %}>
+    <ul class="hdt-pagination__list" role="list">
+      {%- if paginate.previous -%}
+        <li><a circle-bg-wrap href="{{ paginate.previous.url }}{{ anchor }}" class="hdt-pagination__item hdt-pagination__item--next hdt-btn-effhover" aria-label="{{ 'general.pagination.previous' | t }}">{{ 'icon-caret-left.svg' | inline_asset_content }}<hdt-circle-bg mousemove></hdt-circle-bg></a></li>
+      {%- endif -%}
+      {%- for part in paginate.parts -%}
+        <li>
+          {%- if part.is_link -%}
+            <a circle-bg-wrap href="{{ part.url }}{{ anchor }}" class="hdt-pagination__item hdt-btn-effhover" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}<hdt-circle-bg mousemove></hdt-circle-bg></a>
+          {%- else -%}
+            {%- if part.title == paginate.current_page -%}
+              <a  circle-bg-wrap role="link" aria-disabled="true" class="hdt-pagination__item hdt-pagination__item--current" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}<hdt-circle-bg mousemove></hdt-circle-bg></a>
+            {%- else -%}
+              <span class="hdt-pagination__item hdt-btn-effhover">{{ part.title }}</span>
+            {%- endif -%}
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+      {%- if paginate.next -%}
+        <li><a circle-bg-wrap href="{{ paginate.next.url }}{{ anchor }}" class="hdt-pagination__item hdt-pagination__item--prev hdt-btn-effhover" aria-label="{{ 'general.pagination.next' | t }}">{{ 'icon-caret-right.svg' | inline_asset_content }}<hdt-circle-bg mousemove></hdt-circle-bg></a></li>
+      {%- endif -%}
+    </ul>
+  </nav>
+</div>
+{%- endif -%}

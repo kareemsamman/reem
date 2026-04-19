@@ -1,0 +1,21 @@
+{%- comment -%}
+  Renders unit price
+
+    Accepts:
+    {object} price - The unit price (money or string).
+    {object} measurement - The unit_price_measurement object.
+    {boolean} [hide_accessibility_label] - Whether to hide the accessibility label (default: false).
+
+    Usage:
+    {% render 'unit-price', price: variant.unit_price, measurement: variant.unit_price_measurement %}
+    {% render 'unit-price', price: line_item.unit_price | money_with_currency, measurement: line_item.unit_price_measurement  %}
+{%- endcomment -%}
+
+<div class="hdt-unit-price hdt-text-sm">
+    {%- unless hide_accessibility_label -%}
+      <span class="sr-only">{{ 'products.product.price.unit_price' | t }}</span>
+    {%- endunless -%}
+    <span class="hdt-price-item hdt-price-item--last">
+      {{ price | unit_price_with_measurement: measurement }}
+    </span>
+</div>

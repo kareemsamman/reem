@@ -1,0 +1,350 @@
+{%- if section.blocks.size > 0 -%}
+  {%- liquid
+  assign menu_and_region = false
+  assign message = false
+  assign social = false
+  assign blocks_type = section.blocks | map: 'type'
+  assign count = 0
+  if blocks_type contains section.settings.mobile_display_block
+    assign mobile_display_block = section.settings.mobile_display_block
+  else
+    assign mobile_display_block = blocks_type.first
+  endif
+  -%}
+
+  {%- if blocks_type contains 'social' -%}
+    {%- capture social_html -%}
+     {%- render 'social-links', size: 'small' -%}
+    {%- endcapture -%}
+  {%- endif -%}
+
+  {%- capture blocks_html -%}
+    {%- for block in section.blocks -%}
+        {%- liquid
+        if mobile_display_block == block.type
+          assign visible_mobile = true
+        else
+          assign visible_mobile = false
+        endif
+        -%}
+      {%- case block.type -%}
+        {%- when 'menu_and_region' -%}
+          {%- liquid
+            if block.settings.menu != blank and block.settings.menu.links.size > 0
+              assign has_menu = true
+            else
+              assign has_menu = false
+            endif
+            assign localization_id = 'Toolbar'
+            if block.settings.enable_country_selector and localization.available_countries.size > 1
+              assign show_country_selector = true
+            else
+              assign show_country_selector = false
+            endif
+            if block.settings.enable_language_selector and localization.available_languages.size > 1
+              assign show_language_selector = true
+            else
+              assign show_language_selector = false
+            endif
+          -%}
+          {%- if has_menu or show_country_selector or show_language_selector -%}
+            {%- assign menu_and_region = true -%}
+            {%- assign count = count | plus: 1 -%}
+            <div class="hdt-toolbar-part hdt-toolbar-part--menu hdt-toolbar-block{{ count }}" data-visible-mobile="{{ visible_mobile }}">
+                {%- if show_country_selector or show_language_selector -%}
+                  <div class="hdt-localization-selector-wrap hdt-relative">
+                    <button class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-{{ localization_id }}-Localization" aria-label="{% if show_country_selector and show_language_selector %}{{ 'accessibility.region_and_language' | t }}{% elsif show_country_selector %}{{ 'localization.country_aria_label' | t }}{% else %}{{ 'localization.language_aria_label' | t }}{% endif %}">
+                      {%- if show_country_selector -%}
+                      {%- if block.settings.show_country_flag %}<img src="{{ localization.country | image_url: width: 44 }}" alt="{{ localization.country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">{% endif -%}
+                      <span>{% if block.settings.show_country_name %}{{ localization.country.name }} ({{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}){% else %}{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}{% endif %}</span>
+                      {%- endif -%}
+                      {%- if show_language_selector -%}
+                        {%- if show_country_selector -%}
+                          <span>/</span><span>{{ localization.language.iso_code | upcase }}</span>
+                        {%- else -%}
+                          <span>{{ localization.language.endonym_name | capitalize }}</span>
+                        {%- endif -%}
+                      {%- endif -%}
+                      {{- 'icon-carret-down.svg' | inline_asset_content -}}
+                    </button>
+                    <hdt-append-body key="toolbar" hidden>
+                      {%- render 'localization-form', id: localization_id, show_country_selector: show_country_selector, show_language_selector: show_language_selector, show_country_selector_mobile: false, show_language_selector_mobile: false -%}
+                    </hdt-append-body>
+                  </div>
+                {%- endif -%}
+                {%- if has_menu -%}
+                <div class="hdt-toolbar__nav">
+                  <div role="list" class="hdt-toolbar__menu hdt-toolbar__menu--shape-{{ block.settings.shape }} hdt-flex hdt-flex-wrap hdt-justify-center md:hdt-justify-start hdt-align-center">
+                  {%- for link in block.settings.menu.links -%}
+                    <div role="listitem"><a href="{{ link.url }}" class="hdt-link-opacity"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}</a></div>
+                    {%- unless block.settings.shape == 'none' or forloop.last -%}<div class="hdt-shape-block hdt-shape__{{ block.settings.shape }}"> </div>{%- endunless -%}
+                  {%- endfor -%}
+                  </div>
+                </div>
+                {%- endif -%}
+            </div>
+          {%- endif -%}
+
+        {%- when 'message' -%}
+          {%- if block.settings.text != blank or block.settings.button_label != blank -%}
+            {%- liquid
+              assign message = true
+              assign count = count | plus: 1
+            -%}
+            <div class="hdt-toolbar-part hdt-toolbar-part--text hdt-toolbar-block{{ count }}" data-visible-mobile="{{ visible_mobile }}">
+                {%- if block.settings.text != blank %}<div class="rte hdt-s-text">{{ block.settings.text }}</div>{% endif -%}
+                {%- if block.settings.button_label != blank -%}
+                  {%- liquid
+                    if block.settings.button_link != blank
+                        assign btn_tag = 'a'
+                    else
+                        assign btn_tag = 'button'
+                    endif
+                  -%}
+                  <{{ btn_tag }} circle-bg-wrap class="hdt-btn hdt-{{ settings.btn_case }} hdt-btn--toolbar hdt-btn-solid{% if block.settings.show_btn_icon %} hdt-btn--with-icon{% endif %}"{% if block.settings.button_link != blank %} href="{{ block.settings.button_link }}"{% if block.settings.open_in_new_tab %} target="_blank" aria-describedby="a11y-new-window-message" rel="noopener noreferrer"{% endif %}{% else %} disabled{% endif %}>
+                      {{- block.settings.button_label | escape -}}
+                      {%- if block.settings.show_btn_icon -%}{{ 'icon-arrow-right.svg' | inline_asset_content }}{%- endif -%}
+                      <hdt-circle-bg mousemove></hdt-circle-bg>
+                  </{{ btn_tag }}>
+                {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- else -%}
+          {%- liquid
+          if social_html != blank
+            assign social = true
+            assign count = count | plus: 1
+            echo '<div class="hdt-toolbar-part hdt-toolbar-part--social hdt-toolbar-block[i]" data-visible-mobile="[mb]">' | replace_last: '[i]', count | replace_last: '[mb]', visible_mobile
+            echo social_html
+            echo '</div>'
+          endif
+          -%}
+      {%- endcase -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if menu_and_region or message or social -%}
+  {%- if count -%}
+  {%- endif -%}
+  <div class="hdt-{% if section.settings.hidden_on_mobile or has_menu == false %}hidden{% else %}block{% endif %} md:hdt-block hdt-toolbar hdt-s-gradient{% if section.settings.show_separator_line %} hdt-section-separator-bottom{% endif %}" color-scheme="{{ section.settings.color_scheme }}">
+    <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %} hdt-flex hdt-align-center md:hdt-justify-between hdt-justify-center hdt-s-text hdt-text-sm">
+        <div class="hdt-toolbar-parts hdt-toolbar-parts--{{ count }}">
+          {{- blocks_html -}}
+        </div>
+    </div>
+  </div>
+  {%- endif -%}
+{%- endif -%}
+
+{%- schema -%}
+{
+  "name": "t:names.toolbar",
+  "limit": 1,
+  "tag": "section",
+  "class": "hdt-section hdt-section-toolbar hdt-relative",
+  "blocks": [
+    {
+      "type": "menu_and_region",
+      "name": "t:names.menu_and_region",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "t:content.menu"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "t:settings.navigation",
+          "info": "t:info.toolbar_navigation",
+          "default": "customer-account-main-menu"
+        },
+        {
+          "type": "select",
+          "id": "shape",
+          "default": "circle",
+          "label": "t:settings.divider_shape",
+          "options": [
+            {
+              "value": "none",
+              "label": "t:options.none"
+            },
+            {
+              "value": "slash",
+              "label": "t:options.slash"
+            },
+            {
+              "value": "line",
+              "label": "t:options.line"
+            },
+            {
+              "value": "circle",
+              "label": "t:options.circle"
+            },
+            {
+              "value": "square",
+              "label": "t:options.square"
+            },
+            {
+              "value": "diamond",
+              "label": "t:options.diamond"
+            }
+          ],
+          "visible_if": "{{ block.settings.menu != blank }}"
+        },
+        {
+          "type": "header",
+          "content": "t:content.region",
+          "info": "t:info.region_appear_lg_only"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_country_selector",
+          "default": false,
+          "label": "t:settings.country_selector",
+          "info": "t:info.country_selector"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_country_name",
+          "default": false,
+          "label": "t:settings.show_country_name",
+          "visible_if": "{{ block.settings.enable_country_selector }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_country_flag",
+          "default": true,
+          "label": "t:settings.show_country_flag",
+          "visible_if": "{{ block.settings.enable_country_selector }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_language_selector",
+          "default": false,
+          "label": "t:settings.language_selector",
+          "info": "t:info.language_selector"
+        },
+      ]
+    },
+    {
+      "type": "message",
+      "name": "t:names.message",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "text",
+          "label": "t:settings.content",
+          "default": "t:text_defaults.discover_new_arrials"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "t:settings.button_label",
+          "info": "t:info.button_label_blank",
+          "default": "t:text_defaults.shop_now",
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "t:settings.button_link",
+          "visible_if": "{{ block.settings.button_label != blank }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_in_new_tab",
+          "label": "t:settings.open_in_new_tab",
+          "default": false,
+          "visible_if": "{{ block.settings.button_link != blank and block.settings.button_label != blank }}"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_btn_icon",
+          "label": "t:settings.show_btn_icon",
+          "default": true,
+          "visible_if": "{{ block.settings.button_label != blank }}"
+        },
+      ]
+    },
+    {
+      "type": "social",
+      "name": "t:names.social",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:info.social_media_links",
+        }
+      ]
+    },
+  ],
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:settings.make_full_width",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_separator_line",
+      "label": "t:settings.show_separator_line",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hidden_on_mobile",
+      "label": "t:settings.hidden_on_mobile",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "mobile_display_block",
+      "default": "menu_and_region",
+      "label": "t:settings.mobile_display_block",
+      "info": "t:info.mobile_display_block",
+      "options": [
+        {
+          "value": "menu_and_region",
+          "label": "t:names.menu_and_region"
+        },
+        {
+          "value": "message",
+          "label": "t:names.message"
+        },
+        {
+          "value": "social",
+          "label": "t:names.social"
+        }
+      ],
+      "visible_if": "{{ section.settings.hidden_on_mobile == false }}"
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.toolbar",
+      "blocks": [
+        {
+          "type": "social"
+        },
+        {
+          "type": "message"
+        },
+        {
+          "type": "menu_and_region"
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{%- endschema -%}

@@ -1,0 +1,512 @@
+{%- liquid
+  assign product = closest.product
+  assign grid_media_w = block.settings.width | divided_by: 100.00
+  assign grid_info_w = 1 | minus: grid_media_w
+  assign grid_columns = grid_media_w | append: ' ' | append: grid_info_w | split: ' '
+  if block.settings.position == 'left'
+  assign grid_areas = 'pr-media pr-info'
+  else
+  assign grid_areas = 'pr-info pr-media'
+  assign grid_columns = grid_columns | reverse
+  endif
+-%}
+<style>
+#main-product-{{ section.id }} {
+    --product-layout: "{{ grid_areas }}" / minmax(0, {{ grid_columns.first }}fr) minmax(0, {{ grid_columns.last }}fr);
+    --product-gap: {{ block.settings.space_media_info | divided_by: 10.0 }}rem;
+}
+</style>
+{%- if product == blank -%}
+    <div class="hdt-product-medias hdt-rounded hdt-oh">
+      {{- 'product-apparel-1' | placeholder_svg_tag: 'hdt-placeholder-svg hdt-w-full hdt-h-full' -}}
+    </div>
+{%- elsif product.media.size > 0 or settings.placeholder_img != blank -%}
+  {%- liquid
+    assign un_no_pick = true
+    if settings.pick_mode == 'no' and product.variants_count > 1
+      assign selected_variant = product.selected_variant
+      unless selected_variant
+        assign un_no_pick = false
+      endunless
+    elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+      assign selected_variant = product.selected_variant | default: product.variants.first
+    else
+      assign selected_variant = product.selected_or_first_available_variant
+    endif
+    assign selected_variant_featured_media = selected_variant.featured_media
+
+    if product.has_only_default_variant or product.media.size == 1
+      assign group_media_obj = '' | split: ','
+    else
+      assign group_media_obj = product.metafields.theme.group_media_obj.value
+    endif
+    if group_media_obj.size > 0
+      assign selected_values = ''
+      assign options = group_media_obj.options
+      for index in options
+        assign selected_values = selected_values | append: '-' | append: selected_variant.options[index].id
+      endfor
+      assign selected_values = selected_values | remove_first: '-'
+      assign selected_values_arr = selected_values | split: '-'
+    endif
+
+    assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src'
+    assign desktop_layout = block.settings.layout
+    assign mobile_layout = block.settings.mobile_layout
+
+    if product.media.size < 1
+      assign desktop_layout = 'no_media_size'
+    elsif product.media.size == 1
+      assign desktop_layout = 'one_media_size'
+    endif
+
+    assign media_width = block.settings.width | divided_by: 100.0
+    assign media_types = product.media | map: 'media_type' | uniq
+    if media_types contains 'model'
+      assign has_3d_model = true
+      assign first_3d_model = product.media | where: "media_type", "model" | first
+    else
+      assign has_3d_model = false
+    endif
+
+    if section.settings.full_width
+      assign mw = media_width | times: 100
+      assign desktop_size = 'calc(' | append: mw | append: 'vw - '| append: mw | append: 'px)'
+    else
+      assign desktop_size = settings.page_width | times: media_width | round | append: 'px'
+    endif
+    if section.index == 1
+      assign load_eager = true
+    else
+      assign load_eager = false
+    endif
+  -%}
+  {%- capture sizes -%}
+    (min-width: 1024px) min({{ desktop_size }}, 44vw), (min-width: 768px) calc((100vw - 10rem) / 2), calc(100vw - 4rem)
+  {%- endcapture -%}
+  {%- if has_3d_model -%}
+    <link rel="stylesheet" href="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css" media="print" onload="this.media='all'; this.onload = null">
+    {%- capture btn_3d -%}
+      <button aria-label="{{ 'products.product.xr_button_label' | t | escape }}" class="hdt-btn hdt-btn--size-m hdt-btn--with-icon hdt-btn-full-width hdt-product-media__view-in-space" data-shopify-xr data-shopify-model3d-id="{{ first_3d_model.id }}" data-default-id="{{ first_3d_model.id }}" data-shopify-title="{{ product.title | escape }}" data-shopify-xr-hidden>
+        {{- 'icon-3d-badge.svg' | inline_asset_content }}<span class='hdt-product-media__view-in-space-text'>{{ 'products.product.xr_button' | t }}</span>
+      </button>
+    {%- endcapture -%}
+  {%- endif -%}
+  {%- capture btn_zoom -%}
+      <span class="hdt-product-media__zoom" aria-hidden="true">
+          {{- 'cursor-zoom-in.svg' | inline_asset_content -}}
+      </span>
+  {%- endcapture -%}
+
+  {%- capture stamp_image -%}
+    {%- if block.settings.stamp_type == 'image' -%}
+      {%- liquid
+      if block.settings.stamp_image != blank
+      assign stamp_sizes = '(min-width: 768px) 120px, 70px'
+      assign stamp_widths = '70,140,120,240,'| append: block.settings.stamp_image.width
+      assign class = 'hdt-object-center hdt-object-cover hdt-radius-full hdt-pe-none hdt-stamp'
+      if block.settings.stamp_rotate
+      assign class = class | append: ' hdt-stamp--rotate'
+      endif
+      echo block.settings.stamp_image | image_url: width: 240 | image_tag: class: class, loading: 'lazy', sizes: stamp_sizes, widths: stamp_widths
+      endif
+      -%}
+    {%- elsif block.settings.stamp_type == 'text' and block.settings.stamp_text != blank -%}
+      <hdt-circular-text role="img" aria-label="{{ block.settings.stamp_text | strip | escape }}" class="hdt-circular-text hdt-stamp" style="--primary-color: {{ block.settings.stamp_color }}; --bg-color: {{ block.settings.stamp_background }}">
+        <div class="hdt-circular-text__circle{% if block.settings.stamp_rotate %} hdt-stamp--rotate{% endif %}"></div>
+        <div class="hdt-circular-text__icon" >
+          {%- if block.settings.custom_icon != blank -%}
+            {{- block.settings.custom_icon -}}
+          {%- else -%}
+            <svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.174 4.81473C13.811 4.4517 13.2217 4.45033 12.8604 4.81167L4.81663 12.8554C3.98143 13.7569 5.2328 15.0069 6.13336 14.1721L14.1771 6.1284C14.5384 5.76709 14.537 5.17776 14.174 4.81473ZM13.9236 9.35645C13.562 8.99484 12.9739 8.9946 12.6125 9.35595L9.36088 12.6076C8.52433 13.5103 9.77577 14.7553 10.6751 13.9218L13.9267 10.6701C14.2881 10.3088 14.2867 9.71948 13.9236 9.35645ZM4.14284 1.97177C3.77981 1.60874 3.19051 1.60734 2.8292 1.96866L1.97361 2.82424C1.13974 3.72452 2.38605 4.97464 3.2878 4.13842L4.14338 3.28284C4.50469 2.92152 4.50446 2.33339 4.14284 1.97177ZM8.68459 1.72137C8.32156 1.35834 7.73226 1.35694 7.37092 1.71828L1.72324 7.36596C0.889317 8.2663 2.13574 9.51636 3.03748 8.6802L8.68516 3.03252C9.0465 2.67118 9.04624 2.08302 8.68459 1.72137ZM14.4244 0.273003C14.0613 -0.0900283 13.4721 -0.0913958 13.1107 0.269945L0.274905 13.1058C-0.559021 14.006 0.687343 15.2561 1.58908 14.4199L14.4249 1.58413C14.7862 1.22278 14.786 0.634621 14.4244 0.273003Z" fill="currentColor"/>
+            </svg>
+          {%- endif -%}
+        </div>
+      </hdt-circular-text>
+    {%- endif -%}
+  {%- endcapture -%}
+
+  <hdt-product-media data-page_width="{{ settings.page_width }}" show-thumb section-id="{{ section.id }}" class="hdt-product-medias hdt-product-media--{{ block.settings.layout }}" layout="{{ desktop_layout }}" layout-mb="{{ mobile_layout }}" data-url="{{ product.url }}" form="form{{ section.id }}{{ product.id }}"{% if block.settings.enable_media_autoplay %} autoplay-media{% endif %}{% if variant_images.size > 0 and product.images.size > 1 and block.settings.use_select_varaint_change_media %} update-image-on-slide-change{% endif %} image-zoom="{{ block.settings.image_zoom }}" max-zoom="{{ block.settings.max_zoom_lightbox }}" zoom-options='{"type": "{{ block.settings.image_zoom_type }}","magnify": {{ block.settings.zoom_level }}}'{% if group_media_obj.size > 0 %} can-has-media-group='{{ group_media_obj.options | join: '|' }}'{% endif %} {{ block.shopify_attributes }}>
+    <a class="skip-to-content-link hdt-btn sr-only" href="#product-info-{{ section.id }}">{{ 'accessibility.skip_to_product_info' | t }}</a>
+    {%- case desktop_layout -%}
+      {%- when 'no_media_size' -%}
+        {%- assign image = settings.placeholder_img -%}
+        {%- if image != blank -%}
+          <div class="hdt-product-media__main hdt-relative hdt-ratio--{{ block.settings.image_ratio }}">
+            {{ stamp_image }}
+            <div class="hdt-ratio hdt-product__media hdt-product-media-rounded hdt-radius-f" style="{% if block.settings.image_ratio == 'adapt_image' %}--aspect-ratioapt:{{ image.aspect_ratio }};{% endif %}--mw-media:{{ image.width }}px">
+              {{- image | image_url: width: image.width | image_tag: sizes: sizes, widths: '246, 493, 600, 713, 823, 990, 1100, 1206, 1346, 1426, 1646, 1946', hdt-el: '' -}}
+            </div>
+            {{- btn_zoom -}}
+          </div>
+        {%- endif -%}
+      {%- when 'one_media_size' -%}
+        <div class="hdt-product-media__main hdt-relative hdt-ratio--{{ block.settings.image_ratio }}">
+          {{ stamp_image }}
+          {%- render 'media', media: product.media.first, lazy_load: 'eager', fetch_priority: 'high', sizes: sizes -%}
+          {%- unless has_3d_model %}{{- btn_zoom -}}{% endunless -%}
+        </div>
+        {%- if has_3d_model %}{{- btn_3d -}}{% endif -%}
+      {%- when 'thumbnail_bottom' or 'thumbnail_left'-%}
+        {%- liquid
+          if desktop_layout == 'thumbnail_bottom'
+            assign item_per_slide = 4
+          else
+            assign item_per_slide = 1
+          endif
+          assign item_per_slide_mb = 4
+          assign slider_active = true
+          if product.media.size < 4
+            assign slider_active = false
+          endif
+        -%}
+        <div class="hdt-product-media__main hdt-relative">
+          {{ stamp_image }}
+          <hdt-slider-media id="slider-{{ section.id }}-{{ product.id }}" aria-controls="slider-thumb-{{ section.id }}-{{ product.id }}" autoheight class="hdt-slider hdt-ratio--{{ block.settings.image_ratio }} hdt-slide-spacing-10" config='{ "watchFocus": false, "align": "start", "autoHeight": true, "slidesToScroll": 1, "watchDrag": "unlessPlaying", "slides": ".hdt-slider__slide:not([hidden])"{% unless group_media_obj.size > 0 %}, "startIndex": {% if block.settings.show_first_media or un_no_pick == false %}0{% else %}{{ selected_variant_featured_media.position | default: 1 | minus: 1 }}{% endif %}{% endunless %} }'>
+            <div class="hdt-slider__viewport">
+              <div class="hdt-slider__container">
+                  {%- liquid
+                    for media in product.media
+                      assign lazy_load = 'lazy'
+                      assign fetch_priority = 'auto'
+                      if media.position == selected_variant_featured_media.position and load_eager
+                        assign lazy_load = 'eager'
+                        assign fetch_priority = 'high'
+                      elsif media.position == selected_variant_featured_media.position
+                        assign lazy_load = 'auto'
+                        assign fetch_priority = 'auto'
+                      endif
+                      render 'media', media: media, selected_variant: selected_variant, un_no_pick: un_no_pick, position: media.position, group_media_obj: group_media_obj, selected_values: selected_values, selected_values_arr: selected_values_arr, variant_images: variant_images, class: 'hdt-slider__slide', autoplay: block.settings.enable_media_autoplay, loop: block.settings.enable_video_looping, lazy_load: lazy_load, fetch_priority: fetch_priority, sizes: sizes
+                    endfor
+                  -%}
+              </div>
+            </div>
+            <hdt-slider-nav class="hdt-slide-control-mixed hdt-slide-controls-vertical" aria-controls="slider-{{ section.id }}-{{ product.id }}"{% if block.settings.enable_custom_nav_colors %} style="--nav-background-rgb: {{ block.settings.nav_background.rgb }}; --nav-color-rgb: {{ block.settings.nav_color.rgb }}"{% endif %}>
+              <button circle-bg-wrap type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">{{ 'icon-arrow-prev.svg' | inline_asset_content }}<hdt-circle-bg></hdt-circle-bg></button>
+              <hdt-slider-progress controls="slider-{{ section.id }}-{{ product.id }}"><span class="hdt-slider-progress_bar"></span></hdt-slider-progress>
+              <button circle-bg-wrap type="button" name="next" aria-label="{{ 'accessibility.slider.next_slide' | t }}" disabled="">{{ 'icon-arrow-next.svg' | inline_asset_content }}<hdt-circle-bg></hdt-circle-bg></button>
+            </hdt-slider-nav>
+          </hdt-slider-media>
+          {{- btn_zoom -}}
+        </div>
+        {{- btn_3d -}}
+        <div class="hdt-product-media__thumb hdt-text-center hdt-product-media__thumb--{{ item_per_slide }}">
+          <hdt-slider-thumb stagger id="slider-thumb-{{ section.id }}-{{ product.id }}" aria-controls="slider-{{ section.id }}-{{ product.id }}" autoheight class="hdt-slider hdt-slider-thumb hdt-slide-spacing-x hdt-ratio--{{ block.settings.image_ratio }} xl:hdt-slides-{{ item_per_slide }} hdt-slides-{{ item_per_slide_mb }}{% if mobile_layout != 'thumbnails' %} hdt-hidden{% endif %}" config='{ "active": {{ slider_active }}{% unless group_media_obj.size > 0 %}, "startIndex": {% if block.settings.show_first_media or un_no_pick == false %}0{% else %}{{ selected_variant_featured_media.position | default: 1 | minus: 1 }}{% endif %}{% endunless %}, "autoHeight": false, "dragFree": false, "slidesToScroll": "auto", "align": "center", "axis": "x", "slides": ".hdt-slider__slide:not([hidden])"{% if desktop_layout contains 'thumbnail' %}, "breakpoints": { "(min-width: 768px)": { "active": true{% if desktop_layout == 'thumbnail_left' %}, "axis": "y", "watchSlides": false{% endif %} } }{% endif %} }'>
+            <div class="hdt-slider__viewport">
+              <div class="hdt-slider__container">
+                  {%- liquid
+                    for media in product.media
+                      render 'media-thumb', media: media, selected_variant: selected_variant, un_no_pick: un_no_pick, position: media.position, group_media_obj: group_media_obj, selected_values: selected_values, selected_values_arr: selected_values_arr, class: 'hdt-slider__slide', autoplay: block.settings.enable_media_autoplay, loop: block.settings.enable_video_looping, lazy_load: lazy_load
+                    endfor
+                  -%}
+              </div>
+            </div>
+          </hdt-slider-thumb>
+          {%- if mobile_layout == 'dots' -%}
+            <hdt-slider-dots aria-controls="slider-{{ section.id }}-{{ product.id }}" class="hdt-slider-dots hdt-slider-dots__progressbar"></hdt-slider-dots>
+          {%- endif -%}
+        </div>
+    {%- endcase -%}
+  </hdt-product-media>
+  {%- if has_3d_model -%}<script type="application/json" id="ModelJson-{{ section.id }}">{{ product.media | where: 'media_type', 'model' | json }}</script>{% endif -%}
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "t:names.product_media",
+    "tag": null,
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "t:content.product_media"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_first_media",
+        "default": false,
+        "label": "t:settings.show_first_media",
+        "info": "t:info.show_first_media"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_media_autoplay",
+        "default": false,
+        "label": "t:settings.enable_media_autoplay",
+        "info": "t:info.enable_media_autoplay"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_video_looping",
+        "default": false,
+        "label": "t:settings.enable_video_looping"
+      },
+      {
+        "type": "select",
+        "id": "image_ratio",
+        "options": [
+          {
+            "value": "adapt_image",
+            "label": "t:options.adapt_to_image"
+          },
+          {
+            "value": "portrait",
+            "label": "t:options.portrait"
+          },
+          {
+            "value": "square",
+            "label": "t:options.square"
+          },
+          {
+            "value": "landscape",
+            "label": "t:options.landscape"
+          },
+          {
+            "value": "4-3",
+            "label": "t:options.4_3"
+          }
+        ],
+        "default": "adapt_image",
+        "label": "t:settings.image_ratio"
+      },
+      {
+        "type": "header",
+        "content": "t:content.stamp"
+      },
+      {
+        "type": "select",
+        "id": "stamp_type",
+        "label": "t:settings.stamp_type",
+        "options": [
+          {
+            "value": "none",
+            "label": "t:options.none"
+          },
+          {
+            "value": "image",
+            "label": "t:options.image"
+          },
+          {
+            "value": "text",
+            "label": "t:options.text"
+          }
+        ],
+        "default": "image"
+      },
+      {
+        "type": "text",
+        "id": "stamp_text",
+        "label": "t:settings.stamp_text",
+        "visible_if": "{{ block.settings.stamp_type == 'text' }}"
+      },
+      {
+          "type": "textarea",
+          "id": "custom_icon",
+          "label": "t:settings.custom_icon",
+          "visible_if": "{{ block.settings.stamp_type == 'text' }}"
+      },
+      {
+        "type": "image_picker",
+        "id": "stamp_image",
+        "label":"t:settings.stamp_image",
+        "visible_if": "{{ block.settings.stamp_type == 'image' }}"
+      },
+      {
+        "type": "color",
+        "id": "stamp_color",
+        "visible_if": "{{ block.settings.stamp_type == 'text' }}",
+        "default": "#FFFFFF",
+        "label": "t:settings.stamp_color"
+      },
+      {
+        "type": "color",
+        "id": "stamp_background",
+        "label": "t:settings.stamp_background",
+        "default": "#51B597",
+        "visible_if": "{{ block.settings.stamp_type == 'text' }}"
+      },
+      {
+        "type": "checkbox",
+        "id": "stamp_rotate",
+        "label": "t:settings.stamp_rotate",
+        "visible_if": "{{ block.settings.stamp_type != 'none' }}"
+      },
+      {
+        "type": "header",
+        "content": "t:content.desktop"
+      },
+      {
+        "type": "select",
+        "id": "layout",
+        "label": "t:settings.layout",
+        "default": "thumbnail_left",
+        "options": [
+          {
+            "value": "thumbnail_left",
+            "label": "t:options.thumbnails_left_carousel"
+          },
+          {
+            "value": "thumbnail_bottom",
+            "label": "t:options.thumbnails_bottom_carousel"
+          }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "width",
+        "min": 40,
+        "max": 70,
+        "step": 0.5,
+        "default": 60,
+        "unit": "%",
+        "label": "t:settings.width",
+        "info": "t:info.width",
+      },
+      {
+        "type": "range",
+        "id": "space_media_info",
+        "min": 30,
+        "max": 120,
+        "step": 1,
+        "default": 60,
+        "unit": "px",
+        "label": "t:settings.space_media_info",
+        "info": "t:info.space_media_info",
+      },
+      {
+        "type": "select",
+        "id": "position",
+        "label": "t:settings.position",
+        "info": "t:info.position",
+        "default": "left",
+        "options": [
+          {
+            "value": "left",
+            "label": "t:options.left"
+          },
+          {
+            "value": "right",
+            "label": "t:options.right"
+          }
+        ]
+      },
+      {
+        "type": "header",
+        "content": "t:content.mobile"
+      },
+      {
+        "type": "select",
+        "id": "mobile_layout",
+        "label": "t:settings.layout",
+        "default": "thumbnails",
+        "options": [
+          {
+            "value": "dots",
+            "label": "t:options.dots"
+          },
+          {
+            "value": "thumbnails",
+            "label": "t:options.thumbnails"
+          }
+        ]
+      },
+      {
+        "type": "header",
+        "content": "t:content.image_zoom",
+        "info": "t:info.image_zoom"
+      },
+      {
+        "type": "select",
+        "id": "image_zoom",
+        "options": [
+          {
+            "value": "zoom",
+            "label": "t:options.hover_zoom"
+          },
+          {
+            "value": "lightbox",
+            "label": "t:options.click_open_lightbox"
+          },
+          {
+            "value": "zoom_lightbox",
+            "label": "t:options.zoom_lightbox"
+          },
+          {
+            "value": "no",
+            "label": "t:options.no_zoom"
+          }
+        ],
+        "default": "zoom",
+        "label": "t:settings.image_zoom",
+        "info": "t:info.hover_image_zoom"
+      },
+      {
+        "type": "select",
+        "id": "image_zoom_type",
+        "options": [
+          {
+            "value": "inner",
+            "label": "t:options.inner"
+          },
+          {
+            "value": "inner2",
+            "label": "t:options.magnifier"
+          },
+          {
+            "value": "external",
+            "label": "t:options.external"
+          }
+        ],
+        "default": "external",
+        "label": "t:settings.image_zoom_type",
+        "visible_if": "{{ block.settings.image_zoom == 'zoom' or  block.settings.image_zoom == 'zoom_lightbox' }}"
+      },
+      {
+        "type": "range",
+        "id": "zoom_level",
+        "min": 1.5,
+        "max": 4,
+        "step": 0.5,
+        "unit": "x",
+        "label": "t:settings.zoom_level",
+        "default": 2,
+        "visible_if": "{{ block.settings.image_zoom == 'zoom' or  block.settings.image_zoom == 'zoom_lightbox' }}"
+      },
+      {
+        "type": "range",
+        "id": "max_zoom_lightbox",
+        "min": 1,
+        "max": 4,
+        "step": 0.5,
+        "unit": "x",
+        "label": "t:settings.max_zoom_level",
+        "default": 3,
+        "visible_if": "{{ block.settings.image_zoom == 'lightbox' or  block.settings.image_zoom == 'zoom_lightbox' }}"
+      },
+      {
+        "type": "header",
+        "content": "t:content.carousel_navigation"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_custom_nav_colors",
+        "label": "t:settings.enable_custom_color",
+        "default": false,
+      },
+      {
+        "type": "color",
+        "id": "nav_background",
+        "label": "t:settings.background",
+        "default": "#ffffff",
+        "visible_if": "{{ block.settings.enable_custom_nav_colors }}"
+      },
+      {
+        "type": "color",
+        "id": "nav_color",
+        "label": "t:settings.color",
+        "default": "#000000",
+        "visible_if": "{{ block.settings.enable_custom_nav_colors }}"
+      },
+    ]
+  }
+{% endschema %}

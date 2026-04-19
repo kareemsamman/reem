@@ -1,0 +1,479 @@
+{{- 'cart.css' | asset_url | stylesheet_tag -}}
+{%- liquid
+  assign shipping_amount = settings.free_ship_pr.metafields.theme.shipping_money.value | default: settings.free_ship_pr.price | default: -1
+  assign gift_wrap_pr = settings.gift_wrap_pr
+  if gift_wrap_pr != blank and gift_wrap_pr.available
+    assign gift_wrap_pr_quantity = cart | item_count_for_variant: gift_wrap_pr.selected_or_first_available_variant.id
+    assign gift_wrap_pr_id = gift_wrap_pr.selected_or_first_available_variant.id
+  endif
+-%}
+<div class="hdt-section-maincart" color-scheme="{{ section.settings.color_scheme }}">
+  <div class="hdt-{{ section.settings.section_width }} hdt-container--main-cart hdt-s-gradient"{% if section.settings.section_width == 'container-custom' %} style="--max-w-container: {{ section.settings.max_width }}px"{% endif %}>
+    <main-cart ref="hdt-cart" id="MainCart" cart-count="{{ cart.item_count }}" section-id="{{ section.id }}" class="hdt-contens hdt-main-cart{% if cart == empty %} is-empty{% endif %}">
+      <div class="hdt-cart-header">
+        <h1 class="hdt-heading hdt-h1">{{ 'cart.title' | t }}</h1>
+      </div>
+      <div class="hdt-cart-empty hdt-text-center">
+        {%- if cart == empty -%}
+            <span class="hdt-icon hdt-icon-cart-empty hdt-s-text hdt-inline-flex">{{- 'icon-cart-drawner-empty.svg' | inline_asset_content -}}</span>
+            <p class="hdt-heading--cart__empty hdt-cart__empty-text hdt-h2">{{ 'cart.empty' | t }}</p>
+            {%- if section.settings.emty_link != blank -%}
+            <a circle-bg-wrap href="{{ section.settings.emty_link }}" class="hdt-btn hdt-btn--with-icon hdt-btn--ce-all-products">
+                {{- 'cart.empty_btn' | t | escape -}}
+                {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+            </a>
+            {%- endif -%}
+        {%- endif -%}
+      </div>
+      {%- if section.settings.message != blank -%}
+          {%- liquid
+            assign hdt_un_style_link = ''
+            if section.settings.message contains '<a'
+              assign text_size = section.settings.message | size | minus: 1
+              assign text_size_start = text_size | minus: 3
+              assign star_text = section.settings.message | slice: 0, 2
+              assign end_text = section.settings.message | slice: text_size_start, text_size
+              assign arr_a = section.settings.message | split: '<a'
+              if arr_a.size == 2 and star_text == '<a' and end_text contains '</a>'
+                assign hdt_un_style_link = ' rte---un-style-link'
+              endif
+            endif
+            -%}
+          <hdt-marquee slot="bar" class="hdt-marquee hdt-s-gradient" speed-factor="{{ section.settings.speed }}" direction="{{ section.settings.dir }}"{% if section.settings.pause_on_hover %} pausable{% endif %} color-scheme="{{ section.settings.color_scheme_bar }}">
+            <div class="hdt-marquee-inner"><div class="hdt-marquee-item hdt-inline-flex hdt-align-center hdt-text-sm hdt-s-text{% if section.settings.uppercase %} hdt-uppercase{% endif %}">
+              <div class="hdt-icwt-cart rte{{ hdt_un_style_link }}">{{- 'icon-recent.svg' | inline_asset_content -}}{{ section.settings.message }}</div>
+            </div></div>
+          </hdt-marquee>
+      {%- endif -%}
+      <cart-items data-id="{{ section.id }}" class="hdt-main-cart-items-wrap">
+        <form action="{{ routes.cart_url }}" class="hdt-contents" method="post" id="cart">
+          <input type="hidden" name="attributes[products_items_per_row]" value="">
+          <div id="main-cart-items">
+          {%- if cart != empty -%}
+            <table class="hdt-table hdt-main-cart-items hdt-table--cart">
+              <caption class="sr-only">{{ 'cart.title' | t }}</caption>
+              <thead>
+                <tr>
+                  <th>{{ 'cart.headings.product' | t | escape }}</th>
+                  <th>{{ 'cart.headings.quantity' | t | escape }}</th>
+                  <th>{{ 'cart.headings.total' | t | escape }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {%- for item in cart.items -%}
+                {%- assign image = item.image | default: settings.placeholder_img -%}
+                <tr class="hdt-main-cart-item{% if item.variant.id == gift_wrap_pr_id %} is-gift-wrap{% endif %}{% if image %} hdt-cart-item-with-img{% endif %}" id="CartItem-{{ item.index | plus: 1 }}" style="--item-img-ratio: {{ image.aspect_ratio | default: 1 }}">
+                  <td class="hdt-main-cart-item__details">
+                    <div class="hdt-main-cart-item-inner">
+                      {%- if image -%}
+                        <div class="hdt-cart-item__media hdt-main-cart-item__media hdt-inline-flex">
+                          <a href="{{ item.url }}" class="hdt-main-cart-item__link hdt-rounded-sm hdt-inline-flex hdt-oh" aria-hidden="true" tabindex="-1">
+                            <img src="{{ image | image_url: width: 240 }}" alt="{{ image.alt | escape }}" loading="lazy" width="120" height="{{ 120 | divided_by: image.aspect_ratio | ceil }}" class="hdt-main-cart-item__image">
+                          </a>
+                        </div>
+                      {%- endif -%}
+                      <div class="hdt-main-cart-item__content">
+                        <div class="hdt-cart-item-header hdt-main-cart-item-header">
+                          <a href="{{ item.url }}" class="hdt-main-cart-item__name hdt-text-s hdt-font-medium hdt-link">{{ item.product.title | escape }}</a>
+                        </div>
+      
+                        {%- if item.product.has_only_default_variant == false or item.properties.size != 0 -%}
+                          <div class="hdt-product-options hdt-s-text2 hdt-text-sm">
+                            {%- if item.product.has_only_default_variant == false -%}
+                              {%- for option in item.options_with_values -%}
+                                <dl class="hdt-product-option">
+                                  <dt>{{ option.name }}:</dt>
+                                  <dd>{{ option.value }}</dd>
+                                </dl>
+                                {% unless forloop.last %}
+                                  <span class="hdt-line-vertical"></span>
+                                {% endunless %}
+                              {%- endfor -%}
+                            {%- endif -%}
+                            <div class="hdt-product-properties">
+                            {%- for property in item.properties -%}
+                              {%- assign property_first_char = property.first | slice: 0 -%}
+                              {%- if property.last != blank and property_first_char != '_' -%}
+                                <dl class="hdt-product-option">
+                                  <dt>{{ property.first }}:</dt>
+                                  <dd>
+                                    {%- if property.last contains '/uploads/' -%}
+                                      <a href="{{ property.last }}" class="link" target="_blank">{{ property.last | split: '/' | last }}</a>
+                                    {%- else -%}
+                                      {{- property.last -}}
+                                    {%- endif -%}
+                                  </dd>
+                                </dl>
+                              {%- endif -%}
+                            {%- endfor -%}
+                            </div>
+                          </div>
+                        {%- endif -%}
+                        {%- if item.original_price != item.final_price or item.variant.compare_at_price > item.final_price and item.variant.compare_at_price != nil -%}
+                            {%- liquid
+                              if item.original_price != item.final_price
+                                assign original_price = item.original_price
+                              else
+                                assign original_price = item.variant.compare_at_price
+                              endif
+                            -%}
+                          <div class="hdt-main-cart-item__discounted-prices" data-label="{{ 'products.product.price.sale_price' | t | escape }}">
+                            <span class="hdt-discounted-price-wrap hdt-font-semibold">
+                              <span class="sr-only">{{ 'products.product.price.regular_price' | t | escape }}</span>
+                              <span class="hdt-main-cart-item__old-price hdt-compare-at-price"><span class="hdt-money">{{- original_price | money -}}</span></span>
+                              <span class="sr-only">{{ 'products.product.price.sale_price' | t | escape }}</span>
+                              <span class="hdt-main-cart-item__final-price hdt-price"><span class="hdt-money">{{ item.final_price | money }}</span></span>
+                            </span>
+                          </div>
+                        {%- else -%}
+                          <div class="hdt-price hdt-font-semibold hdt-s-text" data-label="{{ 'products.product.price.price' | t | escape }}"><span class="hdt-money">{{ item.original_price | money }}</span></div>
+                        {%- endif -%}
+                        {%- if item.selling_plan_allocation != null -%}
+                          <p class="hdt-product-option hdt-s-text2 hdt-text-sm">{{ item.selling_plan_allocation.selling_plan.name }}</p>
+                        {%- endif -%}
+                        {%- if item.line_level_discount_allocations.size > 0 -%}
+                        <ul class="hdt-discounts" role="list" aria-label="{{ 'customer.order.discount' | t }}">
+                          {%- for discount in item.line_level_discount_allocations -%}
+                            <li class="hdt-discounts__discount">
+                              {{- 'icon-discount.svg' | inline_asset_content -}}
+                              {{- discount.discount_application.title | escape -}}
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  </td>
+                  <td class="hdt-main-cart-item__quantity" data-label="{{ 'cart.headings.quantity' | t | escape }}">
+                    {%- render 'quantity-cart', item: item -%}
+                    <div id="Cart-LineItemError-{{ item.index | plus: 1 }}" class="hdt-cart-item__error" role="alert" hidden>
+                      <small class="hdt-cart-item__error-text"></small>
+                      <span class="hdt-svg-wrapper">{{- 'icon-error.svg' | inline_asset_content -}}</span>
+                    </div>
+                  </td>
+                  <td class="hdt-main-cart-item__total" data-label="{{ 'cart.headings.total' | t | escape }}">
+                    <div class="hdt-cart-item-total-wrap">
+                      <span class="hdt-main-cart-item__price hdt-font-semibold hdt-s-text hdt-shimmer" value="{{ item.final_line_price | money | strip_html }}"><span class="hdt-money">{{ item.final_line_price | money }}</span></span>
+                      {%- if item.variant.available and item.unit_price_measurement -%}
+                        {%- render 'unit-price', price: item.unit_price, measurement: item.unit_price_measurement -%}
+                      {%- endif -%}
+                    </div>
+                  </td>
+                  <td class="hdt-remove-cart-item">
+                      <cart-remove-button class="hdt-cart-remove-button hdt-point-area" id="Cart-remove-{{ item.index | plus: 1 }}" data-line="{{ item.index | plus: 1 }}">
+                          <a href="{{ item.url_to_remove }}" aria-label="{{ 'cart.remove_title' | t: title: item.title | escape }}">{{- 'icon-delete.svg' | inline_asset_content -}}</a>
+                      </cart-remove-button>
+                  </td>
+                </tr>
+                {%- unless forloop.last -%}
+                  <tr class="hdt-row-border"><td colspan="4"></td></tr>
+                {%- endunless -%}
+                {%- endfor -%}
+              </tbody>
+            </table>
+          {%- endif -%}
+          </div>
+        </form>
+      </cart-items>
+      {%- if section.settings.enable_shipping -%}
+      <fieldset class="hdt-cart__shipping-estimator hdt-rounded">
+        <legend class="hdt-cart__shipping-estimator-heading hdt-h6">{{ 'cart.shipping_estimator.title_display' | t }}</legend>
+        {%- render 'shipping-calculator', hide_cancel: true, icon_show: section.settings.icon_btn_custom, icon_custom: section.settings.icon_btn_custom -%}
+      </fieldset>
+      {%- endif -%}
+      <div class="hdt-cart__blocks hdt-rounded">
+        {%- if section.settings.enable_free_shipping_bar and shipping_amount > -1 -%}
+          {%- render 'cart-shipping-bar', shipping_amount: shipping_amount -%}
+        {%- endif -%}
+        {%- if section.settings.enable_cart_note -%}
+          <cart-note class="hdt-cart__note">
+            <label class="hdt-cart-openable__heading hdt-font-medium hdt-text-lg" for="Cart-Note">
+              <span class="hdt-lb-shownote">{{ 'cart.edit_note' | t }}</span>
+              <span class="hdt-lb-note">{{ 'cart.add_note' | t }}</span>
+            </label>
+            <textarea id="Cart-Note" class="hdt-textarea hdt-textarea-round-limit" name="note" placeholder="{{ 'cart.placeholder_note' | t }}">{{ cart.note }}</textarea>
+          </cart-note>
+        {%- endif -%}
+        {%- if section.settings.enable_gift_wrap and gift_wrap_pr_id != blank -%}
+          {%- assign gift_pr_money = gift_wrap_pr.selected_or_first_available_variant.price | money_without_trailing_zeros -%}
+          <div class="hdt-cart__add-gift hdt-page-cart__add-gift"{% unless gift_wrap_pr_quantity == 0 %} hidden{% endunless %}>
+            <hdt-cart-gift-tick class="hdt-cart-gift-tick" form="product-form-git-wrap">
+              <div class="hdt-checkbox-wrapp hdt-inline-grid hdt-relative hdt-oh">
+                <input form="hdt-cart-gift-checkbox" class="hdt-grid-1x1" type="checkbox" id="hdt-cart-gift-checkbox" required name="gift_checkbox">
+                <span class="hdt-facke-check hdt-grid-1x1 hdt-pe-none"></span>
+              </div>
+              <label for="hdt-cart-gift-checkbox">{{ 'cart.cart_page_gift_wrap_html' | t: money: gift_pr_money }}</label>
+            </hdt-cart-gift-tick>
+            <product-form class="hdt-contents" hidden>
+              {%- form 'product', gift_wrap_pr, id: 'product-form-git-wrap', class: 'hdt-product-form', novalidate: 'novalidate' -%}
+                  <input type="hidden" name="quantity" value="{{ gift_wrap_pr.selected_or_first_available_variant.min }}">
+                  <input type="hidden" name="id" value="{{ gift_wrap_pr_id }}">
+                  <button type="submit" name="add">{{ 'cart.add_gift_wrap' | t | escape }}</button>
+              {%- endform -%}
+              </product-form>
+          </div>
+        {%- endif -%}
+        {%- if section.settings.enable_discount_code -%}
+          {%- render 'cart-discount', show_heading: true -%}
+        {%- endif -%}
+        <div class="js-contents hdt-cart__footer">
+        {%- if cart != empty -%}
+          {%- if cart.cart_level_discount_applications.size > 0 -%}
+          <ul class="hdt-cart-discounts" role="list" aria-label="{{ 'customer.order.discount' | t }}">
+            {%- for discount in cart.cart_level_discount_applications -%}
+              <li class="hdt-cart-discounts__discount hdt-cart-discounts__discount--position">
+                {{- 'icon-discount.svg' | inline_asset_content -}}
+                {{ discount.title | escape }}
+                (-{{ discount.total_allocated_amount | money }})
+              </li>
+            {%- endfor -%}
+          </ul>
+          {%- endif -%}
+          {%- liquid
+            if settings.currency_code_cart_total
+              assign total_price = cart.total_price | money_with_currency
+            else
+              assign total_price = cart.total_price | money
+            endif
+          -%}
+          <div class="hdt-cart-totals hdt-flex hdt-justify-between">
+            <p class="hdt-cart-totals__total hdt-h6">{{ 'cart.subtotal' | t }}</p>
+            <p class="hdt-cart-totals__total-value hdt-h5 hdt-shimmer" ref="cartTotal" value="{{ total_price | strip_html }}"><span class="hdt-money" data-cart-subtotal data-er-cart-total-price>{{ total_price }}</span></p>
+          </div>
+          {%- render 'tax-info', has_discounts_enabled: section.settings.enable_discount_code, class: 'hdt-cart-tax-note hdt-text-sm hdt-font-medium hdt-s-text' -%}
+        {%- endif -%}
+        </div>
+        <div class="hdt-cart__ctas">
+          <button  circle-bg-wrap type="submit" id="checkout" class="hdt-cart__checkout-button hdt-btn hdt-btn-solid hdt-btn--with-icon hdt-btn-full-width hdt-btn--size-l" name="checkout" form="cart">
+            {{- 'cart.checkout' | t | escape -}}
+            {%- if section.settings.icon_button -%}{{ 'icon-' | append: section.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </button>
+        </div>
+        {%- if section.settings.enable_accelerated_btns and additional_checkout_buttons -%}
+          <div class="hdt-cart__dynamic-checkout-buttons additional-checkout-buttons">
+            {{ content_for_additional_checkout_buttons }}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.payment_enable -%}
+          <div class="hdt-cart__payment">
+              <span class="sr-only">{{ 'accessibility.payment' | t }}</span>
+              <ul class="hdt-list-payment hdt-flex hdt-flex-wrap" role="list">
+              {%- for type in shop.enabled_payment_types -%}
+                  <li class="hdt-list-payment__item">
+                  {{ type | payment_type_svg_tag: class: 'hdt-icon hdt-icon--full-color' }}
+                  </li>
+              {%- endfor -%}
+              </ul>
+          </div>
+          {%- endif -%}
+      </div>
+    </main-cart>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.cart",
+  "tag": "section",
+  "class": "hdt-section-main-cart",
+  "settings": [
+    {
+        "type": "checkbox",
+        "id": "enable_free_shipping_bar",
+        "label": "t:settings.enable_free_shipping_bar",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "enable_gift_wrap",
+        "label": "t:settings.enable_gift_wrap",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "enable_cart_note",
+        "label": "t:settings.enable_cart_note",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "enable_shipping",
+        "label": "t:settings.enable_shipping",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "enable_discount_code",
+        "label": "t:settings.enable_discount_code",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "enable_accelerated_btns",
+        "label": "t:settings.enable_accelerated_btns",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "show_checkout",
+        "label": "t:settings.show_checkout",
+        "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "payment_enable",
+      "label": "t:settings.payment_enable",
+      "default": true
+    },
+    {
+        "type": "url",
+        "id": "emty_link",
+        "label": "t:settings.emty_link",
+        "default": "/collections/all",
+    },
+    {
+        "type": "checkbox",
+        "id": "icon_button",
+        "label": "t:settings.show_btn_icon",
+        "default": true
+    },
+    {
+        "type": "select",
+        "label": "t:settings.icon_button",
+        "id": "icon_btn_custom",
+        "options": [
+            {
+                "value": "angle-right",
+                "label": "t:options.ic_angle_right"
+            },
+            {
+                "value": "angles-right",
+                "label": "t:options.ic_angles_right"
+            },
+            {
+                "value": "arrow-45deg",
+                "label": "t:options.ic_arrow_45deg"
+            },
+            {
+              "value": "arrow-45deg-2",
+              "label": "t:options.ic_arrow_45deg_2"
+            },
+            {
+                "value": "arrow-right-2",
+                "label": "t:options.ic_arrow_right"
+            },
+            {
+                "value": "arrow-circle-45deg-fill",
+                "label": "t:options.ic_circle_arrow_45deg"
+            },
+            {
+                "value": "arrow-circle-45deg-outline",
+                "label": "t:options.ic_circle_arrow_45deg_outline"
+            },
+            {
+                "value": "arrow-circle-right-fill",
+                "label": "t:options.ic_circle_arrow_right"
+            },
+            {
+                "value": "arrow-circle-right-outline",
+                "label": "t:options.ic_circle_arrow_right_outline"
+            },
+        ],
+        "visible_if": "{{ section.settings.icon_button == true }}",
+        "default": "arrow-circle-45deg-fill",
+    },
+    {
+        "type": "header",
+        "content": "t:content.promotion_bar"
+    },
+    {
+        "type": "paragraph",
+        "content": "t:content.promotion_bar_paragraph"
+    },
+    {
+        "type": "inline_richtext",
+        "id": "message",
+        "label": "t:settings.message",
+        "default": "t:text_defaults.message_discount"
+    },
+    {
+        "type": "range",
+        "id": "speed",
+        "min": 0.1,
+        "max": 1,
+        "step": 0.1,
+        "unit": "sec",
+        "label": "t:settings.speed",
+        "default": 0.3
+    },
+    {
+        "type": "select",
+        "id": "dir",
+        "options": [
+          {
+            "value": "rtl",
+            "label": "t:options.rtl"
+          },
+          {
+            "value": "ltr",
+            "label": "t:options.ltr"
+          }
+        ],
+        "default": "rtl",
+        "label": "t:settings.direction"
+    },
+    {
+        "type": "checkbox",
+        "id": "pause_on_hover",
+        "label": "t:settings.pause_on_hover",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "uppercase",
+        "label": "t:settings.uppercase",
+        "default": false
+    },
+    {
+        "type": "header",
+        "content": "t:content.appearance"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "options": [
+        {
+            "value": "container",
+            "label": "t:options.container"
+        },
+        {
+            "value": "container-custom",
+            "label": "t:options.custom"
+        }
+      ],
+      "default": "container",
+      "label": "t:settings.section_width"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 1100,
+      "max": 1600,
+      "step": 5,
+      "unit": "px",
+      "label": "t:settings.max_custom_width",
+      "default": 1140,
+      "visible_if": "{{ section.settings.section_width == 'container-custom' }}"
+    },
+    {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-1"
+    },
+  ]
+}
+{% endschema %}

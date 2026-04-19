@@ -1,0 +1,76 @@
+{%- assign product = section.settings.product | default: product -%}
+{%- if product.description != blank -%}
+{%- liquid
+  if block.settings.layout == 'collapsible'
+    assign item_class = 'hdt-product-info__item--box hdt-product-info__accordion'
+  else
+    assign item_class = 'hdt-product-info__item--text'
+  endif
+-%}
+<div class="hdt-product-info__item hdt-product__description {{ item_class }} hdt-product__description--{{ block.settings.layout }}" data-type="description" {{ block.shopify_attributes }}>
+  {%- if block.settings.layout == "collapsible" -%}
+    <hdt-accordion class="hdt-accordion">
+      <details {% if block.settings.show_content_on_init %}open{% endif %}>
+          <summary class="hdt-s-text hdt-s-text hdt-font-medium hdt-text-lg" aria-expanded="{{ block.settings.show_content_on_init }}">
+            {{- 'products.product.description.title' | t -}}
+            {{- 'icon-select-arrow.svg' | inline_asset_content -}}
+          </summary>
+          <div class="rte hdt-s-text hdt-font-normal hdt-inner-content">{{ product.description }}</div>
+      </details>
+    </hdt-accordion>
+  {%- elsif block.settings.layout == "readmore" -%}
+    <hdt-max-height class="hdt-max-height rte hdt-s-text hdt-font-normal" style="--max-height: {{ block.settings.max_height }}px;">
+      {{- product.description -}}
+      <span class="hdt-read-more-mask"></span>
+      <button class="hdt-read-more hdt-link-underline"><span>{{ 'products.product.description.read_more' | t }}</span><span class="hdt-hidden">{{ 'products.product.description.read_less' | t }}</span></button>
+    </hdt-max-height>
+  {%- else -%}
+    <div class="rte hdt-s-text">{{ product.description }}</div>
+  {%- endif -%}
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.description",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "options": [
+        {
+          "value": "full",
+          "label": "t:options.full"
+        },
+        {
+          "value": "readmore",
+          "label": "t:options.readmore"
+        },
+        {
+          "value": "collapsible",
+          "label": "t:options.collapsible"
+        }
+      ],
+      "default": "full",
+      "label": "t:settings.layout"
+    },
+    {
+      "type": "range",
+      "id": "max_height",
+      "label": "t:settings.max_height",
+      "unit": "px",
+      "min": 150,
+      "max": 500,
+      "step": 10,
+      "default": 160,
+      "visible_if": "{{ block.settings.layout == 'readmore' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.description"
+    }
+  ]
+}
+{% endschema %}

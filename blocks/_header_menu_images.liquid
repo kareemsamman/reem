@@ -1,0 +1,39 @@
+{%- render 'header-mega-menu', block: block, type: 'images' -%}
+
+{% schema %}
+{
+  "name": "Mega menu: Images",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Menu item label",
+      "info": "Enter menu item label to apply a mega menu."
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:settings.position",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Mega menu: Images" }
+  ]
+}
+{% endschema %}

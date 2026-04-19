@@ -1,0 +1,70 @@
+{%- liquid
+    if section.index == 1
+        assign fetch_priority = 'high'
+        assign loading = 'eager'
+    else
+        assign fetch_priority = 'auto'
+        assign loading = 'lazy'
+    endif
+# theme-check-disable UndefinedObject
+assign sizes = sizes | default: '50vw'
+# theme-check-enable UndefinedObject
+-%}
+<div can-reveal class="hdt-countdown-offer-card hdt-slider__slide" {{ block.shopify_attributes }} color-scheme = "{{ block.settings.color_scheme }}">
+    <div class="hdt-media-overlap-content" style="--color-overlay-opacity: {{ block.settings.image_overlay_opacity }}%">
+        {%- if block.settings.image != blank -%}
+            {%- liquid
+                if block.settings.image != blank
+                  assign append_w = block.settings.image.width | default: 2000
+                  assign widths = '300,400,500,600,700,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: append_w
+                  echo '<picture class="hdt-media-wrapper">'
+                  echo block.settings.image | image_url: width: block.settings.image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes , widths: widths
+                  echo '</picture>'
+                endif
+            -%}
+        {%- else -%}
+            <div class="hdt-media-wrapper">
+            {{- 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg hdt-placeholder' -}}
+            </div>
+        {%- endif -%}
+        <div class="hdt-media-content">
+            {%- content_for 'block', type: 'label', id: 'label_deal' -%}
+            {%- content_for 'blocks' -%}
+        </div>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names._countdown_offer_card",
+        "tag":null,
+        "settings": [
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "image_picker",
+                "id": "image",
+                "label": "t:settings.image"
+            },
+            {
+                "type": "range",
+                "id": "image_overlay_opacity",
+                "label": "t:settings.image_overlay_opacity",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "%",
+                "default": 0
+            }
+        ],
+        "blocks": [
+            {"type": "label"},
+            {"type": "heading"},
+            {"type": "countdown_timer_inline"},
+            {"type": "_button"}
+        ],
+    }
+{% endschema %}

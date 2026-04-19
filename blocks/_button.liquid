@@ -1,0 +1,140 @@
+<a can-reveal class="{% unless block.settings.button_style == 'link' %}hdt-btn{% endunless %} hdt-btn--inner hdt-btn-{{ block.settings.button_style }} hdt-btn--size-{{ block.settings.button_size }}{% if block.settings.icon_button %} hdt-btn--with-icon{% endif %}{% if block.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}" {% if block.settings.button_link != blank %} href="{{ block.settings.button_link }}"{% else %} role="link" aria-disabled="true"{% endif %}{% if block.settings.open_in_new_tab %} target="_blank" aria-describedby="a11y-new-window-message" rel="noopener noreferrer"{% endif %}> 
+    <span circle-bg-wrap class="hdt-inner-btn">
+        {{- block.settings.button_label -}}
+        {%- if block.settings.icon_button %}{{ 'icon-' | append: block.settings.icon_btn_custom | append: '.svg' | inline_asset_content }}{% endif -%}
+        {%- if block.settings.button_style == 'link' -%}
+            {{- 'icon-slide.svg' | inline_asset_content -}}
+        {%- else -%}
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+        {%- endif -%}
+    </span>
+</a>
+
+{% schema %}
+    {
+        "name": "t:names.button",
+        "tag": null,
+        "settings": [
+            {
+                "type": "text",
+                "id": "button_label",
+                "label": "t:settings.button_label",
+                "default": "t:text_defaults.button_label"
+            },
+            {
+                "type": "url",
+                "id": "button_link",
+                "label": "t:settings.button_link"
+            },
+            {
+                "type": "checkbox",
+                "id": "open_in_new_tab",
+                "label": "t:settings.open_in_new_tab",
+                "default": false
+            },
+            {
+                "type": "select",
+                "id": "button_size",
+                "label": "t:settings.button_size",
+                "options": [
+                    {
+                        "value": "s",
+                        "label": "t:options.small"
+                    },
+                    {
+                        "value": "m",
+                        "label": "t:options.medium"
+                    },
+                    {
+                        "value": "l",
+                        "label": "t:options.large"
+                    }
+                ],
+                "default": "m"
+            },
+            {
+                "type": "select",
+                "id": "button_style",
+                "label": "t:settings.button_style",
+                "options": [
+                    {
+                        "value": "outline",
+                        "label": "t:options.button_outline"
+                    },
+                    {
+                        "value": "solid",
+                        "label": "t:options.button_solid"
+                    },
+                    {
+                        "value": "link",
+                        "label": "t:options.button_link"
+                    }
+                ],
+                "default": "solid"
+            },
+            {
+                "type": "checkbox",
+                "id": "icon_button",
+                "label": "t:settings.show_icon",
+                "default": true
+            },
+            {
+                "type": "select",
+                "label": "t:settings.icon_button",
+                "id": "icon_btn_custom",
+                "options": [
+                    {
+                        "value": "angle-right",
+                        "label": "t:options.ic_angle_right"
+                    },
+                    {
+                        "value": "angles-right",
+                        "label": "t:options.ic_angles_right"
+                    },
+                    {
+                        "value": "arrow-45deg",
+                        "label": "t:options.ic_arrow_45deg"
+                    },
+                    {
+                        "value": "arrow-45deg-2",
+                        "label": "t:options.ic_arrow_45deg_2"
+                    },
+                    {
+                        "value": "arrow-right-2",
+                        "label": "t:options.ic_arrow_right"
+                    },
+                    {
+                        "value": "arrow-circle-45deg-fill",
+                        "label": "t:options.ic_circle_arrow_45deg"
+                    },
+                    {
+                        "value": "arrow-circle-45deg-outline",
+                        "label": "t:options.ic_circle_arrow_45deg_outline"
+                    },
+                    {
+                        "value": "arrow-circle-right-fill",
+                        "label": "t:options.ic_circle_arrow_right"
+                    },
+                    {
+                        "value": "arrow-circle-right-outline",
+                        "label": "t:options.ic_circle_arrow_right_outline"
+                    },
+                ],
+                "default": "arrow-circle-45deg-fill",
+                "visible_if": "{{ block.settings.icon_button == true }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "btn_uppercase",
+                "label": "t:settings.uppercase",
+                "default": false,
+                "visible_if": "{{ settings.btn_case != 'uppercase' }}",
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.button"
+            }
+        ]
+    }
+{% endschema %}

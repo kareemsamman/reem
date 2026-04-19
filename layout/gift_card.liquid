@@ -1,0 +1,76 @@
+<!doctype html>
+  {%- liquid
+    assign iso_code = request.locale.iso_code
+    assign config_rtl = settings.right_to_left | default: 'enable-with-list'
+    assign is_rtl = false
+    assign dir = 'ltr'
+    if config_rtl == 'enable-with-list'
+      assign iso_code_ck = iso_code | split: '-' | first | append: ';' | prepend: ';'
+      assign lis_rtl = ';ae;ar;arc;bqi;ckb;dv;fa;glk;ha;he;kwh;ks;ku;mzn;nqo;pnb;ps;sd;ug;ur;yi;'
+      if lis_rtl contains iso_code_ck
+        assign is_rtl = true
+        assign dir = 'rtl'
+      endif
+    elsif config_rtl == 'enable'
+      assign is_rtl = true
+      assign dir = 'rtl'
+    endif -%}
+
+<html class="dir--{{ dir }} use--zoom-image" lang="{{ request.locale.iso_code }}" dir="{{ dir }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 48, height: 48 }}">
+    {%- endif -%}
+
+    <link rel="preconnect" href="https://cdn.shopify.com">
+    {%- unless settings.type_header_font.system? and settings.type_body_font.system? -%}
+      <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+    {%- endunless -%}
+
+    {%- assign formatted_balance = gift_card.balance | money_without_trailing_zeros | strip_html -%}
+    <title>{{ 'gift_cards.issued.title' | t: value: formatted_balance, shop: shop.name }}</title>
+    <meta name="description" content="{{ 'gift_cards.issued.subtext' | t }}">
+
+    {%- liquid
+      render 'social-meta-tags'
+      render 'schema-json-ld'
+      render 'css-variables', is_rtl: is_rtl
+      render 'scripts'
+    -%}
+    <script src="{{ 'vendor/qrcode.js' | shopify_asset_url }}" defer></script>
+
+    {{ content_for_header }}
+
+  </head>
+
+  <body class="hdt-page-type-{{ request.page_type }}">
+    {%- render 'js-variables' -%}
+    {%- render 's-dom-temp' -%}
+    <a class="skip-to-content-link hdt-btn sr-only" href="#MainContent">{{ 'accessibility.skip_to_text' | t }}</a>
+
+    <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+    {%- liquid
+      render 'system-bottom'
+    -%}
+    <script>
+    document.addEventListener('DOMContentLoaded', ()=> {
+      if (!customElements.get('hdt-qr-code')) {
+        customElements.define('hdt-qr-code', class QrCode extends HTMLElement {
+          connectedCallback() {
+            new window.QRCode(this, JSON.parse(this.getAttribute('config')));
+          }
+        });
+      }
+    });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,365 @@
+{%- liquid
+  assign items_in_cart = cart | line_items_for: product
+  assign quick_order_form_id = 'QuickOrder-ProductForm-' | append: product.id | append: '-' | append: section.id
+  assign has_variant_image = false
+-%}
+{{- 'quick-order-list.css' | asset_url | stylesheet_tag -}}
+
+<script src="{{ 'quick-order-list.js' | asset_url }}" type="module" fetchpriority="low"></script>
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__quick-order-list hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px; --section-mb-xl: {{ section.settings.margin_bottom_xl }}px; --section-mb: {{ section.settings.margin_bottom }}px;">
+  <div class="hdt-container">
+    <quick-order-list-component class="hdt-quick-order-list" data-section-id="{{ section.id }}" data-product-id="{{ product.id }}" data-cart-variant-ids="{{ items_in_cart | map: 'variant_id' | json | escape }}" data-url="{{ product.url }}">
+      {%- form 'product', product, id: quick_order_form_id, data-type: 'add-to-cart-form' -%}
+        {%- paginate product.variants by section.settings.variants_per_page -%}
+          {%- capture variant_list -%}
+            {%- for variant in product.variants -%}
+              {%- liquid
+                assign variant_line_items = cart | line_items_for: variant
+                assign variant_cart_quantity = variant_line_items | sum: 'quantity' | default: 0
+                assign variant_line_item = variant_line_items | first
+
+                assign has_quantity_rules = false
+                if variant.quantity_rule.min > 1 or variant.quantity_rule.increment > 1 or variant.quantity_rule.max != null
+                  assign has_quantity_rules = true
+                endif
+
+                assign has_volume_pricing = false
+                if variant.quantity_price_breaks.size > 0
+                  assign has_volume_pricing = true
+                endif
+
+                assign display_price = variant.price
+                if has_volume_pricing and variant_cart_quantity > 0
+                  for price_break in variant.quantity_price_breaks
+                    if variant_cart_quantity >= price_break.minimum_quantity
+                      assign display_price = price_break.price
+                    endif
+                  endfor
+                endif
+
+                assign has_discount = false
+                if variant.compare_at_price > display_price
+                  assign has_discount = true
+                endif
+
+                capture display_price_formatted
+                  render 'format-price', price: display_price
+                endcapture
+
+                capture display_price_per_item_formatted
+                  render 'format-price', price: display_price, type: 'per_item'
+                endcapture
+
+                if has_discount
+                  capture compare_at_price_formatted
+                    render 'format-price', price: variant.compare_at_price, type: 'compare_at'
+                  endcapture
+                endif
+
+                assign variant_display_name = variant.title
+                if product.variants_count == 1
+                  assign variant_display_name = product.title
+                endif
+
+                assign remove_button_aria_label = 'accessibility.remove_item' | t: title: variant.title | escape
+                assign sold_out_message = 'products.product.sold_out' | t
+
+                capture quantity_selector_markup
+                  render 'quantity-selector', product: product, variant: variant, in_cart_quantity: variant_cart_quantity, line_index: forloop.index, class: 'hdt-quantity hdt-cart-quantity', min: 0
+                endcapture
+                assign can_remove = variant.instructions.can_remove | default: true, allow_false: true
+                assign image = variant.image | default: product.featured_image
+              -%}
+              <div class="hdt-quick-order-list__grid-row variant-item" data-variant-id="{{ variant.id }}" ref="variantRows[]" role="row">
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--variant variant-item__inner" role="cell">
+                  <div class="hdt-variant-item__inner-container">
+                    {%- if section.settings.show_image -%}
+                      <div class="hdt-variant-item__image-container">
+                        {%- liquid
+                        if image
+                          assign has_variant_image = true
+                          echo image | image_url: width: 120 | image_tag: widths: '60,120', class: 'hdt-quick-order-list__table-image', sizes: '120px', loading: 'lazy'
+                        endif
+                        -%}
+                      </div>
+                    {%- endif -%}
+                    <div class="hdt-variant-item__details">
+                      <span class="hdt-variant-item__name hdt-font-medium hdt-hidden md:hdt-block">{{ variant_display_name }}</span>
+                      {%- if section.settings.show_sku -%}
+                        <span class="hdt-variant-item__sku hdt-hidden md:hdt-block">{{ variant.sku }}</span>
+                      {%- endif -%}
+
+                      <div class="hdt-variant-item__mobile-info hdt-flex md:hdt-hidden">
+                        <div class="hdt-variant-item__title-container">
+                          <span class="hdt-variant-item__name hdt-font-medium">{{ variant_display_name }}</span>
+                          {%- if section.settings.show_sku -%}
+                            <span class="hdt-variant-item__sku">{{ variant.sku }}</span>
+                          {%- endif -%}
+                        </div>
+                        <div class="variant-item__mobile-price-container">
+                          {%- if has_discount -%}
+                            <dl class="hdt-variant-item__discounted-prices hdt-variant-item__discounted-prices--mobile">
+                              <dt class="sr-only">{{ 'products.product.price.regular_price' | t }}</dt>
+                              <dd>
+                                <s class="hdt-compare-at-price">{{ compare_at_price_formatted }}</s>
+                              </dd>
+                              <dt class="sr-only">{{ 'products.product.price.sale_price' | t }}</dt>
+                              <dd>
+                                <span class="hdt-variant-item__mobile-price hdt-price">{{ display_price_per_item_formatted }}</span>
+                              </dd>
+                            </dl>
+                          {%- else -%}
+                            <span class="hdt-variant-item__mobile-price hdt-price">{{ display_price_per_item_formatted }}</span>
+                          {%- endif -%}
+                        </div>
+                        <div class="hdt-variant-item__mobile-quantity">
+                          {%- if variant.available -%}
+                            {{- quantity_selector_markup -}}
+                            <button ref="itemRemove" class="hdt-variant-item__remove hdt-cart-remove-button hdt-point-area variant-item__remove--mobile hdt-link-text md:hdt-hidden{% if variant_cart_quantity == 0 %} hdt-variant-item__remove--hidden{% endif %}"type="button"{% if variant_cart_quantity == 0 %} tabindex="-1" aria-hidden="true"{% endif %} aria-label="{{ remove_button_aria_label }}" data-variant-id="{{ variant.id }}"{% if can_remove == false %} hidden{% endif %}>
+                              <span class="sr-only">{{ 'quick_order_list.remove' | t }}</span>
+                              {{- 'icon-delete.svg' | inline_asset_content -}}
+                            </button>
+                          {%- else -%}
+                            <span class="hdt-quantity hdt-cart-quantity hdt-font-medium">{{ sold_out_message }}</span>
+                          {%- endif -%}
+                        </div>
+                        {%- liquid
+                        if variant.available and has_volume_pricing or has_quantity_rules and false
+                          render 'volume-pricing-info', variant: variant,unique_id: variant.id, quantity: variant_cart_quantity, show_label: true
+                        endif
+                        -%}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--quantity hdt-variant-item__quantity hdt-hidden md:hdt-block" role="cell">
+                  <div class="hdt-variant-item__inner-container">
+                    {%- if variant.available -%}
+                      {%- if has_volume_pricing or has_quantity_rules and false -%}
+                        {%- render 'volume-pricing-info', variant: variant, unique_id: variant.id, quantity: variant_cart_quantity -%}
+                      {%- else -%}
+                        <div class="hdt-volume-pricing-info-placeholder"></div>
+                      {%- endif -%}
+                      {{- quantity_selector_markup -}}
+                    {%- else -%}
+                      <div class="hdt-volume-pricing-info-placeholder"></div>
+                      <span class="hdt-quantity hdt-cart-quantity hdt-font-medium">{{ sold_out_message }}</span>
+                    {%- endif -%}
+                    <button ref="itemRemove" class="hdt-variant-item__remove hdt-cart-remove-button hdt-point-area hdt-link-text hdt-hidden md:hdt-block {% if variant_cart_quantity == 0 %}hdt-variant-item__remove--hidden{% endif %}" type="button"{% if variant_cart_quantity == 0 %} tabindex="-1" aria-hidden="true"{% endif %} aria-label="{{ remove_button_aria_label }}"{% if can_remove == false %} hidden{% endif %} data-variant-id="{{ variant.id }}">
+                      <span class="sr-only">{{ 'quick_order_list.remove' | t }}</span>
+                      {{- 'icon-delete.svg' | inline_asset_content -}}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--price hdt-variant-item__price hdt-hidden md:hdt-block" role="cell">
+                  {%- if has_discount -%}
+                    <dl class="hdt-variant-item__discounted-prices">
+                      <dt class="sr-only">{{ 'products.product.price.regular_price' | t }}</dt>
+                      <dd><s class="hdt-compare-at-price">{{ compare_at_price_formatted }}</s></dd>
+                      <dt class="sr-only">{{ 'products.product.price.sale_price' | t }}</dt>
+                      <dd><span class="hdt-price">{{ display_price_formatted }}</span></dd>
+                    </dl>
+                  {%- else -%}
+                    <span class="hdt-price">{{ display_price_per_item_formatted }}</span>
+                  {%- endif -%}
+                </div>
+
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--total hdt-variant-item__totals" role="cell">
+                  {%- liquid
+                    if variant_line_item
+                      assign total_price = variant_line_item.original_line_price
+                    else
+                      assign total_price = 0
+                    endif
+                  -%}
+                  {%- capture formatted_total_price %}{% render 'format-price', price: total_price %}{% endcapture -%}
+                  <div class="hdt-shimmer hdt-variant-item__total-price" data-variant-id="{{ variant.id }}" value="{{ formatted_total_price | strip_html }}">
+                    {{- formatted_total_price -}}
+                  </div>
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- endcapture -%}
+          <div class="hdt-quick-order-list__container">
+            <div class="hdt-quick-order-list__grid" role="table" aria-label="{{ 'quick_order_list.your_cart' | t }}">
+              <div class="hdt-quick-order-list__grid-header" role="row">
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--variant hdt-h6" role="columnheader">{{ 'quick_order_list.variant' | t }}</div>
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--quantity hdt-hidden md:hdt-flex hdt-h6" role="columnheader">{{ 'quick_order_list.quantity' | t }}</div>
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--price hdt-hidden md:hdt-block hdt-h6" role="columnheader">{{ 'quick_order_list.price' | t }}</div>
+                <div class="hdt-quick-order-list__grid-cell hdt-quick-order-list__grid-cell--total hdt-h6" role="columnheader">{{ 'quick_order_list.variant_total' | t }}</div>
+              </div>
+              <div class="hdt-quick-order-list__grid-body{% unless has_variant_image %} hdt-quick-order-list__no-img{% endunless %}" role="rowgroup">
+                {{- variant_list -}}
+              </div>
+            </div>
+          </div>
+          {%- render 'pagination', paginate: paginate, atrr_current_page: true -%}
+        {%- endpaginate -%}
+      {%- endform -%}
+      {%- liquid
+        assign total_items_count = items_in_cart | sum: 'quantity' | default: 0
+        assign total_price_value = cart | line_items_for: product | sum: 'original_line_price'
+      -%}
+      {%- capture total_price %}{% render 'format-price', price: total_price_value %}{% endcapture -%}
+      <div class="hdt-quick-order-list-total">
+        <div class="hdt-quick-order-list-total__info" ref="totalInfo">
+          <div class="hdt-quick-order-list-total__column">
+            <div class="hdt-quick-order-list-total__actions">
+              <a circle-bg-wrap href="{{ routes.cart_url }}" class="hdt-quick-order-list__button hdt-btn">
+                <span class="hdt-quick-order-list__button-text">{{ 'quick_order_list.view_cart' | t }}</span>
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </a>
+              {%- if total_items_count > 0 -%}
+                <button class="hdt-quick-order-list__remove-all-button hdt-btn-link  hdt-btn--size-s" type="button" data-action="confirm">
+                  <span>{{ 'quick_order_list.remove_all' | t }}</span>
+                  {{- 'icon-slide.svg' | inline_asset_content -}}
+                </button>
+              {%- endif -%}
+            </div>
+            <div class="hdt-quick-order-list-total__messages" data-skip-subtree-update>
+              <span class="hdt-quick-order-list-total__success" ref="successContainer" aria-live="polite" hidden>
+                <span class="hdt-icon-success">{{ 'icon-checkmark.svg' | inline_asset_content }}</span>
+                <span ref="successText"></span>
+              </span>
+              <span class="hdt-quick-order-list-total__error" ref="errorContainer" hidden>
+                <span class="hdt-quick-order-list-total__icon--error">{{- 'icon-error.svg' | inline_asset_content -}}</span>
+                <span ref="errorText"></span>
+              </span>
+            </div>
+          </div>
+
+          <div class="hdt-quick-order-list-total__summary">
+            <div class="hdt-quick-order-list-total__items">
+              <span>{{ total_items_count }}</span>
+              <p class="hdt-font-medium">{{ 'quick_order_list.total_items' | t }}</p>
+            </div>
+
+            <div class="hdt-quick-order-list-total__price">
+              <div class="hdt-quick-order-list-total__product-total">
+                <p class="hdt-quick-order-list-total__subtotal hdt-text-lg hdt-font-medium">{{ 'quick_order_list.product_subtotal' | t }}</p>
+                <div class="hdt-shimmer hdt-quick-order-list-total__subtotal-value hdt-text-lg hdt-font-medium" value="{{ total_price | strip_html }}" ref="totalPrice">
+                  {{- total_price -}}
+                </div>
+              </div>
+              <div class="hdt-quick-order-list-total__tax-note">
+                {%- render 'tax-info', has_discounts_enabled: false -%}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hdt-quick-order-list-total__confirmation" ref="confirmationPanel">
+          <span class="hdt-quick-order-list-total__confirmation-text">
+            {%- if total_items_count > 1 -%}
+              {{- 'quick_order_list.remove_all_items_confirmation' | t: count: total_items_count -}}
+            {%- else -%}
+              {{- 'quick_order_list.remove_one_item_confirmation' | t -}}
+            {%- endif -%}
+          </span>
+          <div class="hdt-quick-order-list-total__confirmation-buttons">
+            <button circle-bg-wrap class="hdt-quick-order-list__button-confirm hdt-btn" type="button" data-action="remove">
+              <span>{{ 'quick_order_list.remove_all' | t }}</span>
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+            <button class="hdt-quick-order-list__button-cancel hdt-btn-link  hdt-btn--size-s" type="button" data-action="cancel">
+              <span>{{ 'quick_order_list.cancel' | t }}</span>
+              {{- 'icon-slide.svg' | inline_asset_content -}}
+            </button>
+          </div>
+        </div>
+      </div>
+    </quick-order-list-component>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.quick_order_list",
+  "tag": "section",
+  "class": "hdt-section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "blocks": [],
+  "settings": [
+    {
+      "type": "range",
+      "id": "variants_per_page",
+      "label": "t:settings.variants_per_page",
+      "min": 5,
+      "max": 50,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image",
+      "label": "t:settings.show_image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sku",
+      "label": "t:settings.show_sku",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.quick_order_list",
+      "category": "t:categories.products"
+    }
+  ]
+}
+{% endschema %}

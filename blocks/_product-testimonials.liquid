@@ -1,0 +1,49 @@
+{%- capture testimonial_blocks -%}{% content_for 'blocks' %}{%- endcapture -%}
+{%- if testimonial_blocks != '' -%}
+    <hdt-slider-reveal id="Product-testimonials-{{ block.id }}" autoheight class="hdt-slider hdt-slider--product-testimonials{% if block.settings.auto_rotate %} hdt-slide_autoplay{% endif %} hdt-slides-1 hdt-slider__items-center" config='{"autoHeight": false, "active": true, "loop": true, "fade": false, "slidesToScroll": 1, "align": "center" }'{% if block.settings.auto_rotate %} autoplay="{{ block.settings.time_speed | times: 1000 }}" style="--hdt-remaining: {{ block.settings.time_speed | times: 1000 }}ms"{% endif %}>
+        <div class="hdt-slider__viewport">
+            <div class="hdt-slider__container hdt-text-{{ block.settings.alignment }}">
+                {{- testimonial_blocks -}}
+            </div>
+        </div>
+        <hdt-slider-dots aria-controls="Product-testimonials-{{ block.id }}" class="hdt-slider-dots hdt-slider-dots__progressbar" class="no-js-hidden"></hdt-slider-dots>
+    </hdt-slider-reveal>
+{%- endif -%}
+
+{%- schema -%}
+{
+  "name": "t:names.testimonials",
+  "tag": null,
+  "blocks": [{ "type": "_product-testimonial" }],
+  "settings": [
+    {
+      "type": "color",
+      "id": "rating_color",
+      "label": "t:settings.rating_color",
+      "default": "#FC9B2C"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "label": "t:settings.testimonials_auto_rotate",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "time_speed",
+      "label": "t:settings.testimonial_time_speed",
+      "min": 3,
+      "max": 10,
+      "unit": "s",
+      "default": 5,
+      "visible_if": "{{ block.settings.auto_rotate }}"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:settings.alignment",
+      "default": "center"
+    }
+  ]
+}
+{%- endschema -%}

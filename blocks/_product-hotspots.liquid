@@ -1,0 +1,212 @@
+{%- liquid
+  assign image = block.settings.product.featured_image | default: settings.placeholder_img
+  if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+    assign reveal = 'reveal'
+  else
+    assign reveal = ''
+  endif
+  assign show_hotspot_content = section.settings.show_hotspot_content
+  if show_hotspot_content
+    assign sizes = '73px'
+    assign width = 73
+    assign widths =  '73,146,' | append: image.width
+    if block.settings.y_pos > 50 
+      assign hotspot_class = 'hdt-hs-pos-top'
+    else
+      assign hotspot_class = 'hdt-hs-pos-bottom'
+    endif
+    if block.settings.x_pos > 70 or block.settings.content_pos == 'left'
+      assign hotspot_class = hotspot_class | append: ' hdt-hs-force-pos-left'
+      if reveal != ''
+        assign reveal = 'reveal="left"'
+      endif
+    endif
+    if block.settings.x_pos < 30 or block.settings.content_pos == 'right'
+      if block.settings.x_pos < 70
+        assign hotspot_class = hotspot_class | append: ' hdt-hs-force-pos-right'
+        if reveal != ''
+          assign reveal = 'reveal="right"'
+        endif
+      endif
+    endif
+    if block.settings.x_pos_mb > 50
+      assign hotspot_class = hotspot_class | append: ' hdt-hs-force-pos-left--mb'
+    else
+      assign hotspot_class = hotspot_class | append: ' hdt-hs-force-pos-right--mb'
+    endif
+    if block.settings.x_pos_mb > 5 and block.settings.x_pos_mb < 95 
+      assign hotspot_class = hotspot_class | append: ' hdt-hs-force-line-zero--mb'
+    endif
+  else
+    assign sizes = '71px'
+    assign width = 160
+    assign widths =  '75,150,' | append: image.width
+    assign hotspot_class = 'hdt-hs-mb-pos-auto'
+    if block.settings.x_pos > 80
+      assign placement = 'left'
+    elsif block.settings.x_pos < 20
+      assign placement = 'right'
+    else
+      assign placement = 'bottom'
+    endif
+  endif
+-%}
+
+{%- capture popoper_inner -%}
+  <div class="hdt-hotspot-product hdt-hotspot-popover-inner hdt-flex hdt-s-text hdt-hotspot-has-media">
+      <div class="hdt-hotspot-media hdt-relative hdt-oh">
+      {%- liquid
+          if image != blank
+            echo image | image_url: width: width | image_tag: widths: widths, sizes: sizes, class: 'hdt-w-full hdt-h-auto'
+          else
+          capture current
+          cycle 1, 2 , 3
+          endcapture
+          echo 'product-apparel-' | append: current | placeholder_svg_tag: 'hdt-w-full hdt-h-auto'
+          endif
+      -%}
+      </div>
+      <div class="hdt-hotspot-content">
+      {%- if block.settings.product != blank %}<a href="{{ block.settings.product.url }}" class="hdt-text-base hdt-s-pr-text">{{ block.settings.product.title }}</a>{% else %}<p class="hdt-text-base hdt-s-pr-text">{{ 'onboarding.product_title' | t }}</p>{% endif -%}
+      {%- render 'item-price', product: block.settings.product, price_class: 'hdt-text-base hdt-font-semibold' -%}
+      {%- if block.settings.enable_quick_view and block.settings.product != blank -%}
+        {%- assign popover_id = 'Popover-' | append: block.id -%}
+        {%- render 'quickview-btn', product: block.settings.product, popover_id: popover_id -%}
+      {%- endif -%}
+      </div>
+  </div>
+{%- endcapture -%}
+
+<div {{ reveal }} class="hdt-hotspot hdt-absolute {{ hotspot_class }}" style="--x-pos-md: {{ block.settings.x_pos }}%;--y-pos-md: {{ block.settings.y_pos }}%;--x-pos-mb: {{ block.settings.x_pos_mb }}%;--y-pos-mb: {{ block.settings.y_pos_mb }}%;">
+  {%- if show_hotspot_content -%}
+    {%- assign popover_tag = 'hdt-popover' -%}
+    <div class="hdt-popover-as-contents">
+      <span class="hdt-hs-line hdt-hs-line--1 hdt-absolute"></span>
+      <span class="hdt-hs-line hdt-hs-line--2 hdt-absolute"></span>
+      <button type="button" class="hdt-hotspot__btn hdt-rounded-full hdt-hotspot__btn--{{ section.settings.hotspot_icon }}">
+        <span class="sr-only">{{ 'accessibility.show_product' | t }} {{ block.settings.product.title }}</span>
+        <span class="hdt-hotspots__sonar hdt-pe-none"></span>
+        <span class="hdt-hotspots__dot hdt-pe-none">
+          {{- 'icon-hotspot-' | append: section.settings.hotspot_icon | append: '.svg' | inline_asset_content -}}
+        </span>
+      </button>
+      <div class="hdt-popover hdt-hotspot__popover hdt-pr_hostpot" color-scheme="{{ section.settings.hotspots_color_scheme }}" {{ block.shopify_attributes }}>
+          {{- popoper_inner -}}
+      </div>
+    </div>
+  {%- else -%}
+    {%- assign popover_tag = 'hdt-popover-animate' -%}
+  {%- endif -%}
+  <div class="hdt-popover-contents">
+    <button type="button" aria-controls="Popover-{{ block.id }}" aria-expanded="false" aria-haspopup="dialog" class="hdt-hotspot__btn hdt-rounded-full hdt-hotspot__btn--{{ section.settings.hotspot_icon }}" {{ block.shopify_attributes }}>
+      <span class="sr-only">{{ 'accessibility.show_product' | t }} {{ block.settings.product.title }}</span>
+      <span class="hdt-hotspots__sonar hdt-pe-none"></span>
+      <span class="hdt-hotspots__dot hdt-pe-none">
+        {{- 'icon-hotspot-' | append: section.settings.hotspot_icon | append: '.svg' | inline_asset_content -}}
+      </span>
+    </button>
+    <{{ popover_tag }} data-auto-close class="hdt-contents" placement="{{ placement | default: 'bottom' }}" color-scheme="{{ section.settings.hotspots_color_scheme }}">
+      <dialog id="Popover-{{ block.id }}" class="hdt-popover hdt-popover-u hdt-hotspot__popover hdt-pr_hostpot" scroll-lock>
+        <button ref="closeButton" class="hdt-s-text" aria-controls="Popover-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+        <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+        <div class="hdt-popover__arrow"></div>
+        <div class="hdt-popover__body">
+          <div class="hdt-popover__inner hdt-scrollbar">
+            {{- popoper_inner -}}
+          </div>
+        </div>
+      </dialog>
+    </{{ popover_tag }}>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.product_hotspot",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "x_pos",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.x_pos",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "y_pos",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.y_pos",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "x_pos_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.x_pos_mb",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "y_pos_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.y_pos_mb",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "t:content.content"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:settings.product"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_quick_view",
+      "label": "t:settings.enable_quick_view",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "content_pos",
+      "label": "t:settings.desktop_pos",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "auto",
+          "label": "t:options.auto"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        },
+      ],
+      "default": "auto",
+      "visible_if": "{{ section.settings.show_hotspot_content }}"
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.product_hotspot",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

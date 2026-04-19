@@ -1,0 +1,240 @@
+<style>
+.hdt-predictive-search[results] .hdt-s-drawer-content,
+#Drawer-search .hdt-predictive-search__search-for-button {
+  display: none;
+}
+
+#Drawer-search .hdt-predictive-search-groups-wrapper{
+    display: block;
+}
+#Drawer-search .hdt-empty-results-wrap {
+  margin-block: 10em;
+}
+.hdt-s-drawer-results .hdt-slider__slide {
+  flex: 0 0 auto;
+}
+</style>
+<hdt-drawer initia-focus='input[type="search"][name="q"]' detect-adm-se-evt class="hdt-content" indent color-scheme="{{ section.settings.color_scheme }}">
+  <dialog id="Drawer-search" class="hdt-dialog hdt-drawer{% if settings.drawer_indent %} hdt-drawer--indent{% endif %}{% if settings.drawer_blur %} hdt-drawer--blur{% endif %}" pos="right" scroll-lock>
+    <div class="hdt-drawer_wrapper">
+      <div class="hdt-drawer__header">
+        <p class="hdt-h5 hdt-s-text">{{ 'search.drawer_title' | t }}</p>
+        <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn" aria-controls="Drawer-search" aria-label="{{ 'accessibility.close' | t | escape }}">
+          {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+          {{- 'icon-close.svg' | inline_asset_content -}}
+        </button>
+      </div>
+      <hdt-scroll-hint class="hdt-drawer__inner hdt-scrollbar">
+        {%- if section.settings.predictive_search_enabled -%}
+          <hdt-predictive-search as-dialog class="hdt-predictive-search hdt-search-modal__form" data-loading-text="{{ 'accessibility.loading' | t }}">
+        {%- else -%}
+          <hdt-search-form as-dialog class="hdt-search-modal__form">
+        {%- endif -%}
+        <form id="predictive-search-form" action="{{ routes.search_url }}" method="GET" role="search" class="hdt-container--predictive-search-form hdt-s-text">
+          <hdt-typing class="hdt-typing" data-text='[{{ section.settings.animation_search_text | json }}, {{ 'search.search' | t | json }}]'>
+            <div class="hdt-search-field">
+              <input id="Search-In-Modal" class="hdt-input hdt-input--ani-placehold hdt-input--search" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.search' | t }}"{% if section.settings.predictive_search_enabled %} role="combobox" aria-expanded="false" aria-owns="predictive-search-results" aria-controls="predictive-search-results" aria-haspopup="listbox" aria-autocomplete="list" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
+              <label class="sr-only" for="Search-In-Modal">{{ 'search.search' | t }}</label>
+              <input type="hidden" name="options[prefix]" value="last">
+              <button class="hdt-search__btn" aria-label="{{ 'search.search' | t }}">{{- 'icon-search.svg' | inline_asset_content -}}{%- render 'loading-spinner', class: 'hdt-predictive-search__loading' -%}</button>
+              <button type="reset" class="hdt-reset-search__btn{% if search.terms == blank %} hidden{% endif %}">{{- 'icon-reset.svg' | inline_asset_content -}}<span class="hdt-s-reset-text hdt-text-xs sr-only-mobile" >{{ 'search.reset' | t }}</span></button>
+              <span class="hdt-search__line"></span>
+            </div>
+          </hdt-typing>
+          <div class="hdt-s-drawer-wrapper">
+            <div class="hdt-s-drawer-content">
+              {%- if section.settings.collection_list_heading != blank and section.settings.collection_list != blank -%}
+                <div class="hdt-s-drawer-sub-content hdt-collection-list--search-drawer hdt-s-drawer-show-when-empty">
+                  {%- if section.settings.collection_list_heading != blank -%}
+                    <h2 class="hdt-search-drawer-title">{{ section.settings.collection_list_heading }}</h2>
+                  {%- endif -%}
+                  {%- if section.settings.collection_list != blank -%}
+                    <hdt-slider id="Slider-{{ section.id }}" autoheight class="hdt-slider hdt-collection-list--dynamic hdt-s-drawer-sub-content-inner hdt-slider--s-drawer-collection-list hdt-slider__active-true hdt-relative" config='{ "active": true, "autoHeight": true, "ntCenter": false, "loop": false, "slidesToScroll": "auto", "dragFree": false }'>
+                      <div class="hdt-slider__viewport">
+                      <div role="list" class="hdt-slider__container">
+                        {%- for collection_item in section.settings.collection_list -%}
+                          {%- assign image = collection_item.metafields.theme.image.value | default: collection_item.featured_image -%}
+                          <div role="listitem" class="hdt-slider__slide hdt-collection-dynamic-item hdt-collection-list__item">
+                              <a circle-bg-wrap href="{{ collection_item.url }}" aria-label="{{ 'accessibility.go_to_collection' | t: collection: collection_item.title | escape }}" class="hdt-collection-list__link hdt-btn-effhover">
+                                <div class="hdt-collection-list__image hdt-ratio hdt-ratio--square">
+                                {%- liquid
+                                if image != blank
+                                    echo image | image_url: width: image.width | image_tag: loading: 'lazy', sizes: '40px', widths: '40,50,100'
+                                else
+                                    echo 'collection-1' | placeholder_svg_tag: 'hdt-placeholder-svg'
+                                endif
+                                -%}
+                                </div>
+                                <div class="hdt-collection-list__title hdt-font-medium" aria-hidden="true">{{ collection_item.title | escape }}</div>
+                                <hdt-circle-bg mousemove></hdt-circle-bg>
+                              </a>
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                      </div>
+                    </hdt-slider>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+              {%- if section.settings.product_list != blank -%}
+                <div class="hdt-s-drawer-sub-content hdt-s-drawer-show-when-empty">
+                  {%- if section.settings.product_list_heading != blank -%}
+                    <h2 class="hdt-search-drawer-title">{{ section.settings.product_list_heading }}</h2>
+                  {%- endif -%}
+                  {%- if section.settings.product_list != blank -%}
+                    <div class="hdt-s-drawer-sub-content-inner hdt-s-drawer-product-list">
+                      {%- for product in section.settings.product_list -%}
+                        <div class="hdt-sd-pr-item">
+                          {%- if product != blank -%}
+                            {%- liquid
+                                assign selected_variant = product.selected_or_first_available_variant
+                                assign v_image = selected_variant.image | default: product.featured_image
+                            -%}
+                            {%- if v_image != blank -%}
+                              <a href="{{ product.url }}" class="hdt-sd-pr-img">
+                                  {{- v_image | image_url: width: v_image.width | image_tag: loading: 'lazy', widths: '80,112,120,150,200,250', sizes: '(min-width: 768px) 112px, 80px' -}}
+                              </a>
+                            {%- endif -%}
+                          {%- else -%}
+                            {%- liquid
+                                assign img = 'product-apparel-1' | placeholder_svg_tag: 'hdt-w-full hdt-h-auto'
+                            -%}
+                            <div class="hdt-sd-pr-img">{{ img }}</div>
+                          {%- endif -%}
+                          <div class="hdt-sd-pr-info">
+                            <a href="{{ product.url }}" class="hdt-text-base hdt-s-pr-text hdt-link hdt-font-medium">{{ product.title }}</a>
+                            {%- render 'card-price', product: product, show_volume_note: false, price_class: "hdt-font-semibold" -%}
+                          </div>
+                        </div>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+              {%- if section.settings.show_recent_products %}<hdt-product-recently self data-url="{{ routes.search_url }}?section_id=recently&type=product&q="{% if product != blank %} data-id="{{ product.id | default: 19041994 }}"{% endif %}> </hdt-product-recently>{% endif -%}
+            </div>
+            {%- if section.settings.predictive_search_enabled -%}
+            <div class="hdt-s-drawer-results">
+              <div class="hdt-predictive-search-wrapp hdt-predictive-search--header" data-predictive-search>
+                <div id="predictive-search-results" role="listbox" slot="search-results"></div>
+              </div>
+              <span class="hdt-predictive-search-status sr-only" role="status" aria-hidden="true"></span>
+            </div>
+            {%- endif -%}
+          </div>
+        </form>
+        {%- if section.settings.predictive_search_enabled -%}
+          </hdt-predictive-search>
+        {%- else -%}
+        </hdt-search-form>
+        {%- endif -%}
+      </hdt-scroll-hint>
+      <div class="hdt-drawer__footer" all="predictive-search-form" hidden>
+        <button circle-bg-wrap aria-selected="false" role="option" type="submit" class="hdt-btn hdt-btn--size-m hdt-w-full hdt-btn--with-icon" form="predictive-search-form">
+          {{- 'search.view_all_results' | t -}}
+          {%- if section.settings.show_btn_icon -%}
+            {{- 'icon-circle-arrow.svg' | inline_asset_content -}}
+          {%- endif -%}
+          <hdt-circle-bg mousemove="10"></hdt-circle-bg>
+        </button>
+      </div>
+    </div>
+  </dialog>
+</hdt-drawer>
+
+{% schema %}
+  {
+    "name": "t:names.search_drawer",
+    "limit": 1,
+    "tag": "section",
+    "enabled_on": {
+      "groups": ["custom.overlay"]
+    },
+    "settings": [
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-5"
+      },
+      {
+        "type": "checkbox",
+        "id": "predictive_search_enabled",
+        "default": true,
+        "label": "Enable search suggestions"
+      },
+      {
+        "type": "text",
+        "id": "animation_search_text",
+        "label": "t:settings.animation_search_text",
+        "default": "t:text_defaults.animation_search_text"
+      },
+      {
+        "type": "header",
+        "content": "t:content.collections"
+      },
+      {
+        "type": "paragraph",
+        "content": "t:content.no_search_keywords"
+      },
+      {
+        "type": "text",
+        "id": "collection_list_heading",
+        "label": "t:settings.heading",
+        "default": "t:text_defaults.popular_cats",
+      },
+      {
+        "type": "collection_list",
+        "id": "collection_list",
+        "label": "t:settings.collection_list",
+        "limit": 6
+      },
+      {
+        "type": "header",
+        "content": "t:content.products"
+      },
+      {
+        "type": "paragraph",
+        "content": "t:content.no_search_keywords"
+      },
+      {
+        "type": "text",
+        "id": "product_list_heading",
+        "label": "t:settings.heading",
+        "default": "t:text_defaults.best_seller",
+      },
+      {
+        "type": "product_list",
+        "id": "product_list",
+        "label": "t:settings.products",
+        "limit": 3
+      },
+      {
+        "type": "header",
+        "content": "t:content.recent_products"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_recent_products",
+        "label": "t:settings.show_recent_products",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "t:content.button"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_btn_icon",
+        "label": "t:settings.show_icon",
+        "default": true
+      },
+    ],
+    "presets": [
+      {
+        "name": "t:names.search_drawer"
+      }
+    ]
+  }
+  {% endschema %}
+

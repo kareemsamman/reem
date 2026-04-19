@@ -1,0 +1,88 @@
+{%- if section.settings.hide_page_title == false or page.content != blank -%}
+    <div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-page hdt-section-spacing hdt-s-gradient" style="--hdt-content-width: {{ section.settings.content_width }}px; --section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-container">
+        {%- if section.settings.hide_page_title == false -%}
+            <div class="hdt-section__header hdt-page-content hdt-text-center">
+                <h1 class="hdt-heading hdt-h4">{{ page.title }}</h1>
+            </div>
+        {%- endif -%}
+        {%- if page.content != blank -%}
+            <div class="hdt-page-content hdt-s-text rte">{{ page.content }}</div>
+        {%- endif -%}
+    </div>  
+    </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.page",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_page_title",
+      "label": "t:settings.hide_page_title",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "content_width",
+      "min": 600,
+      "max": 1400,
+      "step": 10,
+      "unit": "px",
+      "label": "t:settings.max_width",
+      "default": 930
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

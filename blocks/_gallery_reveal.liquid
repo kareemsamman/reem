@@ -1,0 +1,95 @@
+{%- liquid
+    if section.index == 1
+        assign loading = 'eager'
+    else
+        assign loading = 'lazy'
+    endif
+    
+    if block.settings.col_start > 6
+      assign col_start = block.settings.col_start
+      assign col_end = 12
+    else
+        assign col_start =  block.settings.col_start
+        assign col_end = 6
+    endif
+
+    if block.settings.row_start > 3
+      assign row_start = block.settings.row_start
+      assign row_end = 6
+    else
+        assign row_start = block.settings.row_start
+        assign row_end = 3
+    endif
+-%}
+<div class="hdt-gallery-item hdt-size-{{ block.settings.size }}" style="--row-start: {{ row_start }}; --row-end: {{ row_end }}; --col-start: {{ col_start }}; --col-end: {{  col_end }}">
+    {%- if block.settings.image != blank -%}
+        {%- liquid
+            if block.settings.image != blank
+              assign append_w = block.settings.image.width | default: 3000
+              assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,3600' | append: append_w
+              echo '<picture class="hdt-media-wrapper">'
+              echo block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: '50vw', widths: widths
+              echo '</picture>'
+            endif
+        -%}
+    {% endif %}
+</div>
+{% schema %}
+    {
+        "name": "t:names.gallery_item",
+        "tag": null,
+        "settings": [
+            {
+                "type": "image_picker",
+                "id": "image",
+                "label": "t:settings.image",
+            },
+            {
+                "type": "select",
+                "id": "image_size",
+                "label": "t:settings.image_size",
+                "options": [
+                    {
+                        "value": "small",
+                        "label": "t:options.small",
+                    },
+                    {
+                        "value": "medium",
+                        "label": "t:options.medium"
+                    },
+                    {
+                        "value": "large",
+                        "label": "t:options.large"
+                    }
+                ]
+            },
+            {
+                "type": "header",
+                "content": "t:content.position_image",
+                "info": "t:info.position_image"
+            },
+            {
+                "type": "range",
+                "id": "col_start",
+                "label": "t:settings.col_start",
+                "min": 1,
+                "max": 12,
+                "step": 1,
+                "default": 1,
+                "info": "t:info.col_start"
+            },
+            {
+                "type": "range",
+                "id": "row_start",
+                "label": "t:settings.row_start",
+                "min": 1,
+                "max": 6,
+                "step": 1,
+                "default": 1
+            }
+        ],
+        "presets": [
+            {"name": "t:names.gallery_item"}
+        ]
+    }
+{% endschema %}

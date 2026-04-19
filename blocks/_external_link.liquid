@@ -1,0 +1,62 @@
+{%- if block.settings.title != blank and block.settings.link != blank -%}
+  <a href="{{ block.settings.link }}"{% if block.settings.open_in_new_tab %} aria-describedby="a11y-new-window-message" target="_blank" rel="noopener noreferrer"{% endif %} class="hdt-btn hdt-btn--inner hdt-btn-{{ block.settings.button_style }} hdt-btn--size-l hdt-btn-full-width{% if block.settings.uppercase_text or settings.btn_case == 'uppercase' %} hdt-uppercase{% endif %}">
+    <span circle-bg-wrap class="hdt-inner-btn">
+        {{- block.settings.title | escape -}}
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+    </span>
+  </a>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.external_link",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:settings.label",
+      "default": "t:text_defaults.button_label"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "t:settings.link"
+    },
+    {
+      "type": "checkbox",
+      "id": "uppercase_text",
+      "default": false,
+      "label": "t:settings.uppercase",
+      "visible_if": "{{ settings.btn_case != 'uppercase' }}",
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.solid"
+        },
+        {
+          "value": "outline",
+          "label": "t:options.outline"
+        }
+      ],
+      "default": "outline",
+      "label": "t:settings.button_style"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:settings.open_in_new_tab",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.external_link",
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,48 @@
+{%- doc -%}
+@description
+Render a video html5
+
+@param {object} video
+@param {boolean} [show_image] - show a image
+@param {object} [image]
+@param {string} [sizes]
+@param {string} [widths]
+@param {boolean} [hidden_poster]
+@param {boolean} [lazyload]
+
+@example
+{%- render 'video', video: block.settings.video -%}
+
+{%- enddoc -%}
+
+{%- liquid
+if lazyload
+  assign preload = 'none'
+else
+  assign preload = 'metadata'
+endif
+if show_image
+  assign image = image | default: video.preview_image
+  unless widths
+    assign widths = '300,400,500,600,800,1000,1200,1400,1600,1800,' | append: image.width
+  else
+    assign widths = widths | append: ',' | append: image.width
+  endunless
+  echo image | image_url: width: image.width | image_tag: sizes: sizes, widths: widths
+endif
+assign video_render = video | video_tag: image_size: '400x', playsinline: true, muted: true, loop: true, controls: false, preload: preload
+unless video_render contains ' alt='
+  assign video_render = video_render | replace_first: '<img ', '<img alt="" '
+endunless
+if hidden_poster
+  assign video_render = video_render | replace_first: 'poster=', 'data-poster='
+endif
+if lazyload
+  assign video_render = video_render | replace_first: 'source src=', 'source data-src='
+endif
+# prevent load img on inner video
+echo video_render | replace_first: '<img ', '<img loading="lazy"'
+if lazyload
+  echo '<hdt-el-lazy></hdt-el-lazy>'
+endif
+-%}

@@ -1,0 +1,239 @@
+{%- liquid
+    if section.index == 1
+        assign fetch_priority = 'high'
+        assign loading = 'eager'
+    else
+        assign fetch_priority = 'auto'
+        assign loading = 'lazy'
+    endif
+
+    assign block_index = section.blocks | find_index: 'id', block.id
+    assign current = block_index | modulo: 3 | plus: 1
+    assign collum_table = section.settings.columns | at_most: 2
+    assign spacing_xl = section.settings.spacing_xl | times: section.settings.columns | minus: section.settings.spacing_xl
+    assign spacing = section.settings.spacing | times: collum_table | minus:section.settings.spacing
+-%}
+{%- capture sizes -%}
+    {%- if section.settings.full_width -%}
+        (min-width: {{ settings.page_width | plus: 100 }}px) calc((100vw - 180px - {{ spacing_xl }}px) / {{ section.settings.columns }}), (min-width: 1150px) calc((100vw - 60px - {{ spacing_xl }}px) / {{ section.settings.columns }}), (min-width: 768px) calc((100vw - 60px - {{ spacing }}px) / {{ collum_table }}), {{ section.settings.slide_width }}vw
+    {%- else -%}
+        (min-width: 1150px) calc(({{ settings.page_width }} - {{ spacing_xl }}px) / {{ section.settings.columns }}), (min-width: 768px) calc((100vw - 60px - {{ spacing }}px) / {{ collum_table }}), calc({{ section.settings.slide_width }}vw - 30px)
+    {%- endif -%}
+{%- endcapture -%}
+{%- liquid
+    if section.settings.tilt_card_hover == 'tilt'
+        assign tag_card = 'hdt-tilt-card'
+        assign class_hover = ''
+    else
+        assign tag_card = 'div'
+        assign class_hover = ' hdt-hover-effblur'
+    endif
+-%}
+<div class="hdt-media-card-item hdt-slider__slide" {{ block.shopify_attributes }} color-scheme="{{ block.settings.color_scheme }}" style="--color-overlay-opacity: {{ block.settings.media_overlay_opacity }}%;">
+    {%- if block_index == 0 -%}
+        {%- style -%}
+        #Section-{{ section.id }} .hdt-media-overlap-content {
+            --media-overlap-content-h:{% if section.settings.media_height_mb == 'fixed' %}{{ section.settings.media_height_fixed_mb }}px{% else %}auto{% endif %};
+            --aspect-ratio: {% if block.settings.media_type == 'image' %}{{ block.settings.image.aspect_ratio | default: 0.75  }}{% else %}{{ block.settings.video.aspect_ratio | default: 0.75  }}{% endif %};
+        }
+        @media screen and (min-width: 768px){
+            #Section-{{ section.id }} .hdt-media-overlap-content {
+                --media-overlap-content-h:{% if section.settings.media_height == 'fixed' %}{{ section.settings.media_height_fixed }}px{% else %}auto{% endif %};
+                --aspect-ratio-md: {% if block.settings.media_type == 'image' %}{{ block.settings.image.aspect_ratio | default: 0.75  }}{% else %}{{ block.settings.video.aspect_ratio | default: 0.75  }}{% endif %};
+            }
+        }
+        {%- endstyle -%}
+    {%- endif -%}
+    <{{ tag_card }} max-tilt="5" class="hdt-media-overlap-content hdt-rounded-sm {{ class_hover }}" style="{% if section.settings.media_height == 'image'  %}--aspect-ratio-md: {{ block.settings.image.aspect_ratio | default: 0.75 }};{% endif %} {% if section.settings.media_height_mb == 'image'  %}--aspect-ratio: {{ block.settings.image.aspect_ratio  }};{% endif %}">
+        {%- if block.settings.media_type == 'image' -%}
+            {%- if block.settings.image != blank -%}
+                {%- liquid
+                    if block.settings.image != blank
+                      assign append_w = block.settings.image.width | default: 4000
+                      assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: append_w
+                      echo '<picture class="hdt-media-wrapper">'
+                      echo block.settings.image | image_url: width: block.settings.image.width | image_tag: fetchpriority: fetch_priority, loading: loading, sizes: sizes, widths: widths
+                      echo '</picture>'
+                    endif
+                -%}
+            {%- else -%}
+                <div class="hdt-media-wrapper">
+                {{- 'hero-apparel-'| append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder' -}}
+                </div>
+            {%- endif -%}
+        {%- else -%}
+            <div class="hdt-media-wrapper">
+            {%- if block.settings.video != blank  -%}
+                <hdt-video duration autoplay type="html5" id="Video-{{ block.id }}" data-loop="true" is--lazy>
+                    {%- render 'video', video: block.settings.video, show_image: true, image: block.settings.image_video, sizes: sizes, hidden_poster: true, lazyload: true, widths: '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200' -%}
+                    {%- if block.settings.video_control -%}
+                    {%- assign description = block.settings.video.alt | escape -%}
+                    <hdt-btn-video class="hdt-btn-ctrl_media-abs hdt-pos-top">
+                        <button type="button" class="hdt-btn-control_media hdt-btn-video" aria-label="{{ 'accessibility.video.play' | t: description: description | escape }}" data-pause="{{ 'accessibility.video.pause' | t: description: description | escape }}">
+                            <span class="hdt-ic-play-wrap hdt-btn-play-icon">{{ 'icon-play.svg' | inline_asset_content }}</span>
+                            <span class="hdt-ic-pause-wrap hdt-btn-pause-icon">{{ 'icon-pause.svg' | inline_asset_content }}</span>
+                            <span class="hdt-ic-video_progress">{{ 'icon-progress-imgtab.svg' | inline_asset_content }}</span>
+                        </button>
+                    </hdt-btn-video>
+                    {%- endif -%}
+                </hdt-video>
+            {%- else -%}
+                {%- liquid
+                    if block.settings.image_video != blank
+                      assign widths = '300,400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: block.settings.image_video.width
+                      echo block.settings.image_video | image_url: width: block.settings.image_video.width | image_tag: widths: widths, loading: loading, sizes: sizes
+                    else
+                      echo 'hero-apparel-'| append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                    endif
+                  -%}
+            {%- endif -%}
+            </div>
+        {%- endif -%}
+        <div class="hdt-media-content hdt-place-self-{{ block.settings.content_position }} md:hdt-place-self-{{ block.settings.content_position }}">
+            <div class="hdt-content">
+                {%- content_for 'blocks' -%}
+            </div>
+        </div>
+    </{{ tag_card }}>
+</div>
+{% schema %}
+    {
+        "name": "t:names.media_card",
+        "tag":null,
+        "blocks": [
+            {"type": "subtext"},
+            {"type": "heading"},
+            {"type": "text"},
+            {"type": "_button"}
+        ],
+        "settings": [
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "select",
+                "id": "content_position",
+                "label": "t:settings.content_position",
+                "default": "end-start hdt-text-start",
+                "options": [
+                    {
+                    "value": "start hdt-text-start",
+                    "label": "t:options.top_left"
+                    },
+                    {
+                    "value": "start-center hdt-text-center",
+                    "label": "t:options.top_center"
+                    },
+                    {
+                    "value": "start-end hdt-text-end",
+                    "label": "t:options.top_right"
+                    },
+                    {
+                    "value": "center-start hdt-text-start",
+                    "label": "t:options.middle_left"
+                    },
+                    {
+                    "value": "center hdt-text-center",
+                    "label": "t:options.middle_center"
+                    },
+                    {
+                    "value": "center-end hdt-text-end",
+                    "label": "t:options.middle_right"
+                    },
+                    {
+                    "value": "end-start hdt-text-start",
+                    "label": "t:options.bottom_left"
+                    },
+                    {
+                    "value": "end-center hdt-text-center",
+                    "label": "t:options.bottom_center"
+                    },
+                    {
+                    "value": "end hdt-text-end",
+                    "label": "t:options.bottom_right"
+                    }
+                ]
+            },
+            {
+                "type": "range",
+                "id": "media_overlay_opacity",
+                "label": "t:settings.media_overlay_opacity",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "default": 0,
+                "unit": "%"
+            },
+            {
+                "type": "select",
+                "id": "media_type",
+                "label": "t:settings.media_type",
+                "options": [
+                    {
+                        "label": "t:options.image",
+                        "value": "image"
+                    },
+                    {
+                        "label": "t:options.video",
+                        "value": "video"
+                    }
+                ],
+                "default": "image"
+            },
+            {
+                "type": "image_picker",
+                "id": "image",
+                "label": "t:settings.image",
+                "visible_if": "{{ block.settings.media_type == 'image' }}"
+            },
+            {
+                "type": "video",
+                "id": "video",
+                "label": "t:settings.video",
+                "visible_if": "{{ block.settings.media_type == 'video' }}"
+            },
+            {
+              "type": "checkbox",
+              "id": "video_control",
+              "label": "t:settings.video_control",
+              "default": false,
+              "visible_if": "{{ block.settings.media_type == 'video' }}"
+            },
+            {
+                "type": "image_picker",
+                "id": "image_video",
+                "label": "t:settings.image_video",
+                "info": "t:info.image_video",
+                "visible_if": "{{ block.settings.media_type == 'video' }}"
+            },
+        ],
+        "presets": [
+            {
+                "name": "t:names.media_card",
+                "blocks": [
+                    {
+                        "type": "heading",
+                        "settings": {
+                            "heading_size": "h6"
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "settings": {
+                            "text_size": "lg"
+                        },
+                    },
+                    {
+                        "type": "_button",
+                        "settings": {
+                            "button_size": "s"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

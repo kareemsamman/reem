@@ -1,0 +1,175 @@
+{%- comment -%}
+  Renders a swatches
+
+  Accepts:
+  - product: {Object} Product Liquid object (required)
+  - section_id: {string} The ID of the section that contains this swatches. (required)
+  - product_url: {string} (required)
+  - swatch_values: {Array} (required)
+  - swatch_values_avai: {Array} (required)
+  - swatch_count: {Interger} (required)
+  - swatch_legacy: {boolean} (required)
+  - swatch_option_key {string} (required)
+  - linked_products {boolean} (required)
+  - class: {string} a list class. (optional)
+  - swatch_name {string} (required)
+
+  Usage:
+  {%- render 'swatches', product: product, product_url: product_url, swatch_values: swatch_values, swatch_values_avai: swatch_values_avai, swatch_count: swatch_count, swatch_legacy: swatch_legacy, swatch_option_key: swatch_option_key, section_id: section_id, linked_products: linked_products -%}
+{%- endcomment -%}
+
+{%- if settings.swatch_mode == 'swatch' -%}
+  {%- liquid
+  if swatch_legacy
+    assign show_variant_image = true
+  else
+    assign show_variant_image = settings.show_variant_image
+  endif
+  assign index = 0
+  assign check_break = false
+  assign first_add = true
+  if settings.swatch_maximum == 0
+    assign swatch_maximum = 2
+    assign first_add = false
+  else
+    assign swatch_maximum = settings.swatch_maximum
+    if settings.swatch_action == 'go'
+      assign check_break = true
+    endif
+  endif
+  assign selected_variant = product.selected_variant | default: product.variants.first
+  assign selected_value = selected_variant[swatch_option_key]
+  if enable_swatch_limit == 'fixed'
+    assign swatch_maximum = 6
+    assign enable_swatch_limit = false
+  else
+    assign enable_swatch_limit = settings.enable_swatch_limit
+  endif
+  unless swatch_values_avai
+    assign swatch_values_avai = 'nt_94'
+  endunless
+  -%}
+{%- capture swatch_id -%}
+swatch-{{ section_id }}-{{ product.id -}}
+{%- endcapture -%}
+
+  <wrapp-hdt-swatches maximum="{{ swatch_maximum }}" event="{{ settings.swatch_event }}"{% if settings.enable_swatch_limit and swatch_count > swatch_maximum %} action-{{ settings.swatch_action }}{% endif %}{% if enable_swatch_limit and settings.swatch_maximum == 0 and swatch_count > 2 %} auto-limit{% endif %}>
+    <fieldset class="hdt-color-list {{ class }}">
+      <legend class="sr-only">{{ swatch_name }}</legend>
+      {%- unless linked_products -%}
+        {%- for value in swatch_values -%}
+
+          {%- liquid
+          unless swatch_values_avai contains value or settings.swatch_type == 'all'
+            continue
+          endunless
+          if index == swatch_maximum and check_break
+            break
+          endif
+          assign index = index | plus: 1
+          if value.product_url != blank and value.variant != blank
+            assign variant_image = value.variant.product.selected_or_first_available_variant.featured_media | default: value.variant.product.featured_media
+            if show_variant_image
+              assign image = variant_image
+            else
+              assign image = value.swatch.image
+            endif
+          else
+            if value.variant and value.variant.featured_image
+              assign variant_has_image = value.variant
+            else
+              unless variants_images
+                assign variants_images = product.variants | where: 'featured_image'
+              endunless
+              assign variant_has_image = variants_images | where: swatch_option_key, value | first
+            endif
+            if show_variant_image and variant_has_image.featured_image
+              assign image = variant_has_image.featured_image
+            else
+              assign image = value.swatch.image
+            endif
+            assign variant_image = variant_has_image.featured_image
+          endif
+          assign class_swatch_white = ''
+          if value.swatch.color
+            assign swatch_brightness = value.swatch.color | color_brightness
+            if swatch_brightness > 245
+              assign class_swatch_white = ' hdt-bg-color-white'
+            endif
+          endif
+          assign swatch_style = null
+          if image != blank
+            if class_swatch_white != ''
+              assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+            endif
+            assign image_url = image | image_url: width: 80
+            assign swatch_style = '--swatch-background: url([img]);' | replace_first: '[img]', image_url
+            if image.presentation.focal_point
+              assign swatch_style = swatch_style | append: '--swatch-focal-point: [point];' | replace_first: '[point]', image.presentation.focal_point
+            endif
+          elsif value.swatch.color
+            assign swatch_style = '--swatch-color: rgba([color]);' | replace_first: '[color]', value.swatch.color.rgba
+          endif
+          -%}
+
+          <div class="hdt-color-list__item{% if settings.enable_swatch_limit and index > swatch_maximum and first_add %}{% assign first_add = false %} is--color-limit{% endif %}">
+            <input {% if selected_value == value %}checked {% endif %}class="sr-only" type="radio" name="{{ swatch_id }}" id="{{ swatch_id }}-{{ value | handle }}" value="{{ value | escape }}"{% if value.product_url != blank %} data-url="{{ value.product_url }}"{% elsif variant_has_image %} data-vid="{{ value.variant.id | default: variant_has_image.id }}"{% endif %}{% if variant_image %} data-vimg="{{ variant_image | image_url: width: variant_image.width }}"{% endif %}{% if variant_image == blank %} disabled{% endif %}>
+            <label data-color="{{ value | handle }}" class="hdt-color-list__color hdt-swatch__color{% if image != blank %} hdt-swatch__color--image{% endif %}"{% unless value.available or swatch_values_avai contains value %} is-disabled unavailable{% endunless %} for="{{ swatch_id }}-{{ value | handle }}">
+              <span class="hdt-color-bg{{ class_swatch_white }}"{% if swatch_style != blank %} style="{{ swatch_style }}"{% endif %}></span>
+              <span class="sr-only">{{ value | escape }}</span></label>
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+
+          {%- assign selected_product_id = product.id -%}
+          {%- for product_linked in swatch_values -%}
+
+            {%- liquid
+            if index == swatch_maximum and check_break
+              break
+            endif
+            # if product_linked.options_with_values.first.values.size > 1
+            #   continue
+            # endif
+            assign value = product_linked.options_with_values.first.values.first
+            assign index = index | plus: 1
+            assign image = product_linked.selected_or_first_available_variant.featured_media | default: product_linked.featured_media
+            assign class_swatch_white = ''
+            if value.swatch.color
+              assign swatch_brightness = value.swatch.color | color_brightness
+              if swatch_brightness > 245
+                assign class_swatch_white = ' hdt-bg-color-white'
+              endif
+            endif
+            assign swatch_style = null
+            if image != blank
+              if class_swatch_white != ''
+              assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+              endif
+              assign image_url = image | image_url: width: 80
+              assign swatch_style = '--swatch-background: url([img]);' | replace_first: '[img]', image_url
+              if image.presentation.focal_point
+                assign swatch_style = swatch_style | append: '--swatch-focal-point: [point];' | replace_first: '[point]', image.presentation.focal_point
+              endif
+            elsif value.swatch.color
+              assign swatch_style = '--swatch-color: rgba([color]);' | replace_first: '[color]', value.swatch.color.rgba
+            endif
+            -%}
+            <div class="hdt-color-list__item{% if settings.enable_swatch_limit and index > swatch_maximum and first_add %}{% assign first_add = false %} is--color-limit{% endif %}">
+              <input {% if selected_product_id == product_linked.id %}checked {% endif %}class="sr-only" type="radio" name="{{ swatch_id }}" id="{{ swatch_id }}-{{ value | handle }}" value="{{ value | escape }}" data-url="{{ product_linked.url }}"{% if image != blank %} data-vimg="{{ image | image_url: width: image.width }}"{% endif %}{% if image == blank %} disabled{% endif %}>
+              <label data-color="{{ value | handle }}" class="hdt-color-list__color hdt-swatch__color{% if image != blank %} hdt-swatch__color--image{% endif %}"{% unless product_linked.available %} is-disabled unavailable{% endunless %} for="{{ swatch_id }}-{{ value | handle }}">
+                <span class="hdt-color-bg{{ class_swatch_white }}"{% if swatch_style != blank %} style="{{ swatch_style }}"{% endif %}></span>
+                <span class="sr-only">{{ value | escape }}</span></label>
+            </div>
+          {%- endfor -%}
+      {%- endunless -%}
+      {%- if settings.enable_swatch_limit and swatch_count > swatch_maximum -%}
+        <div class="hdt-color-list__item is--color-link"><a data-pr-url class="hdt-link-underline" href="{{ product_url }}" aria-label="{{ 'products.product.show_more_colors' | t | escape }}">+{{ swatch_count | minus: swatch_maximum | abs }}</a></div>
+      {%- endif -%}
+    </fieldset>
+  </wrapp-hdt-swatches>
+{%- else -%}
+  <div class="hdt-color-list">
+    <p class="hdt-color-count">{{- 'products.product.colors_count' | t: count: swatch_count -}}</p>
+  </div>
+{%- endif -%}

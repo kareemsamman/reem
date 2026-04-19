@@ -1,0 +1,70 @@
+<template class="js-tmp">
+  <hdt-lazy-modal section-id="{{ section.id }}" class="hdt-contents" color-scheme="{{ section.settings.color_scheme }}">
+    <dialog id="hdt-quick-view-modal" class="hdt-dialog hdt-modal hdt-quick-view-modal hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+      <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn" aria-controls="hdt-quick-view-modal" aria-label="{{ 'accessibility.close' | t | escape }}">
+        {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+        {{- 'icon-close.svg' | inline_asset_content -}}
+      </button>
+      <div class="hdt-dialog-modal__header">
+        <p class="hdt-truncate hdt-h5">{{ product.title }}</p>
+        <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn hdt-btn-close-no-progress" aria-controls="hdt-quick-view-modal" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+      </div>
+      <div class="hdt-modal__inner hdt-scrollbar">
+      </div>
+    </dialog>
+  </hdt-lazy-modal>
+</template>
+{%- if request.design_mode and template == 'product.only_config'  -%}
+<hdt-modal class="hdt-contents" color-scheme="{{ section.settings.color_scheme }}">
+  <dialog id="hdt-quick-view-modal" class="hdt-dialog hdt-modal hdt-quick-view-modal hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+    <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn" aria-controls="hdt-quick-view-modal" aria-label="{{ 'accessibility.close' | t | escape }}">
+      {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+      {{- 'icon-close.svg' | inline_asset_content -}}
+    </button>
+    <div class="hdt-dialog-modal__header">
+      <p class="hdt-truncate hdt-h5">{{ product.title }}</p>
+      <button ref="closeButton" class="hdt-s-text hdt-close-dialog-btn hdt-btn-close-no-progress" aria-controls="hdt-quick-view-modal" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+    </div>
+    <div class="hdt-modal__inner hdt-scrollbar">
+{%- endif -%}
+      <hdt-product-observe form="form{{ section.id }}{{ product.id }}" product-title="{{ product.title | escape }}">
+        <div id="main-product-{{ section.id }}" class="hdt-main-product" is-qv>
+          {%- content_for 'block', type: '_product-media-qv', id: 'media' -%}
+          {%- content_for 'block', type: '_product-info-qv', id: 'info' -%}
+        </div>
+      </hdt-product-observe>
+{%- if request.design_mode and template == 'product.only_config' -%}
+    </div>
+  </dialog>
+</hdt-modal>
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    if (!Shopify.designMode) return;
+    document.addEventListener("shopify:section:select", (event) => {
+      const modal = event.target.querySelector('#hdt-quick-view-modal');
+      if (modal) modal.parentElement.open();
+    });
+    document.addEventListener("shopify:section:deselect", (event) => {
+      const modal = event.target.querySelector('#hdt-quick-view-modal');
+      if (modal) modal.parentElement.close();
+    });
+  });
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.quick_view",
+  "tag": "section",
+  "class": "hdt-section-lazy",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "blocks": [{"type": "_product-media-qv"}, {"type": "_product-info-qv"}]
+}
+{% endschema %}

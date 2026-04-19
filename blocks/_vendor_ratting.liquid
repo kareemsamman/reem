@@ -1,0 +1,22 @@
+<div class="hdt-product-info__item hdt-product-info__item--text-box hdt-product-info-group_vendor-rate" {{ block.shopify_attributes }}>
+    {%-  content_for 'blocks' -%}
+</div>
+{% schema %}
+    {
+        "name": "t:names.vendor_rating",
+        "tag": null,
+        "blocks": [
+            {"type": "_vendor"},
+            {"type": "_product_rating"}
+        ],
+        "presets": [
+            {
+                "name": "t:names.vendor_rating",
+                "blocks": [
+                    {"type": "_vendor"},
+                    {"type": "_product_rating"}
+                ]
+            }
+        ]
+    }
+{% endschema %}

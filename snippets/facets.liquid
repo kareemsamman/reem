@@ -1,0 +1,226 @@
+{%- comment -%}
+  https://shopify.dev/docs/themes/navigation-search/filtering/storefront-filtering
+  Renders facets (filtering and sorting)
+
+  Accepts:
+  - results: {Object} Collection or Search object (required)
+  - section_id: {String} The ID of the section that contains this card. (required)
+  - enable_sorting: {Boolean} Show sorting when true
+  - enable_render_on_change: {Boolean} enable render page when change
+  - uniq: {String}
+
+  Usage:
+  {%- render 'facets', results: collection, enable_sorting: true -%}
+{%- endcomment -%}
+{%- liquid
+    assign sort_by = results.sort_by | default: results.default_sort_by
+    if results.url
+      assign results_url = results.url
+      assign action = results_url
+    else
+      assign action = routes.search_url
+      assign terms = results.terms | escape
+      assign results_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+    endif
+    assign default_presentation = 'text'
+  -%}
+
+  <hdt-facet-filters-form section-id="{{ section_id }}"{% if enable_render_on_change %} render-on-change{% endif %}>
+  <form id="hdt-facet-filters-form{{ filter_type }}" class="hdt-facet-filters-form-inner" method="GET" action="{{ action }}">
+    <input type="hidden" name="page" value="">
+    {%- unless enable_sorting %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endunless -%}
+    {%- if results.current_vendor or results.current_type -%}
+      <input type="hidden" name="q" value="{{ results.current_vendor }}{{ results.current_type }}">
+    {%- endif -%}
+    {%- if results.terms -%}
+    <input type="hidden" name="q" value="{{ results.terms | escape }}">
+    <input type="hidden" name="options[prefix]" value="last">
+    {%- endif -%}
+
+    {%- if enable_sorting -%}
+      <div class="hdt-filter-group">
+        <p class="hdt-font-medium hdt-text-xl hdt-filter-title">{{ 'products.facets.sort_by_label' | t }}</p>
+        <div class="hdt-filter-group-content">
+            <ul class="hdt-filter-group__list">
+              {%- for option in results.sort_options -%}
+                <li class="hdt-filter-group__list-item">
+                  <input type="radio" name="sort_by" value="{{ option.value }}" id="SortBy-{{ option.value }}"{% if option.value == sort_by %} checked{% endif %}>
+                  <label for="SortBy-{{ option.value }}">{{ option.name | escape }}</label>
+                </li>
+              {%- endfor -%}
+            </ul>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- for filter in results.filters -%}
+    {%- assign presentation = filter.presentation | default: default_presentation -%}
+    <div class="hdt-filter-group hdt-facets-layout-group--{{ presentation }}">
+        {%- unless filter.param_name == 'filter.v.availability' -%}
+          <p class="hdt-font-medium hdt-text-xl hdt-filter-title">
+            <span>{{ filter.label }}{%- if filter.operator == 'AND' %}<sup class="hdt-facets__and-helptext">{{ 'products.facets.filter_and_operator_subtitle' | t }}</sup>{% endif -%}</span>
+            {%- if filter.active_values.size > 0 and false %}<span>({{ filter.active_values.size }})</span>{% endif -%}
+          </p>
+        {%- endunless -%}
+        <div class="hdt-filter-group__display">
+            <div class="hdt-filter-group__header hdt-text-sm hdt-s-text2">
+              {%- if filter.type != 'price_range' -%}
+              <span class="hdt-filter-group__header-selected">{{ 'products.facets.filters_selected' | t: count: filter.active_values.size }}</span>
+              {%- else -%}
+              {%- assign max_price_amount = filter.range_max | money | strip_html | escape -%}
+              <span class="hdt-filter-group__header-selected">{{- 'products.facets.max_price' | t: price: max_price_amount -}}</span>
+              {%- endif -%}
+              <wrapp-hdt-facet-url class="hdt-facet-url--reset"><a href="{{ filter.url_to_remove }}" class="hdt-filter-group__header-reset hdt-btn-text-flip hdt-grid" data-hover="{{ 'products.facets.reset' | t | escape }}"><span class="hdt-grid-1x1">{{ 'products.facets.reset' | t | escape }}</span></a></wrapp-hdt-facet-url>
+            </div>
+
+            {%- liquid
+              # Keep the selected values grouped together when operator is AND
+              if filter.operator == 'AND'
+                assign sorted_values = filter.active_values | concat: filter.inactive_values
+              else
+                assign sorted_values = filter.values
+              endif
+            -%}
+
+            {%- case filter.type -%}
+              {%- when 'boolean' -%}
+                <ul class="hdt-filter-group__list hdt-filter-group__list--boolean">
+                  {%- for filter_value in sorted_values -%}
+                    <li class="hdt-filter-group__list-item">
+                      <input class="sr-only" type="radio" class="sr-only" name="{{ filter_value.param_name }}" value="{{ filter_value.value }}" id="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"{% if filter_value.active %} checked{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} disabled{% endif %}>
+                      <label for="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"><span class="hdt-truncate">{{ filter_value.label }}</span></label>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- when 'list' -%}
+                {%- if filter.param_name == 'filter.v.availability' -%}
+                  {%- liquid
+                  for filter_value in sorted_values
+                    if filter_value.value == '1'
+                    assign filter_value = filter_value
+                    break
+                    endif
+                  endfor
+                  -%}
+
+                  <div class="hdt-filter-availability">
+                    <input id="Filter-{{ filter_type }}-{{ filter.param_name }}-0" class="sr-only" type="checkbox" name="{{ filter.param_name }}" value="1"{% if filter.active_values.size > 0 %} checked{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} disabled{% endif %}>
+                    <label class="hdt-font-medium hdt-text-xl hdt-filter-title" for="Filter-{{ filter_type }}-{{ filter.param_name }}-0">{{ 'products.facets.in_stock' | t | escape }}<span class="hdt-filter-btslide"></span></label>
+                    <span class="sr-only">{{- filter_value.label | escape }} ({{- 'products.facets.product_simple_count' | t: count: filter_value.count -}})</span>
+                  </div>
+
+                {%- elsif presentation == 'swatch' or presentation == 'image' -%}
+                  <ul class="hdt-filter-group__list hdt-filter-group__list--color">
+                    {%- for filter_value in sorted_values -%}
+                      {%- liquid
+                      assign class_swatch_white = ''
+                      if filter_value.swatch.color
+                        assign swatch_brightness = filter_value.swatch.color | color_brightness
+                        if swatch_brightness > 245
+                          assign class_swatch_white = ' hdt-bg-color-white'
+                        endif
+                      endif
+                      assign color_style_inline = ''
+                      assign image = filter_value.swatch.image
+                      if image != blank
+                        if class_swatch_white != ''
+                          assign class_swatch_white = class_swatch_white | append: ' hdt-has-img-white'
+                        endif
+                        assign color_image = image | image_url: width: 80
+                        assign color_image_style = '--hdt-bg-image: url([img]);' | replace_first: '[img]', color_image
+                        if image.presentation.focal_point
+                          assign color_image_style = color_image_style | append: '--hdt-focal-point: [point];' | replace_first: '[point]', image.presentation.focal_point
+                        endif
+                      else
+                        assign color_image_style = nil
+                        if filter_value.swatch.color
+                          assign color_style_inline = '--hdt-bg-color: rgba([color]);' | replace_first: '[color]', filter_value.swatch.color.rgba
+                        endif
+                      endif -%}
+                      <li class="hdt-filter-group__list-item">
+                        <input class="sr-only" type="checkbox" name="{{ filter_value.param_name }}" value="{{ filter_value.value }}" id="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"{% if filter_value.active %} checked{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} disabled{% endif %}>
+                        <label for="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"><span class="hdt-filter-group__color{{ class_swatch_white }}"{% if color_image_style or color_style_inline.size > 0 %} style="{{ color_image_style }}{{ color_style_inline }}"{% endif %}></span></label>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- elsif filter.param_name == 'filter.v.option.size' -%}
+                  <ul class="hdt-filter-group__list hdt-filter-group__list--size">
+                    {%- for filter_value in filter.values -%}
+                      <li class="hdt-filter-group__list-item">
+                        <input class="sr-only" type="checkbox" name="{{ filter_value.param_name }}" value="{{ filter_value.value }}" id="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"{% if filter_value.active %} checked{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} disabled{% endif %}>
+                        <label for="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"><span class="hdt-truncate">{{ filter_value.label }}</span></label>
+                        <span class="sr-only">{{- filter_value.label | escape }} ({{- 'products.facets.product_simple_count' | t: count: filter_value.count -}})</span>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- else -%}
+                  <ul class="hdt-filter-group__list">
+                    {%- for filter_value in filter.values -%}
+                      <li class="hdt-filter-group__list-item">
+                        <input type="checkbox" name="{{ filter_value.param_name }}" value="{{ filter_value.value }}" id="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"{% if filter_value.active %} checked{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} disabled{% endif %}>
+                        <label for="Filter-{{ filter_type }}-{{ filter.param_name }}-{{ forloop.index }}"><span class="hdt-truncate">{{ filter_value.label }}{% if section.settings.show_filter_count %}<sup class="hdt-facets__count">{{ filter_value.count }}</sup>{% endif %}</span></label>
+                        <span class="sr-only">{{- filter_value.label | escape }} ({{- 'products.facets.product_simple_count' | t: count: filter_value.count -}})</span>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+                {%- comment %}<div class="hdt-filter-group__submit"><input type="submit" value="{{ 'products.facets.apply' | t }}"></div>{% endcomment -%}
+
+              {%- when 'price_range' -%}
+                {%- liquid
+                  assign min_value = filter.min_value.value | default: 0 | divided_by: 100.0
+                  assign max_value = filter.max_value.value | default: filter.range_max | divided_by: 100.0
+                  assign step_value = 1
+                  assign min_value_ceil = min_value | ceil
+                  assign max_value_ceil = max_value | ceil
+                  assign range_max_ceil = filter.range_max | divided_by: 100.0 | ceil
+                  assign min_progress = min_value | divided_by: range_max_ceil | times: 100.0
+                  assign max_progress = max_value | divided_by: range_max_ceil | times: 100.0
+                  if section.settings.price_behavior == 'click'
+                    assign behavior = 'disable-change'
+                  else
+                    assign behavior = ''
+                  endif
+                -%}
+
+                <hdt-price-range class="hdt-price-range hdt-filter-group__price-range" style="--min-progress: {{ min_progress }}%; --max-progress: {{ 100.0 | minus: max_progress }}%;">
+                  <div class="hdt-filter-group__range-slider">
+                    <div class="hdt-filter-group__range-progress">
+                      <div class="hdt-progress"></div>
+                    </div>
+                    <div class="hdt-filter-group__range-price hdt-relative">
+                      <input {{ behavior }} id="Price-range-GTE" aria-label="{{ 'products.facets.from_price' | t | escape }}" type="range" step="{{ step_value }}" min="0" max="{{ range_max_ceil }}" value="{% if filter.min_value.value %}{{ min_value_ceil }}{% else %}0{% endif %}">
+                      <label class="sr-only" for="Price-range-GTE">{{ 'products.facets.from_price' | t | escape }}</label>
+                      <input {{ behavior }} id="Price-range-LTE" aria-label="{{ 'products.facets.to_price' | t | escape }}" type="range" step="{{ step_value }}" min="0" max="{{ range_max_ceil }}" value="{% if filter.max_value.value %}{{ max_value_ceil }}{% else %}{{ range_max_ceil }}{% endif %}"{% if min_value_ceil >= range_max_ceil %} style="z-index: -1"{% endif %}>
+                      <label class="sr-only" for="Price-range-LTE">{{ 'products.facets.to_price' | t | escape }}</label>
+                    </div>
+                  </div>
+                  <div class="hdt-filter-group__input-price-wrap hdt-flex hdt-justify-between hdt-align-center{% if section.settings.price_behavior == 'click' %} hdt-has-btn-submit-filter{% endif %}">
+                    <div class="hdt-filter-group__input-price hdt-flex hdt-justify-between hdt-align-center">
+                      <div class="hdt-filter-group__price-range-from hdt-flex hdt-align-center">
+                        <span>{{ cart.currency.symbol }}</span>
+                        <input {{ behavior }} id="Price-GTE" aria-label="{{ 'products.facets.from_price' | t | escape }}" inputmode="numeric" name="{{ filter.min_value.param_name }}" type="number" step="{{ step_value }}" min="0" max="{{ range_max_ceil }}" {% if filter.min_value.value %}value="{{ min_value_ceil }}"{% else %}placeholder="0"{% endif %}>
+                        <label class="sr-only" for="Price-GTE">{{ 'products.facets.from_price' | t | escape }}</label>
+                      </div>
+                      <span class="hdt-inline-block">{{- 'products.facets.filter_to' | t -}}</span>
+                      <div class="hdt-filter-group__price-range-to hdt-flex hdt-align-center">
+                        <span>{{ cart.currency.symbol }}</span>
+                        <input {{ behavior }} id="Price-LTE" aria-label="{{ 'products.facets.to_price' | t | escape }}" inputmode="numeric" name="{{ filter.max_value.param_name }}" type="number" step="{{ step_value }}" min="0" max="{{ range_max_ceil }}" {% if filter.max_value.value %}value="{{ max_value_ceil }}"{% else %}placeholder="{{ range_max_ceil }}"{% endif %}>
+                        <label class="sr-only" for="Price-LTE">{{ 'products.facets.from_price' | t | escape }}</label>
+                      </div>
+                    </div>
+                    {%- if section.settings.price_behavior == 'click' %}
+                      <wrapp-hdt-btn-submit-filter>
+                        <button circle-bg-wrap class="hdt-btn hdt-btn--size-s hdt-btn-filter-price" type="submit">
+                          {{- 'products.facets.filter_button_price' | t | escape -}}
+                          <hdt-circle-bg mousemove></hdt-circle-bg>
+                        </button>
+                      </wrapp-hdt-btn-submit-filter>{% endif -%}
+                  </div>
+                </hdt-price-range>
+              {%- endcase -%}
+        </div>
+    </div>
+    {%- endfor -%}
+  </form>
+  </hdt-facet-filters-form>

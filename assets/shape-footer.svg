@@ -1,0 +1,5 @@
+<svg width="100%" height="100%" viewBox="0 0 1440 140" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+    <path id="morph-path"
+        d="M0 0 H1440 V140 H0 Z M0 0 H1440 V60 C1440 104.183 1404.18 120 1360 120 H80 C35.8173 120 0 104.183 0 60 V0 Z" fill="var(--color-background)" fill-rule="evenodd"
+    />
+</svg>

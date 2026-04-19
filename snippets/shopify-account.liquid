@@ -1,0 +1,40 @@
+{%- doc -%}
+@description
+Render a Shopify account
+
+@param {string} [type]
+@param {string} [icon]
+@param {string} [text]
+
+@example
+{%- render 'shopify-account' -%}
+{%- render 'shopify-account', type: 'navbar', text: block.settings.text, icon: 'icon-navbar-account.svg' -%}
+{%- render 'shopify-account', type: 'drawer', icon: 'icon-menu-mb-user.svg' -%}
+{%- enddoc -%}
+
+
+{%- if shop.customer_accounts_enabled -%}
+  {%- assign icon = icon | default: 'icon-user.svg' -%}
+  {%- capture avatar -%}
+    <div class="hdt-shopify-account-wrap hdt-flex"><shopify-account menu="{{ settings.customer_account_menu }}" color-scheme="{{ settings.color_scheme_account }}">
+      {%- if customer -%}
+        <hdt-account class="hdt-account-button__fallback hdt-flex hdt-align-center hdt-justify-center"></hdt-account>
+      {%- else -%}
+        <span slot="signed-out-avatar" class="hdt-account-button__icon">{{- icon | inline_asset_content -}}</span>
+      {%- endif -%}
+    </shopify-account></div>
+  {%- endcapture -%}
+
+  {%- if type == 'navbar' -%}
+    <hdt-account-wrap class="hdt-navbar-mobile__item hdt-navbar-mobile__item--account"{% if customer %} customer{% endif %}>
+      {{- avatar -}}
+      <span class="hdt-navbar-mobile__label hdt-truncate">{{ text }}</span>
+    </hdt-account-wrap>
+  {%- elsif type == 'drawer' -%}
+    <hdt-account-wrap class="hdt-btn hdt-account-button hdt-account-button--drawer">
+      {{- avatar }} <span>{% if customer %}{{ 'accessibility.account' | t }}{% else %}{{ 'accessibility.login' | t }}{% endif %}</span>
+    </hdt-account-wrap>
+  {%- else -%}
+    <div class="hdt-account-button hdt-hidden md:hdt-block">{{- avatar -}}</div>
+  {%- endif -%}
+{%- endif -%}

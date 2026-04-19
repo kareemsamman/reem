@@ -1,0 +1,251 @@
+{%- liquid
+    if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll
+        assign reveal = 'reveal'
+    else
+        assign reveal = ''
+    endif
+-%}
+<div {{ reveal }} class="hdt-feature-box hdt-slider__slide hdt-feadture__{{ section.settings.feature_box_style }} hdt-feadture-box-bg-{{ section.settings.background_style }}" {{  block.shopify_attributes }}>
+    <div class="hdt-inner-feature-box hdt-feature__{{ block.settings.feature_box_style }} hdt-text-center{% if section.settings.align_center%} md:hdt-text-center{% else %} md:hdt-text-start{% endif %}">
+        <div class="hdt-feature-head{% if block.settings.feature_box_style == 'counter' %} hdt-{{ section.settings.size_counter }}{% endif %}">
+            {%- if block.settings.feature_box_style == 'counter' -%}
+                {%- if block.settings.number != blank-%}
+                    <hdt-counter class="hdt-number-count" data-counter="{{ block.settings.number }}" data-duration="{{ block.settings.speed_counter }}">0</hdt-counter>
+                {%- endif -%}
+                {%- if block.settings.unit -%}
+                    <span class="hdt-unit-label">{{ block.settings.unit }}</span>
+                {%- endif -%}
+            {%- endif -%}
+            {%- if block.settings.feature_box_style == 'icon' -%}
+                {%- if block.settings.custom_icon != blank or block.settings.icon != 'none' -%}
+                    <span class="hdt-icon-wrap" style="--icon-h: {{ block.settings.icon_h }}px">
+                        {%- liquid
+                            if block.settings.custom_icon != blank
+                            echo block.settings.custom_icon
+                            else
+                            echo 'icon-' | append: block.settings.icon | append: '.svg' | inline_asset_content
+                            endif
+                        -%}
+                    </span>
+                {%- endif -%}
+            {%- endif -%}
+        </div>
+        {%- if block.settings.title != blank -%}
+            <{{ section.settings.title_tag }} class="hdt-feature-box-heading hdt-font-{{ section.settings.font_title }} rte">{{ block.settings.title }}</{{ section.settings.title_tag }}>
+        {%- endif -%}
+        {%- if block.settings.description != blank -%}
+            <div class="hdt-featurebox-desc hdt-text-{{ section.settings.size_desc }}">{{ block.settings.description }}</div>
+        {%- endif -%}
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names._feature_box",
+        "tag": null,
+        "settings":[
+            {
+                "type": "select",
+                "id": "feature_box_style",
+                "options":[
+                    {
+                        "label": "t:options.icon",
+                        "value": "icon"
+                    },
+                    {
+                        "label": "t:options.counter",
+                        "value": "counter"
+                    }
+                ],
+                "label": "t:settings.style",
+                "default": "counter"
+            },
+            {
+                "type": "number",
+                "id": "number",
+                "label": "t:settings.number",
+                "visible_if": "{{ block.settings.feature_box_style == 'counter' }}",
+                "default": 100,
+            },
+            {
+                "type": "text",
+                "id": "unit",
+                "label": "t:settings.unit",
+                "visible_if": "{{ block.settings.feature_box_style == 'counter' }}"
+            },
+            {
+                "type": "range",
+                "id": "speed_counter",
+                "label": "t:settings.speed_counter",
+                "min": 2,
+                "max": 15,
+                "step": 1,
+                "unit": "s",
+                "default": 6,
+                "visible_if": "{{ block.settings.feature_box_style == 'counter' }}",
+            },
+            {
+                "type": "select",
+                "label": "t:settings.icon",
+                "id": "icon",
+                "options": [
+                    {
+                        "value": "atmos",
+                        "label": "t:options.ic_atmos"
+                    },
+                    {
+                        "value": "charge",
+                        "label": "t:options.ic_charge"
+                    },
+                    {
+                        "value": "charge-a",
+                        "label": "t:options.ic_charge_a"
+                    },
+                    {
+                        "value": "isolation",
+                        "label": "t:options.ic_isolation"
+                    },
+                    {
+                        "value": "cable",
+                        "label": "t:options.ic_cable"
+                    },
+                    {
+                        "value": "mic",
+                        "label": "t:options.ic_mic"
+                    },
+                    {
+                        "value": "aware",
+                        "label": "t:options.ic_aware"
+                    },
+                    {
+                        "value": "battery",
+                        "label": "t:options.ic_battery"
+                    },
+                    {
+                        "value": "battery-outline",
+                        "label": "t:options.ic_battery_outline"
+                    },
+                    {
+                        "value": "ear-deaf",
+                        "label": "t:options.ic_ear_deaf"
+                    },
+                    {
+                        "value": "water-resistant",
+                        "label": "t:options.ic_water_resistant"
+                    },
+                    {
+                        "value": "bluetooth",
+                        "label": "t:options.ic_bluetooth"
+                    },
+                    {
+                        "value": "mobile-phone",
+                        "label": "t:options.ic_mobile_phone"
+                    },
+                    {
+                        "value": "shipping-box",
+                        "label": "t:options.ic_shipping_box"
+                    },
+                    {
+                        "value": "lock",
+                        "label": "t:options.ic_lock"
+                    },
+                    {
+                        "value": "return",
+                        "label": "t:options.ic_return"
+                    },
+                    {
+                        "value": "headphone",
+                        "label": "t:options.ic_headphone"
+                    },
+                    {
+                        "value": "return-circle",
+                        "label": "t:options.ic_return_circle",
+                    },
+                    {
+                        "value": "security-check",
+                        "label": "t:options.ic_security_check",
+                    },
+                    {
+                      "value": "wave",
+                      "label": "t:options.ic_wave",
+                    },
+                    {
+                      "value": "lightning",
+                      "label": "t:options.ic_lightning",
+                    },
+                    {
+                      "value": "bio-network",
+                      "label": "t:options.ic_bio_network",
+                    },
+                    {
+                      "value": "focus-eye",
+                      "label": "t:options.ic_focus_eye",
+                    },
+                    {
+                      "value": "stitching",
+                      "label": "t:options.ic_stitching",
+                    },
+                    {
+                      "value": "trendy-cropped",
+                      "label": "t:options.ic_trendy_cropped",
+                    },
+                    {
+                        "value": "location-dot",
+                        "label": "t:options.ic_location",
+                    },
+                    {
+                        "value": "envelope",
+                        "label": "t:options.ic_envelope",
+                    },
+                    {
+                        "value": "phone",
+                        "label": "t:options.ic_phone",
+                    },
+                    {
+                        "value": "oclock",
+                        "label": "t:options.ic_oclock",
+                    },
+                    {
+                        "value": "comment",
+                        "label": "t:options.ic_comment",
+                    }
+                ],
+                "default": "charge",
+                "visible_if": "{{ block.settings.feature_box_style == 'icon' }}"
+            },
+            {
+                "type": "textarea",
+                "id": "custom_icon",
+                "label": "t:settings.custom_icon",
+                "info": "t:info.custom_icon",
+                "visible_if": "{{ block.settings.feature_box_style == 'icon' }}"
+            },
+            {
+                "type": "range",
+                "id": "icon_h",
+                "min": 30,
+                "max": 120,
+                "step": 2,
+                "unit": "px",
+                "label": "t:settings.icon_h_md",
+                "default": 46,
+                "visible_if": "{{ block.settings.feature_box_style == 'icon' }}"
+            },
+            {
+                "type": "inline_richtext",
+                "id": "title",
+                "label": "t:settings.title",
+                "default": "t:text_defaults.feature_box"
+            },
+            {
+                "type": "richtext",
+                "id": "description",
+                "label": "t:settings.description"
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names._feature_box",
+            }
+        ]
+    }
+{% endschema %}

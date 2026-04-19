@@ -1,0 +1,160 @@
+{% doc %}
+  @param {boolean} [show_max_qty] - Show max quantity
+{% enddoc %}
+{%- liquid
+assign product = closest.product
+if request.visual_preview_mode and product == blank
+  assign product = collections.all.products.first
+endif
+-%}
+
+<div class="hdt-product-info__item hdt-product__buy-buttons hdt-product-info__item--box" data-type="buy-buttons" {{ block.shopify_attributes }}>
+    {%- if product != blank -%}
+      {%- liquid
+        assign un_no_pick = true
+        if settings.pick_mode == 'no' and product.variants_count > 1
+          assign selected_variant = product.selected_variant
+          unless selected_variant
+            assign un_no_pick = false
+          endunless
+        elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+          assign selected_variant = product.selected_variant | default: product.variants.first
+        else
+          assign selected_variant = product.selected_or_first_available_variant
+        endif
+        assign section_id = section.id
+        assign product_form_id = 'form' | append: section_id | append: product.id
+        if selected_variant.inventory_management == 'shopify' and selected_variant.inventory_quantity <= 0 and selected_variant.available
+          assign is_pre_order = true
+        else
+          assign is_pre_order = false
+        endif
+        assign gift_card_recipient_feature_active = false
+        if block.settings.show_gift_card_recipient and product.gift_card?
+          assign gift_card_recipient_feature_active = true
+        endif
+
+        assign show_dynamic_checkout = false
+        if block.settings.show_dynamic_checkout and gift_card_recipient_feature_active == false
+          assign show_dynamic_checkout = true
+        endif
+
+        assign check_against_inventory = true
+        if selected_variant.inventory_management != 'shopify' or selected_variant.inventory_policy == 'continue'
+          assign check_against_inventory = false
+        endif
+        if selected_variant.quantity_rule.min > selected_variant.inventory_quantity and check_against_inventory
+          assign quantity_rule_soldout = true
+        endif
+        # theme-check-disable
+        assign cart_qty = cart | item_count_for_variant: selected_variant.id
+        # theme-check-enable
+        assign quantity_rule = selected_variant.quantity_rule
+        if show_max_qty
+          if selected_variant.inventory_management != null and selected_variant.inventory_quantity > 0 and selected_variant.inventory_policy != 'continue'
+            assign qty = selected_variant.inventory_quantity
+          else
+            assign qty = 9999
+          endif
+          assign qty_rule_max = quantity_rule.max | default: 0
+          assign max_qty = qty | at_least: qty_rule_max
+        endif
+      -%}
+      <product-form class="hdt-contents" data-hide-errors="{{ gift_card_recipient_feature_active }}">
+        <div class="hdt-form__message-wrapper hdt-form__message hdt-form__message--error" role="alert" hidden>{{ 'icon-error.svg' | inline_asset_content }} <span class="hdt-error-message"></span></div>
+      {%- form 'product', product, id: product_form_id, class: 'hdt-product-form', data-gift-card-recipient: gift_card_recipient_feature_active -%}
+        <input type="hidden" name="id" value="{{ selected_variant.id }}"{% unless selected_variant.available %} disabled{% endunless %}>
+        {%- if gift_card_recipient_feature_active -%}
+          {%- render 'gift-card-recipient-form', form: form, section_id: section_id, form_id: product_form_id -%}
+        {%- endif -%}
+        <hdt-buy-buttons class="hdt-product-form__buttons{% if block.settings.uppercase_text or settings.btn_case == 'uppercase' %} hdt-uppercase{% endif %}" form="{{ product_form_id }}"{% if product.available %} need-update-atc{% endif %}>
+          {%- if product.available and block.settings.show_quantity %}<div class="hdt-product-form__buttons-qty hdt-flex hdt-flex-wrap">{% endif -%}
+            {%- if product.available and block.settings.show_quantity -%}
+              <hdt-quantity-wrapp class="hdt-quantity-wrapp hdt-product-quantity" data-variant-id="{{ selected_variant.id }}">
+                  <button class="hdt-quantity__button no-js-hidden disabled" name="minus" type="button">
+                  <span class="sr-only">{{ 'products.product.quantity.decrease' | t: product: product.title }}</span>
+                  {{- 'icon-qty-minus.svg' | inline_asset_content -}}
+                  </button>
+                  <label class="hdt-quantity__label hdt-s-text sr-only" for="Quantity-{{ section_id }}">{{ 'products.product.quantity.label' }}</label>
+                  <input class="hdt-quantity__input" type="number" name="quantity" id="Quantity-{{ section_id }}" data-cart-quantity="{{ cart_qty }}" min="{{ quantity_rule.min | default: 1 }}"{% if show_max_qty %} data-max="{{ max_qty }}" max="{{ max_qty }}"{% endif %} step="{{ quantity_rule.increment }}" value="{{ quantity_rule.min | default: 1 }}">
+                  <button class="hdt-quantity__button no-js-hidden" name="plus" type="button">
+                  <span class="sr-only">{{ 'products.product.quantity.increase' | t: product: product.title }}</span>
+                  {{- 'icon-qty-plus.svg' | inline_asset_content -}}
+                  </button>
+              </hdt-quantity-wrapp>
+              {%- comment -%}
+              <div class="hdt-quantity__rules no-js-hidden">
+                  {%- if quantity_rule.increment > 1 -%}
+                      <span class="hdt-divider">{{- 'products.product.quantity.multiples_of' | t: quantity: quantity_rule.increment -}}</span>
+                  {%- endif -%}
+                  {%- if quantity_rule.min > 1 -%}
+                      <span class="hdt-divider">{{- 'products.product.quantity.minimum_of' | t: quantity: quantity_rule.min -}}</span>
+                  {%- endif -%}
+                  {%- if quantity_rule.max != null -%}
+                      <span class="hdt-divider">{{- 'products.product.quantity.maximum_of' | t: quantity: quantity_rule.max -}}</span>
+                  {%- endif -%}
+              </div>
+              {%- endcomment -%}
+            {%- endif -%}
+            <button circle-bg-wrap type="submit" name="add" class="hdt-product-form__submit hdt-btn hdt-btn--loading_spinner hdt-btn-solid hdt-btn--size-l{% if block.settings.show_quantity %} hdt-btn-full-width{%endif %}" {% if selected_variant.available == false or quantity_rule_soldout or un_no_pick == false %} disabled{% endif %}>
+              {{- '' }}<span>{%- if un_no_pick == false %}{{ 'products.product.choose_options' | t | escape }}{% elsif is_pre_order %}{{ 'products.product.pre_order' | t | escape }}{% elsif selected_variant.available == false or quantity_rule_soldout %}{{ 'products.product.sold_out' | t | escape }}{% else %}{{ 'products.product.add_to_cart' | t | escape }}{% endif -%}</span>
+              {%- render 'loading-spinner', class: 'hdt-loading-area__spinner' -%}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </button>
+          {%- if product.available and block.settings.show_quantity %}</div>{% endif -%}
+          {%- if show_dynamic_checkout and product.available %}{{ form | payment_button }}{% endif -%}
+        </hdt-buy-buttons>
+      {%- endform -%}
+      </product-form>
+    {%- else -%}
+      <div class="hdt-product-form">
+        <div class="hdt-product-form__buttons{% if block.settings.uppercase_text or settings.btn_case == 'uppercase' %} hdt-uppercase{% endif %}">
+          <button circle-bg-wrap type="submit" name="add" class="hdt-product-form__submit hdt-btn hdt-btn-full-width hdt-font-semibold" disabled>
+            {{- 'products.product.sold_out' | t -}}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </button>
+        </div>
+      </div>
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.buy_buttons",
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "uppercase_text",
+      "label": "t:settings.text_uppercase",
+      "visible_if": "{{ settings.btn_case != 'uppercase' }}",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity",
+      "label": "t:settings.show_quantity",
+      "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "show_dynamic_checkout",
+        "default": true,
+        "label": "t:settings.show_dynamic_checkout",
+        "info": "t:info.show_dynamic_checkout"
+    },
+    {
+        "type": "checkbox",
+        "id": "show_gift_card_recipient",
+        "default": true,
+        "label": "t:settings.show_gift_card_recipient",
+        "info": "t:info.show_gift_card_recipient"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.buy_buttons",
+    }
+  ]
+}
+{% endschema %}

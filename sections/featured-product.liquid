@@ -1,0 +1,172 @@
+{%- assign product = closest.product -%}
+{%- if product == blank or product.selected_or_first_available_variant -%}
+<div color-scheme="{{ section.settings.color_scheme }}" class="hdt-featured-product hdt-s-gradient">
+  <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %} hdt-section-spacing" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <hdt-product-observe form="form{{ section.id }}{{ product.id }}">
+    <div id="main-product-{{ section.id }}" class="hdt-main-product">
+      {%- content_for 'block', type: '_product-media2', id: 'media' -%}
+      {%- content_for 'block', type: '_product-info2', id: 'info' -%}
+    </div>
+    </hdt-product-observe>
+  </div>
+</div>
+{%- endif -%}
+
+{% schema %}
+    {
+        "name": "t:names.featured_product",
+        "disabled_on": {
+          "groups": ["*"]
+        },
+        "settings": [
+            {
+                "type": "product",
+                "id": "product",
+                "label": "t:settings.product"
+            },
+            {
+                "type": "checkbox",
+                "id": "full_width",
+                "label": "t:settings.make_full_width",
+                "default": false
+            },
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 100
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 60
+            }
+        ],
+        "blocks": [{"type": "_product-info2"}],
+        "presets": [
+            {
+                "name": "t:names.featured_product",
+                "category": "t:categories.products",
+                "blocks": [
+                    {
+                        "type": "_product-info2",
+                        "static": true,
+                        "id": "info",
+                        "blocks": [
+                            {
+                              "type": "_vendor_ratting",
+                              "blocks": [
+                                {"type": "_vendor"},
+                                {"type": "_product_rating"}
+                              ]
+                            },
+                            {"type": "_product-title"},
+                            {"type": "_price"},
+                            {"type": "_separator"},
+                            {"type": "_description"},
+                            {
+                              "type": "_product_deal_countdown",
+                              "settings": {
+                                "coupon_code": "SALE30%"
+                              }
+                            },
+                            {
+                                "type": "_variant-picker",
+                            },
+                            {"type": "_buy-buttons"},
+                            {"type": "_inventory"},
+                            {"type": "_pickup-availability"},
+                            {
+                              "type": "_icon_with_text_pr",
+                              "blocks": [
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "return",
+                                    "text": "Fast and secure delivery"
+                                  },
+                                },
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "return-circle",
+                                    "text": "30 days return"
+                                  },
+                                },
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "security-check",
+                                    "text": "2-Year Warranty"
+                                  },
+                                },
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "atmos",
+                                    "text": "Dolby Atmos"
+                                  },
+                                },
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "charge",
+                                    "text": "Rapid charging"
+                                  },
+                                },
+                                {
+                                  "type": "_pr-item-icon-with-text",
+                                  "settings": {
+                                    "icon": "isolation",
+                                    "text": "Passive noise isolation"
+                                  },
+                                },
+                              ]
+                            },
+                            {"type": "_share"},
+                            {"type": "_view-details"}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

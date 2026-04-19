@@ -1,0 +1,253 @@
+{%- capture childen -%}
+  {%- content_for 'blocks' -%}
+{%- endcapture -%}
+{%- liquid
+  if section.settings.logo_position == 'center' and section.settings.menu_type == 'drawer'
+    assign show_drawer_lg = true
+  else
+    assign show_drawer_lg = false
+  endif
+  assign open_event = block.settings.open_event | default: 'click'
+  assign show_arrow = block.settings.show_arrow
+  assign block_mega_menu = false
+
+  assign childen_arr = childen | remove_first: '[split94]' | split:'[split94]'
+  assign list_title = ""
+  for item in childen_arr
+    assign val = item | split: 'index="[' | last | split: ']"' | first
+    assign list_title = list_title | append: val | append: ","
+  endfor
+  assign index_array = list_title | split: ','
+-%}
+
+<div class="hdt-header__nav hdt-s-text" {{ block.shopify_attributes }}>
+  <button class="hdt-header__drawer-btn hdt-point-area hdt-flex{% unless show_drawer_lg %} lg:hdt-hidden{% endunless %}" aria-label="{{ 'accessibility.open_drawer_menu' | t | escape }}" aria-controls="MenuDrawer">{{ 'icon-hamburger.svg' | inline_asset_content }}</button>
+  {%- unless show_drawer_lg -%}
+  <nav class="hdt-header__inline-menu lg:hdt-flex hdt-hidden" style="--header-inline-size: {{ block.settings.size }}px;--header-inline-fw: var(--font-{{ block.settings.font_w }});--header-inline-spacing: {{ block.settings.spacing | divided_by: 100.0 }}em;--header-inline-case: {{ block.settings.case }}">
+    <ul class="hdt-header__inline-list hdt-flex hdt-align-center hdt-flex-wrap hdt-header__font-{{ block.settings.font }} hdt-flex-wrap hdt-header__case-{{ block.settings.case }}" role="list">
+      {%- for link in block.settings.menu.links -%}
+      {%- liquid
+      assign title = link.title | escape
+      if index_array contains title
+        assign parts = index_array | join: '||' | split: title
+        assign block_index = parts | first | remove_last: '||' | split: '||' | size
+        assign block_mega_menu = childen_arr[block_index] | strip
+      else
+        assign block_mega_menu = nil
+      endif
+      -%}
+      <li>
+        {%- if link.links != blank or block_mega_menu -%}
+
+          {%- liquid
+          if block_mega_menu != blank
+            assign tag = 'hdt-header-mega'
+          else
+            assign tag = 'hdt-header'
+          endif
+          -%}
+
+          <{{ tag }}-menu event="{{ open_event }}" pos backdrop class="hdt-contents">
+            <details class="hdt-header-details">
+              <summary prevent role="button" data-url="{{ link.url }}" class="hdt-header__menu-item hdt-menu__has-children">
+                {{- title -}}{%- if show_arrow %}{{ 'icon-carret.svg' | inline_asset_content }}{% endif -%}
+              </summary>
+              {%- if block_mega_menu != blank -%}
+                {%- capture links -%}
+                  {%- if link.links != blank -%}
+                    <ul class="hdt-megamenu__links">
+                    {%- for childlink in link.links -%}
+                      {%- if childlink.links != blank -%}
+                      <li reveal>
+                        <a class="hdt-h6 hdt-link" href="{{ childlink.url }}"{% if childlink.current %} aria-current="page"{% endif %}>{{ childlink.title | escape }}</a>
+                        <ul>
+                        {%- for grandchildlink in childlink.links -%}
+                          <li><a class="hdt-link" href="{{ grandchildlink.url }}"{% if grandchildlink.current %} aria-current="page"{% endif %}>{{ grandchildlink.title | escape }}</a></li>
+                        {%- endfor -%}
+                      </ul>
+                      </li>
+                      {%- else -%}
+                      <li reveal><a class="hdt-h6 hdt-link" href="{{ childlink.url }}"{% if childlink.current %} aria-current="page"{% endif %}>{{ childlink.title | escape }}</a></li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                {%- endcapture -%}
+                {%- capture class_links -%}
+                  MegaMenuList-{{ link.links.size | at_most: 6 }}
+                {%- endcapture -%}
+                {%- capture style_links -%}
+                  style="--links-size: {{ link.links.size }}"
+                {%- endcapture -%}
+                {{- block_mega_menu | replace_first: '[links]', links | replace_first: '[class]', class_links | replace_first: '[style]', style_links -}}
+              {%- else -%}
+                <div class="hdt-dropdown__list">
+                  <ul class="hdt-dropdown__list-wrap hdt-grid hdt-scrollbar" role="list">
+                    {%- for childlink in link.links -%}
+                      {%- if childlink.links != blank -%}
+                        <li reveal>
+                          <hdt-header-menu event="{{ open_event }}" pos2 class="hdt-contents">
+                            <details class="hdt-header-details hdt-relative">
+                              <summary prevent role="button" data-url="{{ childlink.url }}" class="hdt-dropdown__link hdt-menu__has-children">
+                                {{- childlink.title | escape }} {{ 'icon-caret-right.svg' | inline_asset_content }}
+                              </summary>
+                              <div class="hdt-dropdown__list">
+                                <ul class="hdt-dropdown__list-wrap hdt-grid hdt-scrollbar" role="list">
+                                  {%- for grandchildlink in childlink.links -%}
+                                    <li reveal reveal--lv2><a href="{{ grandchildlink.url }}" class="hdt-dropdown__link"{% if grandchildlink.current %} aria-current="page"{% endif %}>{{ grandchildlink.title | escape }}</a></li>
+                                  {%- endfor -%}
+                                </ul>
+                              </div>
+                            </details>
+                          </hdt-header-menu>
+                        </li>
+                      {%- else -%}
+                        <li reveal><a href="{{ childlink.url }}" class="hdt-dropdown__link"{% if childlink.current %} aria-current="page"{% endif %}>{{ childlink.title | escape }}</a></li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+            </details>
+          </{{ tag }}-menu>
+        {%- else -%}
+          <a href="{{ link.url }}" class="hdt-header__menu-item hdt-block"{% if link.current %} aria-current="page"{% endif %}>{{ title }}</a>
+        {%- endif -%}
+      </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
+  {%- endunless -%}
+</div>
+
+{% schema %}
+{
+  "name": "Menu",
+  "tag": null,
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:settings.menu"
+    },
+    /*{
+      "type": "select",
+      "id": "open_event",
+      "label": "Open dropdown on event",
+      "info": "Select how to open the dropdown menu. Click is the default behavior on touch devices.",
+      "default": "click",
+      "options": [
+        {
+          "value": "click",
+          "label": "t:options.click"
+        },
+        {
+          "value": "hover",
+          "label": "t:options.hover"
+        }
+      ]
+    },*/
+    {
+      "type": "checkbox",
+      "id": "show_arrow",
+      "default": true,
+      "label": "Show caret for nested menus"
+    },
+    {
+      "type": "header",
+      "content": "t:content.typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:settings.font",
+      "visible_if": "{{ settings.type_body_font != settings.type_header_font }}",
+      "default": "body",
+      "options": [
+        {
+          "value": "heading",
+          "label": "t:options.heading"
+        },
+        {
+          "value": "body",
+          "label": "t:options.body"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "default": 16,
+      "unit": "px",
+      "label": "t:settings.size"
+    },
+    {
+      "type": "select",
+      "id": "font_w",
+      "label": "t:settings.font_weight",
+      "visible_if": "{{ settings.btn_font == 'body' or settings.type_body_font == settings.type_header_font }}",
+      "default": "medium",
+      "options": [
+        {
+          "value": "normal",
+          "label": "t:options.fw_regular",
+        },
+        {
+          "value": "medium",
+          "label": "t:options.medium",
+        },
+        {
+          "value": "semibold",
+          "label": "t:options.fw_semibold",
+        },
+        {
+          "value": "bold",
+          "label": "t:options.fw_bold",
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "case",
+      "label": "t:settings.case",
+      "options": [
+        {
+          "value": "",
+          "label": "t:options.default"
+        },
+        {
+          "value": "uppercase",
+          "label": "t:options.uppercase"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "min": -5,
+      "max": 10,
+      "step": 0.5,
+      "unit": "%",
+      "label": "t:settings.letter_spacing",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_header_menu_shop"
+    },
+    {
+      "type": "_header_menu_card"
+    }
+    /*,
+    {
+      "type": "_header_menu_images"
+    }*/
+  ]
+}
+{% endschema %}

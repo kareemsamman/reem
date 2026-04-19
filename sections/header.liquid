@@ -1,0 +1,246 @@
+{%- liquid
+  assign enable_header_transparent = section.settings.enable_header_transparent
+  capture logo
+    content_for 'block', type: '_header-logo', id: 'header-logo', enable_header_transparent: enable_header_transparent, logo_transparent: section.settings.logo_transparent
+  endcapture
+
+  capture utility
+    content_for 'block', type: '_header-utilities', id: 'header-utilities'
+  endcapture
+
+  capture menu
+    content_for 'block', type: '_header-menu', id: 'header-menu'
+  endcapture
+
+  capture drawer
+    content_for 'block', type: '_header-drawer', id: 'header-drawer'
+  endcapture
+  if section.settings.logo_position == 'left'
+    assign order = 'logo, menu, utility' | split: ', '
+  else
+    assign order = 'menu, logo, utility' | split: ', '
+  endif
+-%}
+{%- if enable_header_transparent -%}
+  {%- assign scheme = section.settings.color_scheme_transparent -%}
+  {%- capture section_first_transparent -%}
+      --hdt-header-transparent: 1;
+      > main > .section-sp-transparent:first-child {
+        --section-height-offset: calc(var(--header-height) / 1.5);
+        margin-top: calc(var(--header-height, 54px) * -1);
+      }
+  {%- endcapture -%}
+  {%- capture color_transparent -%}
+    {%- if section.settings.logo_transparent != blank %}--hdt-logo-transparent: 1;{% endif -%}
+    --color-background-rgb: {{ scheme.settings.background.rgb }};
+    --color-text-rgb: {{ scheme.settings.text.rgb }};
+    --color-background: transparent;
+  {%- endcapture -%}
+  {% style %}
+    body:has(> main > .section-sp-transparent.hdt-section:first-child):not(:has(> .hdt-section-header--main + .shopify-section)) {
+      {{- section_first_transparent -}}
+      {%- if section.settings.header_type == 'full' -%}
+      .hdt-section-header--main {
+        --color-background-original: {{ section.settings.color_scheme.settings.background }};
+      }
+      .hdt-section-header--main:not(.scrolled-past-header):not(.is--hover) > .hdt-sticky-header:not(:has(.hdt-header-details[open])) { {{- color_transparent -}} }
+      {%- endif -%}
+     }
+    {%- comment -%}
+    "Menu open state pending. Requirement: Implement a toggle class for state management."
+    @supports not selector(:has(>*)) {
+      .header-transparent-on {
+        {{- section_first_transparent -}}
+        {%- if section.settings.header_type == 'full' -%}
+        .hdt-section-header--main:not(.scrolled-past-header):not(.is--hover) > .hdt-sticky-header { {{- color_transparent -}} }
+        {%- endif -%}
+      }
+    }
+    {%- endcomment -%}
+  {% endstyle %}
+{%- endif -%}
+
+<hdt-sticky-header prefix="header"{% if enable_header_transparent %} transparent{% endif %} sticky-type="{{ section.settings.sticky_header_type }}" color-scheme="{{ section.settings.color_scheme }}" logo="{{ section.settings.logo_position }}" logo-mobile="{{ section.settings.mobile_logo_position }}"{% if section.settings.logo_position == 'left' and section.settings.menu_position == 'center' %} menu="center"{% endif %}{% if section.settings.logo_position == 'center' and section.settings.menu_type == 'drawer' %} menu-type="drawer"{% endif %} class="hdt-block hdt-sticky-header hdt-sticky-header--{{ section.settings.header_type | replace_first: '_round', ' hdt-header__round' }} hdt-sticky-height--{{ section.settings.header_height }}">
+  {%- liquid
+  echo '<hdt-resize class="hdt-header-wrapper hdt-relative" prefix="header-inner"><hdt-underlay class="hdt-underlay hdt-hidden"></hdt-underlay>'
+  for item in order
+    if item == 'logo'
+      echo logo
+    elsif item == 'menu'
+      echo menu
+    else
+      echo utility
+    endif
+  endfor
+  echo '<div class="hdt-header-bg hdt-header-bg--1 hdt-hidden hdt-pe-none hdt-absolute"></div><div class="hdt-header-bg hdt-header-bg--2 hdt-hidden hdt-pe-none hdt-fixed"></div></hdt-resize>'
+  -%}
+</hdt-sticky-header>
+{{- drawer -}}
+
+{% schema %}
+{
+  "name": "t:names.header",
+  "tag": "header",
+  "class": "hdt-section hdt-section-header-group hdt-section-header--main",
+  "settings": [
+    {
+      "type": "select",
+      "id": "header_type",
+      "options": [
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "boxed",
+          "label": "Boxed"
+        },
+        {
+          "value": "boxed_round",
+          "label": "Boxed with round"
+        }
+      ],
+      "default": "boxed_round",
+      "label": "t:settings.type",
+    },
+    {
+      "type": "select",
+      "id": "header_height",
+      "options": [
+        {
+          "value": "compact",
+          "label": "Compact"
+        },
+        {
+          "value": "standard",
+          "label": "Standard"
+        }
+      ],
+      "default": "compact",
+      "label": "t:settings.height",
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        }
+      ],
+      "default": "left",
+      "label": "t:settings.logo_position"
+    },
+    {
+      "type": "select",
+      "id": "menu_position",
+      "visible_if": "{{ section.settings.logo_position == 'left' }}",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        }
+      ],
+      "default": "left",
+      "label": "t:settings.menu_position"
+    },
+    {
+      "type": "select",
+      "id": "menu_type",
+      "visible_if": "{{ section.settings.logo_position == 'center' }}",
+      "options": [
+        {
+          "value": "inline",
+          "label": "Inline"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer"
+        }
+      ],
+      "default": "inline",
+      "label": "Menu type",
+      "info": "Drawer is the default mobile layout."
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "sticky_header_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.never"
+        },
+        {
+          "value": "always",
+          "label": "t:options.always"
+        },
+        {
+          "value": "on-scroll-up",
+          "label": "t:options.on_scroll_up"
+        }
+      ],
+      "default": "on-scroll-up",
+      "label": "t:settings.sticky_header"
+    },
+    {
+      "type": "header",
+      "content": "t:content.mobile_layout"
+    },
+    {
+      "type": "select",
+      "id": "mobile_logo_position",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        }
+      ],
+      "default": "center",
+      "label": "Logo position"
+    },
+    {
+      "type": "header",
+      "content": "t:content.transparent_header",
+      "info": "t:info.transparent_header"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_header_transparent",
+      "default": false,
+      "label": "t:settings.transparent_background"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_transparent",
+      "label": "t:settings.logo",
+      "info": "t:info.logo_transparent",
+      "visible_if": "{{ section.settings.enable_header_transparent and section.settings.header_type == 'full' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme_transparent",
+      "visible_if": "{{ section.settings.enable_header_transparent and section.settings.header_type == 'full' }}",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-3"
+    }
+  ]
+}
+{% endschema %}

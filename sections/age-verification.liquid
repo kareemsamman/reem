@@ -1,0 +1,162 @@
+<hdt-age-modal color-scheme="{{ section.settings.color_scheme }}" {% if section.settings.require_date_of_birth %}require-dob min-age="{{ section.settings.min_age }}" {% endif %}{% if section.settings.action_after_cancelled == 'go_to_custom_link' and section.settings.custom_link != blank %}custom-link="{{ section.settings.custom_link | escape }}" {% endif %}expire-days="{{ section.settings.next_time }}" lock-outside detect-adm-se-evt>
+  <dialog id="hdt-age-modal" class="hdt-dialog hdt-modal hdt-age-modal hdt-s-gradient hdt-s-text focus-none hdt-text-center" scroll-lock>
+  <form method="dialog" id="hdt-age-modal_form">
+    {%- if section.settings.heading != blank %}<p class="hdt-age-modal__heading hdt-h5">{{ section.settings.heading }}</p>{% endif -%}
+    {%- if section.settings.text != blank %}<div class="hdt-age-modal__text">{{ section.settings.text }}</div>{% endif -%}
+    {%- if section.settings.require_date_of_birth -%}
+    <fieldset class="hdt-age-modal__fieldset">
+      <legend class="sr-only">{{ "accessibility.date_of_birth" | t }}</legend>
+      <div class="hdt-age-modal__fields">
+        <div class="hdt-select"><select aria-label="{{ 'accessibility.age_verification.select_year' | t | escape }}" id="hdt-age-year" class="hdt-age-modal__select" required><option value="">{{ section.settings.year | escape }}</option></select></div>
+        <div class="hdt-select"><select aria-label="{{ 'accessibility.age_verification.select_month' | t | escape }}" id="hdt-age-month" class="hdt-age-modal__select" required><option value="">{{ section.settings.month | escape }}</option></select></div>
+        <div class="hdt-select"><select aria-label="{{ 'accessibility.age_verification.select_day' | t | escape }}" id="hdt-age-day" class="hdt-age-modal__select" required><option value="">{{ section.settings.day | escape }}</option></select></div>
+      </div>
+    </fieldset>
+    {%- endif -%}
+    <div class="hdt-age-modal__actions">
+      <button circle-bg-wrap type="submit" class="hdt-age-modal__confirm hdt-btn hdt-btn-full-width">
+        {{- section.settings.verify_button -}}
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+      </button>
+      {%- if section.settings.cancel_button != blank %}
+        <button type="reset" class="hdt-age-modal__cancel hdt-btn-link">
+          {{- section.settings.cancel_button -}}
+          {{- 'icon-slide.svg' | inline_asset_content -}}
+        </button>
+      {% endif -%}
+    </div>
+    {%- if section.settings.message != blank %}<div class="hdt-age-modal__message hdt-text-sm">{{ section.settings.message }}</div>{% endif -%}
+  </form>
+  </dialog>
+</hdt-age-modal>
+
+{% schema %}
+{
+  "name": "t:names.age_verification",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "groups": ["custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "require_date_of_birth",
+      "label": "t:settings.require_date_of_birth",
+      "default": true,
+    },
+    {
+      "type": "range",
+      "id": "min_age",
+      "min": 18,
+      "max": 30,
+      "step": 1,
+      "label": "t:settings.min_age",
+      "visible_if": "{{ section.settings.require_date_of_birth }}",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "next_time",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "day",
+      "label": "t:settings.next_time",
+      "info": "t:info.next_time",
+      "default": 35
+    },
+    {
+
+      "type": "select",
+      "id": "action_after_cancelled",
+      "label": "t:settings.action_after_cancelled",
+      "default": "no_action",
+      "options": [
+        {
+          "value": "no_action",
+          "label": "t:options.stay_on_current_page"
+        },
+        {
+          "value": "go_to_custom_link",
+          "label": "t:options.redirect_to_url"
+        }
+      ],
+      "info": "t:info.action_after_cancelled"
+    },
+    {
+      "type": "url",
+      "id": "custom_link",
+      "label": "t:settings.custom_link",
+      "info": "t:info.custom_link",
+      "visible_if": "{{ section.settings.action_after_cancelled == 'go_to_custom_link' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.age_verification_heading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:settings.description",
+      "default": "t:text_defaults.age_verification"
+    },
+    {
+      "type": "text",
+      "id": "verify_button",
+      "label": "t:settings.verify_button",
+      "default": "t:text_defaults.iam_over_18"
+    },
+    {
+      "type": "text",
+      "id": "cancel_button",
+      "label": "t:settings.exit_button",
+      "default": "t:text_defaults.cancel"
+    },
+    {
+      "type": "richtext",
+      "id": "message",
+      "label": "t:settings.message",
+      "default": "t:text_defaults.age_verification_message"
+    },
+    {
+      "type": "text",
+      "id": "year",
+      "label": "t:settings.year",
+      "default": "t:text_defaults.age_verification_year",
+      "visible_if": "{{ section.settings.require_date_of_birth }}"
+    },
+    {
+      "type": "text",
+      "id": "month",
+      "label": "t:settings.month",
+      "default": "t:text_defaults.age_verification_month",
+      "visible_if": "{{ section.settings.require_date_of_birth }}"
+    },
+    {
+      "type": "text",
+      "id": "day",
+      "label": "t:settings.day",
+      "default": "t:text_defaults.age_verification_day",
+      "visible_if": "{{ section.settings.require_date_of_birth }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.age_verification",
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,212 @@
+<div color-scheme="{{ block.settings.color_scheme }}" class="hdt-scroll-media-with-text__content hdt-scrolling-mwt-content"  style="--content-max-width: {{ block.settings.content_max_width }}px;">
+    {%- if block.settings.heading != blank %}<{{ block.settings.heading_tag }} can-reveal class="hdt-theme-block hdt-heading-block hdt-{{ block.settings.heading_size }} hdt-heading{% if block.settings.uppercase %} hdt-uppercase{% endif %}">{{ block.settings.heading }}</{{ block.settings.heading_tag }}>{% endif -%}
+    {%- if block.settings.text != blank -%}
+        <div class="rte hdt-s-text hdt-text-{{ block.settings.text_size }}">{{ block.settings.text }}</div>
+    {%- endif -%}
+    {%- if block.settings.button_label != blank -%}
+      {%- liquid
+        if block.settings.button_link != blank
+          assign btn_tab = 'a'
+        else
+          assign btn_tab = 'button'
+        endif
+      -%}
+      <{{ btn_tab }} circle-bg-wrap class="hdt-btn hdt-btn-solid{% if block.settings.show_btn_icon %} hdt-btn--with-icon{% endif %}{% if block.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}"{% if block.settings.button_link != blank %} href="{{ block.settings.button_link }}"{% if block.settings.open_in_new_tab %} target="_blank" aria-describedby="a11y-new-window-message" rel="noopener noreferrer"{% endif %}{% else %} disabled{% endif %}>
+        {{- block.settings.button_label | escape -}}
+        {%- if block.settings.show_btn_icon -%}
+        <span class="hdt-smwt-btn-icon hdt-shrink-0">{{ 'icon-circle-arrow.svg' | inline_asset_content }}</span>
+        {%- endif -%}
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+      </{{ btn_tab }}>
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.content",
+  "tag": null,
+  "settings": [
+    {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:settings.color_scheme",
+        "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "min": 400,
+      "max": 1400,
+      "step": 10,
+      "unit": "px",
+      "label": "t:settings.desktop_max_width",
+      "default": 890
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h0",
+          "label": "t:options.heading_2extra_large"
+        },
+        {
+          "value": "h1",
+          "label": "t:options.heading_extra_large"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.heading_large"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.heading_medium"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.heading_small"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.heading_extra_small"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.heading_2extra_small"
+        }
+      ],
+      "default": "h2",
+      "label": "t:settings.heading_size",
+      "visible_if": "{{ block.settings.heading != blank }}"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "t:settings.heading_tag",
+      "info": "t:info.heading_tag",
+      "options": [
+        {
+          "value": "h1",
+          "label": "t:options.h1"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.h2"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.h3"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.h4"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.h5"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.h6"
+        },
+        {
+          "value": "div",
+          "label": "t:options.div"
+        },
+        {
+          "value": "span",
+          "label": "t:options.span"
+        },
+        {
+          "value": "p",
+          "label": "t:options.p"
+        }
+      ],
+      "default": "h2",
+      "visible_if": "{{ block.settings.heading != blank }}"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:settings.text",
+      "default": "t:text_defaults.text_content_scrolling"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:settings.size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "t:options.text_sm"
+        },
+        {
+          "value": "base",
+          "label": "t:options.text_base"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.text_lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.text_xl"
+        },
+        {
+          "value": "2xl",
+          "label": "t:options.text_2xl"
+        },
+        {
+          "value": "4xl",
+          "label": "t:options.text_4xl"
+        },
+        {
+          "value": "6xl",
+          "label": "t:options.text_6xl"
+        }
+      ],
+      "default": "base",
+      "visible_if": "{{ block.settings.text != blank }}"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "default": "t:text_defaults.shop_now",
+      "label": "t:settings.button_label",
+      "info": "t:info.button_label_blank"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:settings.button_link",
+      "visible_if": "{{ block.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:settings.open_in_new_tab",
+      "default": false,
+      "visible_if": "{{ block.settings.button_link != blank and block.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_btn_icon",
+      "label": "t:settings.show_btn_icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "btn_uppercase",
+      "label": "t:settings.uppercase",
+      "default": false,
+      "visible_if": "{{ settings.btn_case != 'uppercase' }}",
+    },
+  ]
+}
+{% endschema %}

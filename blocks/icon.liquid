@@ -1,0 +1,217 @@
+{%- comment %} Check sizes image when Shopify update API {% endcomment -%}
+<div can-reveal id="block-{{ block.id }}" class="hdt-theme-block hdt-flex-block hdt-icon-block hdt-s-text{{ block.settings.icon_color }}" style=" --height: {{ block.settings.height }}px; --height-md: {{ block.settings.height_md }}px; --height-xl: {{ block.settings.height_xl }}px;" {{ block.shopify_attributes }}>
+    {%- if block.settings.image != blank -%}
+      {%- capture sizes -%}
+          (min-width: 1150px) {{ block.settings.height_xl | times: block.settings.image.aspect_ratio }}px, (min-width: 768px) {{ block.settings.height_md | times: block.settings.image.aspect_ratio }}px, {{ block.settings.height | times: block.settings.image.aspect_ratio }}px
+      {%- endcapture -%}
+    {%- endif -%}
+    {%- liquid
+      if block.settings.svg != blank
+        echo block.settings.svg
+      elsif block.settings.image != blank
+        assign widths = '25, 50, 100, 200, 300, 400,' | append: block.settings.image.width
+        echo block.settings.image | image_url: width: 400 | image_tag: widths: widths, sizes: sizes
+      else
+        echo 'icon-' | append: block.settings.icon | append: '.svg' | inline_asset_content
+      endif
+      -%}
+  </div>
+  
+  {% schema %}
+  {
+    "name": "t:names.icon",
+    "tag": null,
+    "settings": [
+      {
+        "type": "select",
+        "id": "icon",
+        "options": [
+          {
+            "value": "none",
+            "label": "t:options.none",
+          },
+          {
+            "value": "atmos",
+            "label": "t:options.ic_atmos"
+          },
+          {
+            "value": "charge-a",
+            "label": "t:options.ic_charge_a"
+          },
+          {
+              "value": "isolation",
+              "label": "t:options.ic_isolation"
+          },
+          {
+              "value": "cable",
+              "label": "t:options.ic_cable"
+          },
+          {
+              "value": "mic",
+              "label": "t:options.ic_mic"
+          },
+          {
+              "value": "aware",
+              "label": "t:options.ic_aware"
+          },
+          {
+              "value": "battery",
+              "label": "t:options.ic_battery"
+          },
+          {
+              "value": "battery-outline",
+              "label": "t:options.ic_battery_outline"
+          },
+          {
+              "value": "ear-deaf",
+              "label": "t:options.ic_ear_deaf"
+          },
+          {
+              "value": "water-resistant",
+              "label": "t:options.ic_water_resistant"
+          },
+          {
+            "value": "bluetooth",
+            "label": "t:options.ic_bluetooth"
+          },
+          {
+            "value": "mobile-phone",
+            "label": "t:options.ic_mobile_phone"
+          },
+          {
+            "value": "shipping-box",
+            "label": "t:options.ic_shipping_box"
+          },
+          {
+            "value": "lock",
+            "label": "t:options.ic_lock"
+          },
+          {
+            "value": "return",
+            "label": "t:options.ic_return"
+          },
+          {
+            "value": "headphone",
+            "label": "t:options.ic_headphone"
+          },
+          {
+            "value": "return-circle",
+            "label": "t:options.ic_return_circle",
+          },
+          {
+            "value": "security-check",
+            "label": "t:options.ic_security_check",
+          },
+          {
+            "value": "wave",
+            "label": "t:options.ic_wave",
+          },
+          {
+            "value": "lightning",
+            "label": "t:options.ic_lightning",
+          },
+          {
+            "value": "bio-network",
+            "label": "t:options.ic_bio_network",
+          },
+          {
+            "value": "focus-eye",
+            "label": "t:options.ic_focus_eye",
+          },
+          {
+            "value": "stitching",
+            "label": "t:options.ic_stitching",
+          },
+          {
+            "value": "trendy-cropped",
+            "label": "t:options.ic_trendy_cropped",
+          },
+          {
+            "value": "location-dot",
+            "label": "t:options.ic_location",
+          },
+          {
+            "value": "envelope",
+            "label": "t:options.ic_envelope",
+          },
+          {
+            "value": "phone",
+            "label": "t:options.ic_phone",
+          },
+          {
+            "value": "oclock",
+            "label": "t:options.ic_oclock",
+          },
+          {
+            "value": "comment",
+            "label": "t:options.ic_comment",
+          }
+        ],
+        "default": "lock",
+        "label": "t:settings.icon"
+      },
+      {
+        "type": "image_picker",
+        "id": "image",
+        "label": "t:settings.custom_img_icon"
+      },
+      {
+        "type": "liquid",
+        "id": "svg",
+        "label": "t:settings.custom_icon",
+        "info": "t:info.custom_icon"
+      },
+      {
+        "type": "range",
+        "id": "height_xl",
+        "min": 16,
+        "max": 200,
+        "step": 4,
+        "unit": "px",
+        "label": "t:settings.icon_h_md",
+        "default": 28
+      },
+      {
+        "type": "range",
+        "id": "height_md",
+        "min": 16,
+        "max": 200,
+        "step": 2,
+        "unit": "px",
+        "label": "t:settings.icon_h_tb",
+        "default": 28
+      },
+      {
+        "type": "range",
+        "id": "height",
+        "min": 16,
+        "max": 200,
+        "step": 2,
+        "unit": "px",
+        "label": "t:settings.icon_h",
+        "default": 28
+      },
+      {
+        "type": "select",
+        "id": "icon_color",
+        "label": "t:settings.color",
+        "options": [
+          {
+            "value": "",
+            "label": "t:options.primary"
+          },
+          {
+            "value": "2",
+            "label": "t:options.secondary"
+          }
+        ],
+        "default": ""
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.icon"
+      }
+    ]
+  }
+  {% endschema %}

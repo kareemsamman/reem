@@ -1,0 +1,81 @@
+{%- capture post_card_cats -%}
+  {%- if show_category == 'disable'-%}
+  {%- elsif show_category == 'blog_title' -%}
+    <div {{ reveal }} class="hdt-post-cats not-apply-ratio"><a circle-bg-wrap href="{{ blog_url }}" class="item-post-cat hdt-btn{% if bellow_content and article.image  %} hdt-btn-reverse{% endif %}">{{- blog_title | escape -}}<hdt-circle-bg mousemove></hdt-circle-bg></a></div>
+  {%- elsif article.tags.size > 0 -%}
+    {%- if show_category == 'first_tag' -%}
+      <div {{ reveal }} class="hdt-post-cats not-apply-ratio"><a circle-bg-wrap href="{{ blog.url }}/tagged/{{ article.tags.first | handle }}" class="item-post-cat hdt-btn{% if bellow_content  and article.image %} hdt-btn-reverse{% endif %}"> {{- article.tags.first | escape -}}<hdt-circle-bg mousemove></hdt-circle-bg></a></div>
+    {%- else -%}
+      {%- liquid
+      assign article_tags = article.tags | join: ';' | split: ';'
+      assign category_tags = article_tags | where: 'category_'
+      -%}
+      <div {{ reveal }} class="hdt-post-cats not-apply-ratio">
+        {%- for tag in category_tags -%}
+          <a circle-bg-wrap href="{{ blog.url }}/tagged/{{ tag | handle }}" class="item-post-cat hdt-btn{% if bellow_content and article.image %} hdt-btn-reverse{% endif %}">
+            {{- tag | remove_first: 'category_' | escape -}}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+<div class="hdt-post-card {{ blog_card_class }}"{% if can_reveal %} can-reveal{% endif %}>
+  <div class="hdt-inner-post-card hdt-blog-card-rounded hdt-oh" {{ reveal }}>
+    {%- unless bellow_content and article.image == blank -%}
+      <div class="hdt-post-card-media hdt-ratio{% unless article.image %} hdt-s-gradient{% endunless %}" calc-nav style="--aspect-ratioapt: {{ article.image.aspect_ratio }}">
+        {%- if article.image -%}
+        {{- article.image | image_url: width: article.image.width | image_tag: sizes: sizes, widths: '100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500', loading: 'lazy' -}}
+        {%- endif -%}
+        <a href="{{ article.url }}" tabindex="-1"><span class="sr-only">{{ article.title }}</span></a>
+        {%- liquid
+        if bellow_content
+        echo post_card_cats
+        echo '<div class="hdt-blur-effect-hover"></div>'
+        endif
+        -%}
+      </div>
+    {%- endunless -%}
+    <div class="hdt-post-card-info">
+      <div class="hdt-post-card-inner-info">
+        {%- liquid
+        if bellow_content == false or article.image == blank
+        echo post_card_cats
+        endif
+        -%}
+        <h3 {{ reveal }} class="hdt-post-title hdt-h5"><a href="{{ article.url }}" class="hdt-link" {% if show_read_more %}tabindex="-1"{% endif %}>{{ article.title | escape }}</a></h3>
+        {%- if arr_meta.size > 0 -%}
+          <div {{ reveal }} class="hdt-article-card__meta hdt-flex hdt-text-sm hdt-article--meta hdt-s-text hdt-place-{{ meta_align }}">
+            {%- for meta in arr_meta -%}
+              {%- unless forloop.first %}<div class="hdt-shape__line"></div>{% endunless -%}
+              {%- if meta == 'date' -%}
+                <div class="hdt-article-date">
+                  {{- 'icon-oclock.svg' | inline_asset_content -}}
+                  {%- if date_format contains "%" %}{{ article.published_at | time_tag: date_format }}{% else %}{{ article.published_at | time_tag: format: date_format }}{% endif -%}
+                </div>
+              {%- elsif meta == 'author' -%}
+                <div class="hdt-article-card__author hdt-flex">{{ 'icon-user.svg' | inline_asset_content }}{{ article.author }}</div>
+              {%- else -%}
+                <a href="{{ article.url }}#{% if article.comments_count > 0 %}article-comments{% else %}comment-form{% endif %}" class="hdt-article-comments">{{- 'icon-comment.svg' | inline_asset_content -}}<span>{{ 'blogs.article.comments' | t: count: article.comments_count | escape }}</span></a>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+        {%- if show_excerpt -%}
+          <div class="hdt-article-card__excerpt rte hdt-s-text rte--thin">
+            {%- if article.excerpt.size > 0 -%}
+              {{- article.excerpt -}}
+            {%- else -%}
+              {{- article.content | strip_html | truncatewords: 30 -}}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+        {%- if show_read_more -%}
+          <a {{ reveal }} href="{{ article.url }}" class="hdt-post-readmore hdt-btn-link hdt-btn--size-s"><span>{{ 'blogs.article.read_more' | t | escape }}<span class="sr-only">: {{ article.title }}</span></span>{{ 'icon-slide.svg' | inline_asset_content }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>

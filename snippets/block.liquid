@@ -1,0 +1,47 @@
+{%- comment -%}
+  Renders product variant options
+
+  Accepts:
+  - value: {value} value object.
+  - input_id: {String}
+  - option_unavailable: {String}
+  - option_soldout: {String}
+  - label_sold_out: {String}
+  - label_unavailable: {String}
+  - swatch_style: {String}
+  - product_linked: {Object}
+  - product_id: {String}
+  - class_swatch_white: {String}
+
+  Usage:
+  {%- render 'block', value: value, swatch_style: swatch_style, input_id: input_id, option_unavailable: option_unavailable, option_soldout: option_soldout, value: value -%}
+{%- endcomment -%}
+
+{%- capture swatch_block -%}
+  {%- if swatch_style != blank %}<span class="hdt-block-swatch__color{{ class_swatch_white }}" {{ swatch_style }}></span>{% endif -%}
+  <span class="hdt-form-color-name">{{- value -}}</span>
+{%- endcapture -%}
+
+{%- if value.product_url or product_linked != blank -%}
+  {%- capture attr -%}
+    {%- if value.product_url -%}
+    href="{{ value.product_url }}"{% if value.selected %} selected{% endif %}{% if option_soldout %} product-sold-out{% endif %}
+    {%- else -%}
+    href="{{ product_linked.url }}"{% if product_linked.id == product_id %} selected{% endif %}{% unless product_linked.available %} product-sold-out{% endunless %}
+    {%- endif -%}
+  {%- endcapture -%}
+  <a {{ attr }} class="hdt-product-form_value">
+    {{- swatch_block -}}
+  </a>
+{%- else -%}
+  <label for="{{ input_id }}" class="hdt-product-form_value">
+    {%- liquid
+    if option_soldout
+      echo label_sold_out
+    elsif option_unavailable
+      echo label_unavailable
+    endif
+    echo swatch_block
+    -%}
+  </label>
+{%- endif -%}

@@ -1,0 +1,418 @@
+{%- liquid
+    if settings.sections_reveal_on_scroll
+        assign reveal = 'reveal'
+    else
+        assign reveal = ''
+    endif
+
+    if section.index == 1
+        assign loading = 'eager'
+    else
+        assign loading = 'lazy'
+    endif
+    if section.settings.layout == 'table'
+        assign w_col = 180
+        assign pad_col = 20
+        assign pad_col_mb = 20
+    else
+        assign w_col = 0
+        assign pad_col = 37
+        assign pad_col_mb = 25
+    endif
+    if section.blocks.size == 0 and section.settings.show_btn_detail == false
+        assign row_last = ' hdt-row-last'
+    endif
+-%}
+{%- capture sizes -%}
+    (min-width: 1150px) calc((min({{ settings.page_width }}px, 100vw - 100px) - {{ w_col }}px)/3 - 2 * {{ pad_col }}px), (min-width: 768px) calc((100vw - 60px - {{ w_col }}px)/2 - 2 * {{ pad_col_mb }}px), (min-width: 576px) calc((100vw - 30px) * 0.65 - {{ pad_col_mb }}px), calc((100vw - 30px) * 0.8 - {{ pad_col_mb }}px)
+{%- endcapture -%}
+{%- capture tabindex -%}{% if section.settings.show_btn_detail %} tabindex="-1"{% endif %}{%- endcapture -%}
+<div {% if reveal == 'reveal'  %} reveal-on-scroll{% endif %} color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__products-compare hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;" >
+    <div class="hdt-container">
+        {%- content_for 'block', type: '_section_header', id: 'section-header' -%}
+        {%- capture products_compare -%}
+            {%- if section.settings.product_list != blank -%}
+              {%- for product in section.settings.product_list -%}
+                  {%- capture row_label -%}{% cycle ' hdt-row-even', ' hdt-row-odd' %}{%- endcapture -%}
+                  {%- if section.settings.layout == 'card' -%}
+                      <div class="hdt-compare-col hdt-col-rowfirst {{ row_label }}{{ row_last }}" slot="info">
+                          {%- liquid
+                            if product.metafields.theme.compare_image.value and product.metafields.theme.compare_image.type == 'file_reference'
+                                assign featured_media = product.metafields.theme.compare_image.value.preview_image
+                            else
+                                assign featured_media = product.featured_media | default: settings.placeholder_img
+                            endif -%}
+                          {%- if featured_media -%}
+                              <a tabindex="-1" aria-hidden="true" href="{{ product.url }}" class="hdt-pr-image hdt-ratio hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ featured_media.aspect_ratio }}"{% endif %}>
+                                  {%- liquid
+                                      echo featured_media | image_url: width: featured_media.width | image_tag: loading: loading, sizes: sizes, widths: '165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450', data-widths: '[165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450]', class: 'hdt-card-product__media--main'
+                                      -%}
+                                  </a>
+                          {%- endif -%}
+                          <a {{ tabindex }}href="{{ product.url }}" class="hdt-pr-title hdt-link hdt-text-lg hdt-font-medium">{{ product.title | escape }}</a>
+                          {%- render 'card-price', product: product, show_volume_note: true -%}
+                      </div>
+                  {%- else -%}
+                      {%- if forloop.first -%}
+                          <div class="hdt-compare-col hdt-col-first" slot="image"></div>
+                          <div class="hdt-compare-col hdt-col-rowfirst hdt-col-first" slot="title"></div>
+                          <div class="hdt-compare-col hdt-col-first" data-title="{{ 'products.product.price.price' | t }}" slot="price"></div>
+                      {%- endif -%}
+                      <div class="hdt-compare-col hdt-compare-col-image" slot="image">
+                          {%- assign featured_media = product.featured_media | default: settings.placeholder_img -%}
+                          {%- if featured_media -%}
+                          <a tabindex="-1" aria-hidden="true" href="{{ product.url }}" class="hdt-pr-image hdt-ratio hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: {{ featured_media.aspect_ratio }}"{% endif %}>
+                              {%- liquid
+                              echo featured_media | image_url: width: featured_media.width | image_tag: loading: loading, sizes: sizes, widths: '165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450', data-widths: '[165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450]', class: 'hdt-card-product__media--main'
+                              -%}
+                          </a>
+                          {%- endif -%}
+                      </div>
+                      <div class="hdt-compare-col hdt-col-rowfirst" slot="title">
+                          <div class="hdt-pr-title"><a {{ tabindex }}href="{{ product.url }}" class="hdt-link hdt-font-semibold">{{ product.title | escape }}</a></div>
+                      </div>
+                      <div class="hdt-compare-col{{ row_last }}" data-title="{{ 'products.product.price.price' | t }}" slot="price">
+                          {%- render 'card-price', product: product, show_volume_note: true -%}
+                      </div>
+                  {%- endif -%}
+                  {%- if section.settings.show_btn_detail -%}
+                      {%- if forloop.first and section.settings.layout == 'table' -%}
+                          <div class="hdt-compare-col hdt-row-last hdt-col-first " slot="button"></div>
+                      {%- endif -%}
+                      <div class="hdt-compare-col hdt-compare-col-btn hdt-row-last {{ row_label }}" slot="button">
+                          <a circle-bg-wrap class="hdt-btn hdt-btn-{{ section.settings.btn_detail_style }} hdt-btn--size-s {% if section.settings.icon_btn_detail %} hdt-btn--with-icon{% endif %}" href="{{ product.url }}" aria-label="{{- 'products.product.view_details_label' | t: product_title: product.title  -}}">
+                            {{ section.settings.btn_detail_label }}
+                            {%- if section.settings.icon_btn_detail -%}{{ 'icon-' | append: section.settings.icon_btn_detail_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+                            <hdt-circle-bg mousemove></hdt-circle-bg>
+                          </a>
+                      </div>
+                  {%- endif -%}
+                  {%- if section.blocks.size > 0 %}{%- content_for 'blocks', closest.product: product -%}{% endif -%}
+              {%- endfor -%}
+            {%- else -%}
+              {%- assign product_url = routes.root_url -%}
+              {%- for i in (1..3) -%}
+                    {%- capture row_label -%}{% cycle ' hdt-row-even', ' hdt-row-odd' %}{%- endcapture -%}
+                    {%- if section.settings.layout == 'card' -%}
+                      <div class="hdt-compare-col hdt-col-rowfirst {{ row_label }}" slot="info">
+                          <a tabindex="-1" aria-hidden="true" href="{{ product_url }}" class="hdt-pr-image hdt-ratio hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: 1"{% endif %}>
+                              {%- liquid
+                                  echo 'product-apparel-' | append: i | placeholder_svg_tag: 'hdt-placeholder-svg'
+                              -%}
+                          </a>
+                          <a href="{{ product_url }}" class="hdt-pr-title hdt-link hdt-text-lg hdt-font-medium">{{ 'onboarding.product_title' | t }}</a>
+                          {%- render 'card-price', price_class: '', show_compare_at_price: true -%}
+                      </div>
+                    {%- else -%}
+                      {%- if forloop.first and section.settings.layout == 'table'-%}
+                          <div class="hdt-compare-col hdt-col-rowfirst hdt-col-first" slot="title"></div>
+                          <div class="hdt-compare-col hdt-col-first" data-title="{{ 'products.product.price.price' | t }}" slot="price"></div>
+                          <div class="hdt-compare-col hdt-col-first" slot="image"></div>
+                          <div class="hdt-compare-col hdt-col-first" data-title="{{ 'product_compare.premium_quality' | t }}" slot="block_slot#1"></div>
+                          <div class="hdt-compare-col hdt-col-first" data-title="{{ 'product_compare.modern_design' | t }}" slot="block_slot#2"></div>
+                          <div class="hdt-compare-col hdt-col-first" data-title="{{ 'product_compare.material' | t }}" slot="block_slot#3"></div>
+                          <div class="hdt-compare-col hdt-row-last hdt-col-first " slot="button"></div>
+                      {%- endif -%}
+                      <div class="hdt-compare-col hdt-col-rowfirst{{ row_label }}" slot="title">
+                          <div class="hdt-pr-title">
+                              <a href="{{ product_url }}" class="hdt-pr-title hdt-link hdt-font-semibold">{{ 'onboarding.product_title' | t }}</a>
+                          </div>
+                      </div>
+                      <div class="hdt-compare-col {{ row_label }}" data-title="{{ 'products.product.price.price' | t }}" slot="price">
+                          {%- render 'card-price', price_class: '', show_compare_at_price: true -%}
+                      </div>
+                      <div class="hdt-compare-col hdt-compare-col-image{{ row_label }}" slot="image">
+                          <a tabindex="-1" aria-hidden="true" href="{{ product_url }}" class="hdt-pr-image hdt-ratio hdt-ratio hdt-ratio--{{ section.settings.pr_image_ratio }}"{% if section.settings.pr_image_ratio == 'adapt_image' %} style="--aspect-ratioapt: 1"{% endif %}>
+                              {%- liquid
+                                  echo 'product-apparel-' | append: i | placeholder_svg_tag: 'hdt-placeholder-svg'
+                              -%}
+                          </a>
+                      </div>
+                    {%- endif -%}                        
+                    <div class="hdt-compare-col hdt-compare-col-info{{ row_label }}" data-title="{{ 'product_compare.premium_quality' | t }}" slot="block_slot#1">
+                        <div class="hdt-metafield-info hdt-flex rte">
+                            <span class="hdt-icon-metafield">{{ 'icon-circle-check.svg' | inline_asset_content }}</span>{{ 'product_compare.certified_grade' | t }}
+                        </div>
+                    </div>                        
+                    <div class="hdt-compare-col hdt-compare-col-info{{ row_label }}" data-title="{{ 'product_compare.modern_design' | t }}" slot="block_slot#2">
+                        <div class="hdt-metafield-info hdt-flex rte">{{ 'product_compare.sleek_ergonomic' | t }}</div>
+                    </div>                       
+                    <div class="hdt-compare-col hdt-compare-col-info{{ row_label }}" data-title="{{ 'product_compare.material' | t }}" slot="block_slot#3">
+                        <div class="hdt-metafield-info hdt-flex rte">{{ 'product_compare.high-grade_composite' | t }}</div>
+                    </div>
+                    {%- if section.settings.show_btn_detail -%}
+                        <div class="hdt-compare-col hdt-compare-col-btn hdt-row-last {{ row_label }}" slot="button">
+                            <a circle-bg-wrap class="hdt-btn hdt-btn-{{ section.settings.btn_detail_style }} hdt-btn--size-s {% if section.settings.icon_btn_detail %} hdt-btn--with-icon{% endif %}" href="{{ product_url }}" aria-label="{{ 'onboarding.product_title' | t }}">
+                              {{- section.settings.btn_detail_label -}}
+                              {%- if section.settings.icon_btn_detail -%}{{ 'icon-' | append: section.settings.icon_btn_detail_custom | append: '.svg' | inline_asset_content }}{%- endif -%}
+                              <hdt-circle-bg mousemove></hdt-circle-bg>
+                            </a>
+                        </div>
+                    {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+        {%- endcapture -%}
+        <div class="hdt-compare-wrapper hdt-compare__{{ section.settings.layout }}">
+            <hdt-tmp-scroll class="hdt-block hdt-compare-inner hdt-scrollbar">
+                <template shadowrootmode="open">
+                    {%- if section.settings.layout == 'card' -%}
+                        <div  part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="info"></slot>
+                        </div>
+                    {%- else -%}
+                        <div part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="title"></slot>
+                        </div>
+                        <div part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="image"></slot>
+                        </div>
+                        <div part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="price"></slot>
+                        </div>
+                    {%- endif -%}
+                    {%- for block in section.blocks -%}
+                        {%- liquid
+                          assign block_slot = section.id | append: forloop.index0
+                          assign block_visible = block_slot | append: ':visible'
+                        -%}
+                        {%- if products_compare contains block_visible -%}
+                        <div part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="{{ block_slot }}"></slot>
+                        </div>
+                        {%- endif -%}
+                    {% else %}
+                        <div part="hdt-row" class="hdt-compare-row">
+                            <slot part="hdt-pr-info-slot" name="block_slot#1"></slot>
+                            <slot part="hdt-pr-info-slot" name="block_slot#2"></slot>
+                            <slot part="hdt-pr-info-slot" name="block_slot#3"></slot>
+                        </div>
+                    {%- endfor -%}
+                    {%- if section.settings.show_btn_detail -%}
+                    <div part="hdt-row" class="hdt-compare-row">
+                        <slot part="hdt-pr-info-slot" name="button"></slot>
+                    </div>
+                    {%- endif -%}
+                </template>
+                {{- products_compare -}}
+            </hdt-tmp-scroll>
+            {%- if request.design_mode -%}
+              {%- for block in section.blocks -%}
+                <div {{ block.shopify_attributes }}></div>
+              {%- endfor -%}
+            {%- endif -%}
+        </div>
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:names.products_compare",
+  "tag": "section",
+  "class": "hdt-section",
+  "max_blocks": 10,
+  "disabled_on": {
+    "groups": ["*"]
+  },
+  "settings": [
+      {
+          "type": "product_list",
+          "id": "product_list",
+          "label": "t:settings.product_list",
+          "limit": 5
+      },
+      {
+          "type": "select",
+          "id": "layout",
+          "label": "t:settings.layout",
+          "default": "card",
+          "options": [
+              {
+                  "value": "card",
+                  "label": "t:options.card"
+              },
+              {
+                  "value": "table",
+                  "label": "t:options.table"
+              }
+          ]
+      },
+      {
+          "type": "select",
+          "id": "pr_image_ratio",
+          "label": "t:settings.image_ratio",
+          "options": [
+              {
+                  "value": "adapt_image",
+                  "label": "t:options.adapt_to_image"
+              },
+              {
+                  "value": "portrait",
+                  "label": "t:options.portrait"
+              },
+              {
+                  "value": "square",
+                  "label": "t:options.square"
+              },
+              {
+                  "value": "landscape",
+                  "label": "t:options.landscape"
+              }
+          ],
+          "default": "adapt_image"
+      },
+      {
+          "type": "checkbox",
+          "id": "show_btn_detail",
+          "label": "t:settings.show_btn_detail",
+          "default": true,
+      },
+      {
+          "type": "text",
+          "id": "btn_detail_label",
+          "label": "t:settings.label",
+          "default": "t:text_defaults.view_details",
+          "visible_if": "{{ section.settings.show_btn_detail == true }}"
+      },
+      {
+          "type": "select",
+          "id": "btn_detail_style",
+          "label": "t:settings.button_style",
+          "options": [
+              {
+                  "value": "outline",
+                  "label": "t:options.button_outline"
+              },
+              {
+                  "value": "solid",
+                  "label": "t:options.button_solid"
+              }
+          ],
+          "default": "outline",
+          "visible_if": "{{ section.settings.show_btn_detail == true }}"
+      },
+      {
+          "type": "checkbox",
+          "id": "icon_btn_detail",
+          "label": "t:settings.show_icon",
+          "default": true,
+            "visible_if": "{{ section.settings.show_btn_detail == true }}"
+      },
+      {
+          "type": "select",
+          "label": "t:settings.icon_button",
+          "id": "icon_btn_detail_custom",
+          "options": [
+              {
+                  "value": "angle-right",
+                  "label": "t:options.ic_angle_right"
+              },
+              {
+                  "value": "angles-right",
+                  "label": "t:options.ic_angles_right"
+              },
+              {
+                  "value": "arrow-45deg",
+                  "label": "t:options.ic_arrow_45deg"
+              },
+              {
+                  "value": "arrow-right-2",
+                  "label": "t:options.ic_arrow_right"
+              },
+              {
+                  "value": "arrow-circle-45deg-fill",
+                  "label": "t:options.ic_circle_arrow_45deg"
+              },
+              {
+                  "value": "arrow-circle-45deg-outline",
+                  "label": "t:options.ic_circle_arrow_45deg_outline"
+              },
+              {
+                  "value": "arrow-circle-right-fill",
+                  "label": "t:options.ic_circle_arrow_right"
+              },
+              {
+                  "value": "arrow-circle-right-outline",
+                  "label": "t:options.ic_circle_arrow_right_outline"
+              },
+          ],
+          "default": "arrow-circle-45deg-fill",
+          "visible_if": "{{ section.settings.show_btn_detail == true and section.settings.icon_btn_detail == true }}"
+      },
+      {
+          "type": "header",
+          "content": "t:content.appearance"
+      },
+      {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "t:settings.color_scheme",
+          "default": "scheme-1"
+      },
+      {
+          "type": "header",
+          "content": "t:content.section_padding"
+      },
+      {
+          "type": "range",
+          "id": "padding_top_xl",
+          "min": 0,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "label": "t:settings.padding_top",
+          "default": 60
+      },
+      {
+          "type": "range",
+          "id": "padding_bottom_xl",
+          "min": 0,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "label": "t:settings.padding_bottom",
+          "default": 60
+      },
+      {
+          "type": "range",
+          "id": "padding_top",
+          "min": 0,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "label": "t:settings.padding_top_mb",
+          "default": 40
+      },
+      {
+          "type": "range",
+          "id": "padding_bottom",
+          "min": 0,
+          "max": 200,
+          "step": 4,
+          "unit": "px",
+          "label": "t:settings.padding_bottom_mb",
+          "default": 40
+      }
+  ],
+  "blocks": [{"type": "_compare_option"},{"type": "_compare_rating"},{"type": "_compare_text"}],
+  "presets": [
+    {
+      "name": "t:names.products_compare",
+      "category": "t:categories.products",
+      "blocks": [
+        {
+            "type": "_section_header",
+            "static": true,
+            "id": "section-header",
+            "blocks": [
+                {"type": "heading"},
+                {"type": "text"}
+            ],
+            "settings": {
+                "text_alignment": "center"
+            }
+        },
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,48 @@
+{%- comment -%}
+  Renders sort by popover
+
+  Accepts:
+  - results: {Object} Collection or Search object (required)
+  - section_id: {String} The ID of the section that contains this card. (required)
+
+  Usage:
+  {%- render 'sort-by-popover', results: collection -%}
+{%- endcomment -%}
+
+{%- liquid
+    assign sort_by = results.sort_by | default: results.default_sort_by
+    assign option_selected = results.sort_options | where: "value", sort_by | first
+    assign id = results.id | default: 'main_6868'
+-%}
+<div class="hdt-sortby-wrapper">
+    <hdt-popover-sorting circle-bg-wrap class="hdt-popover__sorting {{ class_display }}" section-id="{{ section_id }}">
+        <button type="button" aria-owns="listbox{{ id }}" data-label="{{ 'products.facets.sort_by_label' | t }}" aria-controls="{{ sortby_pos }}dropdown{{ id }}">
+            <span class="hdt-hidden md:hdt-inline">{{- option_selected.name }}</span>
+            <span class="hdt-inline md:hdt-hidden">{{- 'products.facets.sort_button' | t }}</span>
+            <span class="hdt-icon-sortby">
+                <span class="hdt-cricle-top"></span>
+                <span class="hdt-cricle-bottom"></span>
+            </span>
+        </button>
+        <hdt-popover-sortby class="hdt-contents" placement="top-end">
+            <dialog id="{{ sortby_pos }}dropdown{{ id }}" class="hdt-popover hdt-popover-u hdt-popover-u--no-padding hdt-popover--sorting-options hdt-dropdown" scroll-lock>
+                <button ref="closeButton" class="hdt-s-text" aria-controls="{{ sortby_pos }}dropdown{{ id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{{ 'icon-close.svg' | inline_asset_content }}</button>
+                <span class="hdt-popover-u__top hdt-pe-none">{{- 'icon-u.svg' | inline_asset_content -}}</span>
+                <div class="hdt-popover__arrow"></div>
+                <div class="hdt-popover__body">
+                    <div class="hdt-popover__header md:hdt-hidden hdt-s-text">
+                        <p class="hdt-text-xl hdt-font-medium">{{ 'products.facets.sort_by_label' | t }}</p>
+                    </div>
+                    <div class="hdt-popover__inner hdt-scrollbar">
+                        <hdt-richlist class="hdt-sorting-options hdt-grid" role="listbox" selected="{{ option_selected.value }}" id="listbox{{ id }}" off-change-text>
+                            {%- for option in results.sort_options -%}
+                            <button type="button" role="option" value="{{ option.value }}" aria-selected="{% if option.value == sort_by %}true{% else %}false{% endif %}">{{ option.name | escape }}</button>
+                            {%- endfor -%}
+                        </hdt-richlist>
+                    </div>
+                </div>
+            </dialog>
+        </hdt-popover-sortby>
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+    </hdt-popover-sorting>
+</div>

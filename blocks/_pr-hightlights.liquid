@@ -1,0 +1,44 @@
+{%- assign product = section.settings.product | default: product -%}
+{%- if product.metafields.theme.highlights.value.count > 0 and product.metafields.theme.highlights.value != blank -%}
+    {%- capture childen -%}
+    {%- for metaobject in product.metafields.theme.highlights.value -%}
+        {%- if metaobject.icon.value != blank or metaobject.text.value != blank -%}
+        <div class="hdt-card-highlight__item hdt-pi-icon-with-text hdt-bento-item hdt-grid{% if metaobject.icon.value == blank %} hdt-pi-no-icon{% endif %}">
+            {%- if metaobject.icon.value != blank -%}
+            <div class="hdt-card-highlight__icon">
+                {%- if metaobject.icon.value contains '.svg' -%}
+                    <span class="hdt-icon-higlight" style="--icon-url: url('{{ metaobject.icon.value | image_url }}')"></span>
+                {%- else -%}
+                    {{- metaobject.icon.value | image_url: height: 50 | image_tag: loading: 'lazy', srcset: nil -}} 
+                {%- endif -%}
+            </div>
+            {%- endif -%}
+            {%- if metaobject.text.value != blank -%}
+            <div class="hdt-card-highlight__text hdt-text-base">{{ metaobject.text.value }}</div>
+            {%- endif -%}
+        </div>
+        {%- endif -%}
+    {%- endfor -%}
+    {%- endcapture -%}
+{%- endif -%}
+{%- if childen != blank -%}
+<div class="hdt-product-info__iwt hdt-product__iwt-bento hdt-product-info__item hdt-product-info__item--box hdt-iwt-style-outline">
+    <hdt-bento {{ block.shopify_attributes }} config='{ "active": false, "checkRow": true, "breakpoints": { "(min-width: 480px), (min-width: 1024px)": { "active": true, "cols": 2, "gapX": 20, "gapY": 16 }, "(min-width: 768px) and (max-width: 1023.98px), (min-width: 1920px)": { "active": true, "cols": 3, "gapX": 20, "gapY": 16 } } }'>
+        {{- childen -}}
+    </hdt-bento>
+</div>
+{%- endif -%}
+
+{% schema %}
+    {
+        "name": "t:names.highlights",
+        "tag": null,
+        "settings": [
+        ],
+        "presets": [
+            {
+                "name": "t:names.highlights"
+            }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,46 @@
+{%- doc -%}
+  Calculate the sizes attribute for image
+
+  @param {boolean} is_full - is full width
+  @param {object} closest_settings - settings
+  @param {boolean} [use_col_lg] - use col for media screen (min-width: 1150px) and (max-width: 1439.98px)
+
+  @example
+  {%- capture sizes -%}
+    {%- render 'util-product-card-size', is_full: true, closest_settings: section.settings -%}
+  {%- endcapture -%}
+  {%- assign sizes = sizes | strip -%}
+{%- enddoc -%}
+
+{%- liquid
+  assign spacing_x = settings.spacing_grid_horizontal | append: 'px'
+  assign spacing_x_mb = settings.spacing_grid_horizontal | divided_by: 2 | append: 'px'
+  if is_full
+    assign padding_xl = '96px'
+    if use_col_lg
+      assign padding_lg = '60px'
+      assign col_desktop_lg = closest_settings.columns_desktop | at_most: 4
+    endif
+  else
+    assign padding_xl = '100px'
+  endif
+  assign padding_tb = '60px'
+  assign padding_mb = '30px'
+  assign col_mobile = closest_settings.columns_mobile | plus: 0
+  assign col_tablet = closest_settings.columns_desktop | at_most: 3
+  assign col_desktop = closest_settings.columns_desktop
+-%}
+
+{%- capture tablet_mobile_sizes -%}
+(min-width: 768px) calc((100vw - {{ padding_tb }} - {{ col_tablet | minus: 1 }} * {{ spacing_x }}) / {{ col_tablet }}), {% if closest_settings.swipe_on_mobile %}calc({{ closest_settings.slide_width }}vw - 15px - {{ spacing_x_mb }}){% else %}calc((100vw - {{ padding_mb }} - {{ col_mobile | minus: 1 }} * {{ spacing_x_mb }}) / {{ col_mobile }}){% endif -%}
+{%- endcapture -%}
+
+{%- if is_full -%}
+  {%- if use_col_lg -%}
+    (min-width: 1440px) calc((100vw - {{ padding_xl }} - {{ col_desktop | minus: 1 }} * {{ spacing_x }}) / {{ col_desktop }}), (min-width: 1150px) calc((100vw - {{ padding_lg }} - {{ col_desktop_lg | minus: 1 }} * {{ spacing_x }}) / {{ col_desktop_lg }}), {{ tablet_mobile_sizes -}}
+  {%- else -%}
+    (min-width: 1150px) calc((100vw - {{ padding_xl }} - {{ col_desktop | minus: 1 }} * {{ spacing_x }}) / {{ col_desktop }}), {{ tablet_mobile_sizes -}}
+  {%- endif -%}
+{%- else -%}
+    (min-width: 1150px) calc((min(100vw, {{ settings.page_width | plus: 100 }}px) - {{ padding_xl }} - {{ col_desktop | minus: 1 }} * {{ spacing_x }}) / {{ col_desktop }}), {{ tablet_mobile_sizes -}}
+{%- endif -%}

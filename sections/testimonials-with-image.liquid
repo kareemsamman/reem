@@ -1,0 +1,490 @@
+{%- liquid
+    if section.index == 1
+        assign loading = 'eager'
+    else
+        assign loading = 'lazy'
+    endif
+
+    if settings.sections_reveal_on_scroll
+    assign reveal = 'reveal'
+    else
+        assign reveal = ''
+    endif
+
+    assign min_aspect_ratio = 9999
+    for block in section.blocks
+        if block.settings.image != blank
+            assign current_aspect_ratio = block.settings.image.aspect_ratio
+            if current_aspect_ratio < min_aspect_ratio
+            assign min_aspect_ratio = current_aspect_ratio
+            endif
+        endif
+    endfor
+    assign final_aspect_ratio = min_aspect_ratio
+    if final_aspect_ratio == 9999
+        assign final_aspect_ratio = 0.8
+    endif
+-%}
+{%- style -%}
+    #Section-{{ section.id }}{
+        --gap-col-md: {{  section.settings.spacing }}px;
+        --gap-col: {{ section.settings.spacing_md }}px;
+    }
+{%- endstyle -%}
+{%- capture sizes -%}
+    (min-width: {{ settings.page_width }}px) min(338px, {{ settings.page_width | times: 0.37 }}px), (min-width: 768px) min(310px, calc((100vw - 6rem)*0.37)), 340px
+{%- endcapture -%}
+<hdt-testimonial-image {% if reveal == 'reveal' %}reveal-on-scroll{% endif %}{% if section.settings.shrink_on_sroll %} on-shirk-scroll{% endif %} color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section-testimonials-with-image hdt-shirk-scroll">
+    <div class="hdt-inner-s-background hdt-relative hdt-s-gradient hdt-section-spacing" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px; --rating-color: {{ section.settings.rating_color }};">
+        {%- if section.settings.bg_image != blank -%}
+            {%- liquid
+                assign append_w = section.settings.bg_image.width | default: 4000
+                assign widths = '400,600,800,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3200,' | append: append_w
+                echo '<picture class="hdt-s-background">'
+                if section.settings.bg_image_mb != blank and section.settings.bg_image_mb != section.settings.bg_image
+                    assign append_w_mb = section.settings.bg_image_mb.width | default: 1000
+                    assign widths_mb = '200,400,600,800,1000,' | append: append_w_mb
+                    assign srcset = section.settings.bg_image_mb | image_url: width: section.settings.bg_image_mb.width | image_tag: widths: widths_mb, alt: null | split: 'srcset="' | last
+                    unless srcset contains 'src='
+                    echo '<source media="(max-width: 767px)" srcset="' | append: srcset | replace_first: 'style=', 'data-none='
+                    endunless
+                endif
+                echo section.settings.bg_image | image_url: width: section.settings.bg_image.width | image_tag: loading: loading, sizes: '100vw', widths: widths
+                echo '</picture>'
+            -%}
+        {%- endif -%}
+        <div class="hdt-inner-content-testimonial hdt-s-content hdt-relative">
+            <div class="hdt-container">
+                {%- if section.settings.heading != blank and section.settings.description -%}
+                    <div class="hdt-section-title {% if section.settings.align_header %}hdt-text-center{% endif %}">
+                    {%- if section.settings.heading != blank -%}
+                        <{{ section.settings.heading_tag }} {{ reveal }} class="hdt-{{ section.settings.heading_size }} hdt-heading">{{ section.settings.heading }}</{{ section.settings.heading_tag }}>
+                    {%- endif -%}
+                    {%- if section.settings.description != blank -%}
+                        <div {{ reveal }} class="hdt-theme-block hdt-text-block rte hdt-text-{{ section.settings.description_size }}">{{ section.settings.description }}</div>
+                    {%- endif -%}
+                    </div>
+                {%- endif -%}
+                <div class="hdt-testimonials-w-image-wrapper hdt-flex hdt-align-center">
+                    <div class="hdt-list-images-testimonial">
+                        <div class="hdt-inner-list-images-testimonial md:hdt-ratio--adapt_image_first hdt-ratio--adapt_image_first" style="--aspect-ratioapt: {{ final_aspect_ratio }}; --aspect-ratioapt-md: {{ final_aspect_ratio }}">
+                            {%- for block in section.blocks -%}
+                                <div {{ reveal }} class="hdt-testimonial-image hdt-relative" data-rotate="{{ block.settings.image_rotate }}" data-image="image-{{ block.id }}" style="--rotate:{{ block.settings.image_rotate }}deg; z-index: {{ section.blocks.size | minus: forloop.index0 }};">
+                                    <div class="hdt-media-testimonial-wrapper hdt-rounded-sm hdt-oh hdt-ratio">
+                                    {%- if block.settings.image != blank  -%}
+                                        {%- assign widths = '300,400,500,700,1000,1200,1400,1600,' | append: append_w -%}
+                                        {{ block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: sizes, widths: widths  }}
+                                    {%- else -%}
+                                        {%- liquid
+                                            capture current
+                                            cycle 1, 2 , 3
+                                            endcapture
+                                            echo 'hero-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder'
+                                        -%}
+                                    {%- endif -%}
+                                    </div>
+                                </div>
+                            {%- endfor -%}
+                        </div>
+                    </div>
+                    <hdt-slider eff2 id="Slider-{{ section.id }}" autoheight class="hdt-slider md:hdt-slider__active-true xl:hdt-slider__active-true hdt-slides-1" config='{"customEffect": true, "autoHeight": false, "active": true, "loop": true, "slidesToScroll": 1 }'>
+                        <div class="hdt-slider__viewport">
+                            <div class="hdt-slider__container">
+                                {%- for block in section.blocks -%}
+                                    <div id="{{ block.id }}" class="hdt-testimonial-item hdt-slider__slide" {{ block.shopify_attributes }}>
+                                        <div class="hdt-testimonial-info">
+                                            <span class="hdt-ic-testimonial" {{ reveal }}>{{ 'icon-quote.svg' | inline_asset_content }}</span>
+                                            <div {{ reveal }} class="hdt-star-wrap"  data-rate="{{ block.settings.star_rating }}">
+                                                <span class="hdt-star"></span>
+                                            </div>
+                                            {%- if block.settings.client_quote -%}
+                                                <div {{ reveal }} class="hdt-auth-quote rte hdt-s-text">{{ block.settings.client_quote }}</div>
+                                            {%- endif -%}
+                                            {%- if block.settings.author != blank -%}
+                                                <div {{ reveal }} class="hdt-name-client hdt-font-semibold hdt-flex hdt-align-center" style="--icon-color-author: {{ section.settings.icon_author_color }}">
+                                                    <span class="hdt-icon-wrap">{{- 'icon-author-testimonial.svg' | inline_asset_content -}}</span>
+                                                    <span>{{- block.settings.author -}}</span>
+                                                </div>
+                                            {%- endif -%}
+                                            {%- if block.settings.product != blank -%}
+                                                <div {{ reveal }} class="hdt-testiminial-product">
+                                                    <span>{{ 'testimonials.purchased_items' | t }}</span>
+                                                    <a href="{{ block.settings.product.url }}" class="hdt-product-title hdt-font-semibold hdt-link-underline">{{ block.settings.product.title }}</a>
+                                                </div>
+                                            {%- endif -%}
+                                        </div>
+                                    </div>
+                                {%- endfor -%}
+                            </div>
+                            <hdt-slider-nav {{ reveal }} class="hdt-slide-control-mixed hdt-flex" aria-controls="Slider-{{ section.id }}"{% if section.settings.enable_custom_nav_colors %} style="--nav-background-rgb: {{ section.settings.nav_background.rgb }}; --nav-color-rgb: {{ section.settings.nav_color.rgb }}"{% endif %}>
+                                <button circle-bg-wrap type="button" name="previous" aria-label="{{ 'accessibility.slider.previous_slide' | t }}">
+                                    {{- 'icon-arrow-prev.svg' | inline_asset_content -}}
+                                    <hdt-circle-bg></hdt-circle-bg>
+                                </button>
+                                <hdt-slider-progress controls="Slider-{{ section.id }}"><span class="hdt-slider-progress_bar"></span></hdt-slider-progress>
+                                <button circle-bg-wrap type="button" name="next" disabled="" aria-label="{{ 'accessibility.slider.next_slide' | t }}">
+                                    {{- 'icon-arrow-next.svg' | inline_asset_content -}}
+                                    <hdt-circle-bg></hdt-circle-bg>
+                                </button>
+                            </hdt-slider-nav>
+                        </div>
+                    </hdt-slider>
+                </div>
+            </div>
+        </div>
+    </div>
+</hdt-testimonial-image>
+{% schema %}
+    {
+        "name": "t:names.testimonials-with-image",
+        "tag": "section",
+        "class": "hdt-section",
+        "disabled_on":{
+            "groups": ["*"]
+        },
+        "max_blocks": 5,
+        "settings": [
+            {
+                "type": "color",
+                "id": "rating_color",
+                "label": "t:settings.rating_color",
+                "default": "#FC9B2C"
+            },
+            {
+                "type": "color",
+                "id": "icon_author_color",
+                "label": "t:settings.icon_author_color",
+                "default": "#3E9555"
+            },
+            {
+                "type": "header",
+                "content": "t:content.appearance"
+            },
+            {
+                "type": "checkbox",
+                "id": "shrink_on_sroll",
+                "label": "t:settings.shrink_on_sroll",
+                "default": true,
+            },
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-4"
+            },
+            {
+                "type": "image_picker",
+                "id": "bg_image",
+                "label": "t:settings.background_image"
+            },
+            {
+                "type": "image_picker",
+                "id": "bg_image_mb",
+                "label": "t:settings.background_image_mb"
+            },
+            {
+                "type": "header",
+                "content": "t:content.spacing"
+            },
+            {
+                "type": "range",
+                "id": "spacing",
+                "label": "t:settings.desktop",
+                "min": 30,
+                "max": 100,
+                "default": 68,
+                "unit": "px",
+                "step": 2
+            },
+            {
+                "type": "range",
+                "id": "spacing_md",
+                "label": "t:settings.tablet",
+                "min": 20,
+                "max": 60,
+                "default": 38,
+                "unit": "px",
+                "step": 2
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_header"
+            },
+            {
+                "type": "inline_richtext",
+                "id": "heading",
+                "label": "t:settings.heading",
+                "default": "t:text_defaults.testimonials",
+            },
+            {
+                "type": "select",
+                "id": "heading_size",
+                "options": [
+                    {
+                        "value": "h0",
+                        "label": "t:options.heading_2extra_large"
+                    },
+                    {
+                        "value": "h1",
+                        "label": "t:options.heading_extra_large"
+                    },
+                    {
+                        "value": "h2",
+                        "label": "t:options.heading_large"
+                    },
+                    {
+                        "value": "h3",
+                        "label": "t:options.heading_medium"
+                    },
+                    {
+                        "value": "h4",
+                        "label": "t:options.heading_small"
+                    },
+                    {
+                        "value": "h5",
+                        "label": "t:options.heading_extra_small"
+                    },
+                    {
+                        "value": "h6",
+                        "label": "t:options.heading_2extra_small"
+                    }
+                ],
+                "default": "h2",
+                "label": "t:settings.heading_size",
+                "visible_if": "{{ section.settings.heading != blank }}"
+            },
+            {
+                "type": "select",
+                "id": "heading_tag",
+                "label": "t:settings.heading_tag",
+                "info": "t:info.heading_tag",
+                "options": [
+                    {
+                    "value": "h1",
+                    "label": "t:options.h1"
+                    },
+                    {
+                    "value": "h2",
+                    "label": "t:options.h2"
+                    },
+                    {
+                    "value": "h3",
+                    "label": "t:options.h3"
+                    },
+                    {
+                    "value": "h4",
+                    "label": "t:options.h4"
+                    },
+                    {
+                    "value": "h5",
+                    "label": "t:options.h5"
+                    },
+                    {
+                    "value": "h6",
+                    "label": "t:options.h6"
+                    },
+                    {
+                    "value": "div",
+                    "label": "t:options.div"
+                    },
+                    {
+                    "value": "span",
+                    "label": "t:options.span"
+                    },
+                    {
+                    "value": "p",
+                    "label": "t:options.p"
+                    }
+                ],
+                "default": "h2",
+                "visible_if": "{{ section.settings.heading != blank }}"
+            },
+            {
+                "type": "richtext",
+                "id": "description",
+                "label": "t:settings.description",
+            },
+            {
+                "type": "select",
+                "id": "description_size",
+                "label": "t:settings.text_size",
+                "options": [
+                {
+                    "value": "sm",
+                    "label": "t:options.text_sm"
+                },
+                {
+                    "value": "base",
+                    "label": "t:options.text_base"
+                },
+                {
+                    "value": "lg",
+                    "label": "t:options.text_lg"
+                },
+                {
+                    "value": "xl",
+                    "label": "t:options.text_xl"
+                },
+                {
+                    "value": "2xl",
+                    "label": "t:options.text_2xl"
+                },
+                ],
+                "default": "base",
+                "visible_if": "{{ section.settings.description != blank }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "align_header",
+                "label": "t:settings.header_center",
+                "default": true
+            },
+            {
+                "type": "header",
+                "content": "t:content.carousel_navigation"
+            },
+            {
+                "type": "checkbox",
+                "id": "enable_custom_nav_colors",
+                "label": "t:settings.enable_custom_color",
+                "default": true,
+            },
+            {
+                "type": "color",
+                "id": "nav_background",
+                "label": "t:settings.background",
+                "default": "#ffffff",
+                "visible_if": "{{ section.settings.enable_custom_nav_colors }}"
+            },
+            {
+                "type": "color",
+                "id": "nav_color",
+                "label": "t:settings.color",
+                "default": "#000000",
+                "visible_if": "{{ section.settings.enable_custom_nav_colors }}"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 40
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 40
+            }
+        ],
+        "blocks": [
+            {
+                "type": "testimonial-with-image",
+                "name": "t:names.testimonial",
+                "settings":[
+                    {
+                        "type": "image_picker",
+                        "id": "image",
+                        "label": "t:settings.image"
+                    },
+                    {
+                        "type": "range",
+                        "id": "image_rotate",
+                        "label": "t:settings.image_rotate",
+                        "min": -10,
+                        "max": 10,
+                        "default": 0,
+                        "step": 1,
+                        "unit": "deg"
+                    },
+                    {
+                        "type": "range",
+                        "id": "star_rating",
+                        "label": "t:settings.star_rating",
+                        "min": 0,
+                        "max": 5,
+                        "step": 0.5,
+                        "default": 5
+                    },
+                    {
+                        "type": "richtext",
+                        "id": "client_quote",
+                        "label": "t:settings.text",
+                        "default": "t:text_defaults.testimonial_text"
+                    },
+                    {
+                        "type": "text",
+                        "id": "author",
+                        "label": "t:settings.author",
+                        "default": "t:text_defaults.author_name"
+                    },
+                    {
+                        "type": "product",
+                        "id": "product",
+                        "label": "t:settings.product",
+                    }
+                ]
+            },
+        ],
+        "presets": [
+            {
+                "name": "t:names.testimonials-with-image",
+                "category": "t:categories.testimonials",
+                "blocks": [
+                    {
+                        "type": "testimonial-with-image",
+                        "settings": {
+                            "image_rotate": 0,
+                            "client_quote": "<p>Finally, activewear that looks as good as it feels! The designs are stylish enough to wear all day, and the fabric is buttery soft. I get compliments every time I wear them!</p>"
+                        }
+                    },
+                    {
+                        "type": "testimonial-with-image",
+                        "settings": {
+                            "image_rotate": 5,
+                            "client_quote": "<p>Finally, activewear that looks as good as it feels! The designs are stylish enough to wear all day, and the fabric is buttery soft. I get compliments every time I wear them!</p>"
+                        }
+                    },
+                    {
+                        "type": "testimonial-with-image",
+                        "settings": {
+                            "image_rotate": -5,
+                            "client_quote": "<p>Finally, activewear that looks as good as it feels! The designs are stylish enough to wear all day, and the fabric is buttery soft. I get compliments every time I wear them!</p>"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

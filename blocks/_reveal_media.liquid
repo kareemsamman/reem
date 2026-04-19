@@ -1,0 +1,246 @@
+{%- liquid
+    if section.index == 1
+        assign loading = 'eager'
+    else
+        assign loading = 'lazy'
+    endif
+
+    if block.settings.start_pos == "center"
+        assign seed = "now" | date: "%N"
+        assign tx_start = seed | modulo: 11 | plus: 45
+        assign seed = "now" | date: "%N"
+        assign ty_start = seed | modulo: 11 | plus: 45
+    else
+        assign tx_start = block.settings.tx_start
+        assign ty_start = block.settings.ty_start
+    endif
+
+    case block.settings.end_pos
+        when "random"
+            if tx_start >= 50
+                assign min_x = tx_start | at_least: 65
+                assign max_x = 100
+            else
+                assign min_x = 0
+                assign max_x = tx_start | at_least: 45
+            endif
+            if ty_start >= 50
+                assign min_y = ty_start | at_least: 65
+                assign max_y = 100
+            else
+                assign min_y = 0
+                assign max_y = ty_start | at_least: 45
+            endif
+            assign seed = "now" | date: "%N"
+            assign range = max_x | minus: min_x | plus: 1
+            assign tx_end = seed | modulo: range | plus: min_x
+            assign seed = "now" | date: "%N"
+            assign range = max_y | minus: min_y | plus: 1
+            assign ty_end = seed | modulo: range | plus: min_y
+        when "random_top_left"
+            assign seed = "now" | date: "%N"
+            assign tx_end = seed | modulo: 41
+            assign seed = "now" | date: "%N"
+            assign ty_end = seed | modulo: 41
+        when "random_top_right"
+            assign seed = "now" | date: "%N"
+            assign tx_end = seed | modulo: 41 | plus: 65
+            assign seed = "now" | date: "%N"
+            assign ty_end = seed | modulo: 41
+        when "random_bottom_left"
+            assign seed = "now" | date: "%N"
+            assign tx_end = seed | modulo: 41
+            assign seed = "now" | date: "%N"
+            assign ty_end = seed | modulo: 41 | plus: 65
+        when "random_bottom_right"
+            assign seed = "now" | date: "%N"
+            assign tx_end = seed | modulo: 41 | plus: 65
+            assign seed = "now" | date: "%N"
+            assign ty_end = seed | modulo: 41 | plus: 65
+        else
+            assign tx_end = block.settings.tx_end
+            assign ty_end = block.settings.ty_end
+    endcase
+
+    assign block_index = section.blocks | find_index: 'id', block.id
+    assign current = block_index | modulo: 4 | plus: 1
+-%}
+<div class="hdt-scroll-hero-media__item hdt-rounded-sm" data-start_pos="{{ block.settings.start_pos }}" data-end_pos="{{ block.settings.end_pos }}" style="--tx-start: {{ tx_start }}; --ty-start: {{ ty_start }}; --tx-end: {{ tx_end }}; --ty-end: {{ ty_end }};" {{ block.shopify_attributes }}>
+    {%- if block.settings.media_type == 'image'  -%}
+    {%- liquid
+        if block.settings.image != blank
+            assign append_w = block.settings.image.width | default: 3000
+            assign widths = '250,486,700' | append: append_w
+            echo block.settings.image | image_url: width: block.settings.image.width | image_tag: loading: loading, sizes: '486px', widths: widths, class: 'hdt-hero-gallery-media hdt-hero-gallery-image'
+        else
+            echo 'product-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-hero-gallery-media hdt-hero-gallery-image'
+        endif
+    -%}
+    {%- else -%}
+        {%- if block.settings.video != blank -%}
+            <hdt-video autoplay type="html5" id="Video-{{ block.id }}" class="hdt-hero-gallery-media hdt-hero-gallery-video" is--lazy>
+                {%- liquid
+                    render 'video', video: block.settings.video, show_image: true, image: block.settings.image_video, sizes: '486px', hidden_poster: true, lazyload: true, widths: '250,486,700'
+                -%}
+            </hdt-video>
+        {%- else -%}
+                {%- liquid
+                if block.settings.image_video != blank
+                    assign widths = '250,486,700' | append: block.settings.image_video.width
+                    echo block.settings.image_video | image_url: width: block.settings.image_video.width | image_tag: widths: widths, loading: loading, sizes: '486px', class: 'hdt-hero-gallery-media hdt-hero-gallery-image'
+                else
+                    echo 'product-apparel-' | append: current | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-hero-gallery-media hdt-hero-gallery-image'
+                endif
+                -%}
+        {%- endif -%}
+    {%- endif -%}
+</div>
+
+{%- schema -%}
+{
+    "name": "t:names.reveal_media",
+    "tag": null,
+    "settings": [
+        {
+            "type": "select",
+            "id": "media_type",
+            "label": "t:settings.media_type",
+            "options": [
+                {
+                    "label": "t:options.image",
+                    "value": "image"
+                },
+                {
+                    "label": "t:options.video",
+                    "value": "video"
+                }
+            ],
+            "default": "image"
+        },
+        {
+            "type": "image_picker",
+            "id": "image",
+            "label": "t:settings.image",
+            "visible_if": "{{ block.settings.media_type == 'image' }}"
+        },
+        {
+            "type": "video",
+            "id": "video",
+            "label": "t:settings.video",
+            "visible_if": "{{ block.settings.media_type == 'video' }}"
+        },
+        {
+            "type": "image_picker",
+            "id": "image_video",
+            "label": "t:settings.image_video",
+            "info": "t:info.image_video",
+            "visible_if": "{{ block.settings.media_type == 'video' }}"
+        },
+        {
+            "type": "header",
+            "content": "t:content.starting_position",
+            "info": "t:info.flying_media_start_position"
+        },
+        {
+            "type": "select",
+            "id": "start_pos",
+            "label": "t:settings.starting_at",
+            "options": [
+                {
+                    "value": "center",
+                    "label": "t:options.center",
+                },
+                {
+                    "value": "custom",
+                    "label": "t:options.custom"
+                },
+            ],
+            "default": "center"
+        },
+        {
+            "type": "range",
+            "id": "tx_start",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "t:settings.horizontal_position",
+            "default": 52,
+            "visible_if": "{{ block.settings.start_pos == 'custom' }}"
+        },
+        {
+            "type": "range",
+            "id": "ty_start",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "t:settings.vertical_position",
+            "default": 48,
+            "visible_if": "{{ block.settings.start_pos == 'custom' }}"
+        },
+        {
+            "type": "header",
+            "content": "t:content.destination_position",
+            "info": "t:info.flying_media_end_position"
+        },
+        {
+            "type": "select",
+            "id": "end_pos",
+            "label": "t:settings.ending_at",
+            "options": [
+                {
+                    "value": "random",
+                    "label": "t:options.random",
+                },
+                {
+                    "value": "random_top_left",
+                    "label": "t:options.random_top_left"
+                },
+                {
+                    "value": "random_top_right",
+                    "label": "t:options.random_top_right"
+                },
+                {
+                    "value": "random_bottom_right",
+                    "label": "t:options.random_bottom_right"
+                },
+                {
+                    "value": "random_bottom_left",
+                    "label": "t:options.random_bottom_left"
+                },
+                {
+                    "value": "custom",
+                    "label": "t:options.custom"
+                },
+            ],
+            "default": "random"
+        },
+        {
+            "type": "range",
+            "id": "tx_end",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "t:settings.horizontal_position",
+            "default": 60,
+            "visible_if": "{{ block.settings.end_pos == 'custom' }}"
+        },
+        {
+            "type": "range",
+            "id": "ty_end",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "t:settings.vertical_position",
+            "default": 0,
+            "visible_if": "{{ block.settings.end_pos == 'custom' }}"
+        },
+    ],
+    "presets": [
+        {"name": "t:names.reveal_media"}
+    ]
+}
+{%- endschema -%}

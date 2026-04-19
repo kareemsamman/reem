@@ -1,0 +1,44 @@
+<div can-reveal class="hdt-theme-block hdt-label-emoij hdt-font-medium hdt-text-{{ block.settings.text_size }}" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+{% schema %}
+    {
+        "name": "t:names.label",
+        "tag": null,
+        "settings": [
+            {
+                "type": "text",
+                "id": "text",
+                "label": "t:settings.text",
+                "default": "t:text_defaults.limited_time_deals"
+            },
+            {
+                "type": "select",
+                "id": "text_size",
+                "label": "t:settings.text_size",
+                "options": [
+                    {
+                        "value": "sm",
+                        "label": "t:options.text_xs"
+                    },
+                    {
+                        "value": "base",
+                        "label": "t:options.text_base"
+                    },
+                    {
+                        "value": "lg",
+                        "label": "t:options.text_lg"
+                    },
+                    {
+                        "value": "xl",
+                        "label": "t:options.text_xl"
+                    }
+                ],
+                "default": "lg"
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.label",
+            }
+        ]
+    }
+{% endschema %}

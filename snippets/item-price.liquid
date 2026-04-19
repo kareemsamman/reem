@@ -1,0 +1,68 @@
+{%- comment -%}
+  Renders a item price
+
+  Accepts:
+  - product: {Object} Product Liquid object (required)
+  - use_variant: {Boolean} Renders selected or first variant price instead of overall product pricing (optional)
+  - price_class: {String} Adds a price class to the price element (optional)
+  - alway_show_compare_at_price: {Boolean} Renders the compare at price if the product matches the condition (optional)
+  - show_compare_at_price: {Boolean} Renders the compare at price if the product matches the condition (optional)
+
+  Usage:
+  {%- render 'card-price', product: card_product, show_volume_note: true -%} (used on card, product on sidebar)
+  {%- render 'price', product: product, use_variant: true, form_id: form_id -%} (used on product page, quick view, featured product...)
+  {%- render 'item-price', product: product -%} (used on Product hostpot, product testimonials)
+  {%- render 'line-item-price', line_item: item -%} (used on cart, order page...)
+{%- endcomment -%}
+
+{%- liquid
+    if alway_show_compare_at_price == nil
+      assign alway_show_compare_at_price = false
+    endif
+    if show_compare_at_price == nil
+      assign show_compare_at_price = true
+    endif
+    if use_variant
+      assign target = product.selected_or_first_available_variant
+    else
+      assign target = product
+    endif
+  
+    assign compare_at_price = target.compare_at_price
+    assign price = target.price | default: 1999
+    if settings.currency_code_enabled
+      assign money_price = price | money_with_currency
+      assign money_compare_at_price = compare_at_price | money_with_currency
+    else
+      assign money_price = price | money
+      assign money_compare_at_price = compare_at_price | money
+    endif
+    if compare_at_price > price
+      assign on_sale = true
+    else
+      assign on_sale = false
+    endif
+    assign price_varies_item = ''
+    if target == product and product.price_varies
+      assign price_varies_item = ' hdt-price-item--range'
+      assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+    endif
+  -%}
+  
+  <div class="hdt-price-wrapp {{ price_class }}">
+    {%- if alway_show_compare_at_price -%}
+      <hdt-compare-at-price class="hdt-compare-at-price"{% unless on_sale %} hidden{% endunless %}>
+        <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+        <span class="hdt-money">{{ money_compare_at_price }}</span>
+      </hdt-compare-at-price>
+    {%- elsif compare_at_price and on_sale and show_compare_at_price -%}
+      <hdt-compare-at-price class="hdt-compare-at-price">
+        <span class="sr-only sr-only--inline">{{ 'products.product.price.regular_price' | t }}</span>
+        <span class="hdt-money">{{ money_compare_at_price }}</span>
+      </hdt-compare-at-price>
+    {%- endif -%}
+    <hdt-price class="hdt-price{{ price_varies_item }}">
+      <span class="sr-only sr-only--inline">{{ 'products.product.price.sale_price' | t }}</span>
+      {%- if price_varies_item != '' %}{{ money_price }}{% else %}<span class="hdt-money">{{ money_price }}</span>{% endif -%}
+    </hdt-price>
+  </div>

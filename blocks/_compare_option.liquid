@@ -1,0 +1,64 @@
+{%- liquid
+  assign product = closest.product
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign block_slot = section.id | append: block_index
+  assign index = section.settings.product_list | find_index: 'id', product.id
+  assign is_even = index | modulo: 2
+  if is_even == 0
+      assign row_label = 'hdt-row-even'
+  else
+      assign row_label = 'hdt-row-odd'
+  endif
+
+  if block.id contains section.blocks.last.first.id and section.settings.show_btn_detail == false
+    assign row_last = ' hdt-row-last'
+  else
+    assign row_last = ''
+  endif
+  assign size_list = 'products.theme_settings.size' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+  assign option_name_down = block.settings.title | downcase
+-%}
+{%- if index == 0 and section.settings.layout == 'table' -%}
+    <div class="hdt-compare-col hdt-col-first{{ row_last }}" data-title="{{ block.settings.title | capitalize | escape }}" slot="{{ block_slot }}"></div>
+{%- endif -%}
+<div class="hdt-compare-col {{ row_label }}{{ row_last }}" data-title="{{ block.settings.title | escape }}" slot="{{ block_slot }}">
+    <div class="hdt-pr-variant-swatches">
+      {%- if block.settings.title != blank and product.options_by_name[option_name_down].values.size > 0 -%}
+        {%- for value in product.options_by_name[option_name_down].values -%}
+          {%- if size_list contains option_name_down -%}
+            <span class="hdt-item-variant hdt-size-swatch">{{ value | upcase }}</span>
+          {%- elsif value.swatch.image != blank %}
+              <span class="hdt-item-variant hdt-color-swatch" style="--hdt-bg-image: url({{ value.swatch.image | image_url: width: 60 }});"><span class="sr-only">{{ value }}</span></span>
+          {%- elsif value.swatch.color != blank -%}
+              <span class="hdt-item-variant hdt-color-swatch" style="--bg-color: {{ value.swatch.color }}"><span class="sr-only">{{ value }}</span></span>
+          {%- else -%}
+              <span class="hdt-item-variant hdt-text-swatch">
+                  {{- value | capitalize -}}
+              </span>
+        {%- endif -%}
+        {%- endfor -%}<!--{{ block_slot }}:visible -->
+      {%- else -%}
+        <span>-</span>
+      {%- endif -%}
+    </div>
+</div>
+
+{% schema %}
+  {
+    "name": "t:names.option",
+    "tag": null,
+    "settings": [
+      {
+          "type": "text",
+          "id": "title",
+          "label": "t:settings.option_name",
+          "info": "t:info.option_name"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.option"
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,33 @@
+{%- comment -%}
+  Renders a free shipping bar
+
+  Accepts:
+  - shipping_amount: {Number} Free shipping amount (required)
+
+  Usage:
+  {%- render 'cart-shipping-bar', shipping_amount: shipping_amount -%}
+{%- endcomment -%}
+
+{%- liquid
+    assign calculated_total_price = cart.items | where: "requires_shipping", true | sum: 'final_line_price'
+    if settings.currency_code_enabled
+      assign money_need_add = shipping_amount | minus: calculated_total_price | money_with_currency
+    else
+      assign money_need_add = shipping_amount | minus: calculated_total_price | money
+    endif
+    assign money_need_add = '<span class="hdt-money">' | append: money_need_add | append: '</span>'
+  -%}
+
+{%- assign progress_shipping = calculated_total_price | times: 1.0 | divided_by: shipping_amount | at_most: 1 -%}
+<hdt-free-shipping-bar class="hdt-free-shipping-bar is-{% if progress_shipping <= 0.6 %}intial{% elsif progress_shipping == 1 %}success{% else %}unreached{% endif %}">
+<hdt-x-progress class="hdt-x-progress" role="progressbar" max="{{ shipping_amount }}" value="{{ calculated_total_price }}" gradient="false" -colors='[ {"threshold":0,"color":"{{ settings.color_error }}"}, {"threshold":60.1,"color":"{{ settings.color_warning }}"}, {"threshold":100,"color":"{{ settings.color_success }}"} ]' reveal-in-view></hdt-x-progress>
+<span class="hdt-progress-msg hdt-font-medium hdt-s-text">
+    {%- if progress_shipping == 0 -%}
+    {{- 'cart.free_shipping_bar.intial_html' | t: money: money_need_add -}}
+    {%- elsif progress_shipping == 1 -%}
+    {{- 'cart.free_shipping_bar.success' | t -}}
+    {%- else -%}
+    {{- 'cart.free_shipping_bar.unreached_html' | t: money: money_need_add -}}
+    {%- endif -%}
+</span>
+</hdt-free-shipping-bar>

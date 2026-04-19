@@ -1,0 +1,203 @@
+{%- liquid
+  assign localization_form_id = 'HeaderLocalizationForm'
+  if localization.available_countries.size > 1
+    assign show_country_selector = block.settings.enable_country_selector
+  else
+    assign show_country_selector = false
+  endif
+  if  localization.available_languages.size > 1
+    assign show_language_selector = block.settings.enable_language_selector
+  else
+    assign show_language_selector = false
+  endif
+  if show_country_selector and show_language_selector
+    assign reveal = false
+    if localization.available_countries > 7
+      assign country_tag = '<div class="hdt-country-selector-form__wrapper hdt-scrollbar" reveal>|</div>' | split: '|'
+    else
+      assign country_tag = '<div class="hdt-country-selector-form__wrapper hdt-scrollbar">|</div>' | split: '|'
+    endif
+    assign language_tag = '<div class="hdt-language-selector-form__wrapper hdt-scrollbar">|</div>' | split: '|'
+  else
+    assign reveal = true
+    assign country_tag = '|' | split: '|'
+    assign language_tag = '|' | split: '|'
+  endif
+-%}
+
+<div class="hdt-header__utilities hdt-s-text" {{ block.shopify_attributes }}>
+  {%- if show_country_selector or show_language_selector -%}
+    <hdt-header-menu event="click" pos backdrop class="hdt-hidden">
+      <details class="hdt-header-details hdt-localization-selector-wrap">
+        <summary prevent role="button" class="hdt-localization-selector hdt-inline-flex hdt-align-center">
+          {%- if show_country_selector -%}
+            {%- if block.settings.show_country_flag %}<img src="{{ localization.country | image_url: width: 44 }}" alt="{{ localization.country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">{% endif -%}
+            <span>{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}</span>
+          {%- endif -%}
+          {%- if show_language_selector -%}
+            {%- if show_country_selector -%}
+              <span>/</span><span>{{ localization.language.iso_code | upcase }}</span>
+            {%- else -%}
+              <span>{{ localization.language.endonym_name | capitalize }}</span>
+            {%- endif -%}
+          {%- endif -%}
+          {{- 'icon-carret.svg' | inline_asset_content -}}
+        </summary>
+        <div class="hdt-dropdown__list">
+          <ul class="hdt-dropdown__list-wrap hdt-grid hdt-scrollbar" role="list">
+            {%- form 'localization', id: localization_form_id, class: 'localization-form' -%}
+              {%- if show_country_selector -%}
+              {{- country_tag.first -}}
+                {%- for country in localization.available_countries -%}
+                <button {% if reveal %}reveal {% endif %}type="submit" name="country_code" role="option" value="{{ country.iso_code }}" class="hdt-dropdown__link">
+                  <img src="{{ country | image_url: width: 44 }}" alt="{{ country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">
+                  <span country>{{- country.name }} ({{ country.currency.iso_code }} {{ country.currency.symbol }})</span>
+                  {%- if country.iso_code == localization.country.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}
+                </button>
+                {%- endfor -%}
+              {{- country_tag.last -}}
+              {%- endif -%}
+
+              {%- if show_language_selector -%}
+                {%- if show_country_selector %}<div reveal class="hdt-language-selector-label hdt-text-sm hdt-uppercase">{{ 'localization.language' | t }}</div>{% endif -%}
+                {{- language_tag.first -}}
+                {%- for language in localization.available_languages -%}
+                  <button reveal type="submit" name="language_code" role="option" value="{{ language.iso_code }}" class="hdt-dropdown__link focus-inset-1"{% if language.iso_code == localization.language.iso_code %} aria-selected="true" {%- endif -%}>{{ language.endonym_name | capitalize -}}
+                    {%- if language.iso_code == localization.language.iso_code %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endif -%}
+                  </button>
+                {%- endfor -%}
+                {{- language_tag.last -}}
+              {%- endif -%}
+
+            {%- endform -%}
+          </ul>
+        </div>
+      </details>
+    </hdt-header-menu>
+  {%- endif -%}
+  {%- if block.settings.show_search -%}
+    <a class="hdt-header__search-btn" href="{{ routes.search_url }}" aria-controls="Drawer-search" aria-label="{{ 'accessibility.search' | t | escape }}">
+      {{- 'icon-header-search.svg' | inline_asset_content -}}
+    </a>
+  {%- endif -%}
+  {%- if block.settings.show_account -%}{%- render 'shopify-account' -%}{%- endif -%}
+  {%- if block.settings.show_cart -%}
+    {%- assign cart_badge = block.settings.cart_icon_badge | append: block.settings.cart_icon_badge_mobile -%}
+    <a href="{{ routes.cart_url }}" class="hdt-cart-icon hdt-cart-bubble hdt-relative" aria-controls="CartDrawer" aria-label="{{ 'accessibility.cart' | t | escape }}" cart-badge="{{ block.settings.cart_icon_badge }}" cart-badge-mobile="{{ block.settings.cart_icon_badge_mobile }}">
+      <span class="sr-only">{{ 'accessibility.cart_count' | t: count: cart.item_count }}</span>
+      {{- 'icon-cart-empty.svg' | inline_asset_content -}}
+      {%- if cart_badge != 'nonenone' -%}
+        {%- if cart_badge contains 'dot' %}<hdt-cart-dot aria-hidden="true" class="hdt-absolute{% if cart.item_count > 0 %} is-visible{% endif %}"></hdt-cart-dot>{% endif -%}
+        {%- if cart_badge contains 'count' %}<hdt-cart-count aria-hidden="true" class="hdt-absolute{% if cart.item_count > 0 %} is-visible{% endif %}">{{ cart.item_count }}</hdt-cart-count>{% endif -%}
+      {%- endif -%}
+    </a>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Utilities",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:content.localization",
+      "info": "t:info.will_hidden_mobile"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "default": false,
+      "label": "t:settings.country_region",
+      "info": "t:info.country_selector"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_flag",
+      "default": true,
+      "label": "t:settings.flag",
+      "visible_if": "{{ block.settings.enable_country_selector }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "default": false,
+      "label": "t:settings.language_selector",
+      "info": "t:info.language_selector"
+    },
+    {
+      "type": "header",
+      "content": "Search"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "default": true,
+      "label": "Search"
+    },
+    {
+      "type": "header",
+      "content": "Account",
+      "info": "t:info.will_hidden_mobile"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "default": true,
+      "label": "Account"
+    },
+    {
+      "type": "header",
+      "content": "Cart",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart",
+      "default": true,
+      "label": "Cart"
+    },
+    {
+      "type": "select",
+      "id": "cart_icon_badge",
+      "visible_if": "{{ block.settings.show_cart }}",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "dot",
+          "label": "t:options.dot"
+        },
+        {
+          "value": "count",
+          "label": "t:options.count"
+        }
+      ],
+      "default": "count",
+      "label": "t:settings.badge"
+    },
+    {
+      "type": "select",
+      "id": "cart_icon_badge_mobile",
+      "visible_if": "{{ block.settings.show_cart }}",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "dot",
+          "label": "t:options.dot"
+        },
+        {
+          "value": "count",
+          "label": "t:options.count"
+        }
+      ],
+      "default": "dot",
+      "label": "t:settings.mobile_badge"
+    }
+  ]
+}
+{% endschema %}

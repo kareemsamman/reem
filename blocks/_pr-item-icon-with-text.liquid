@@ -1,0 +1,186 @@
+{%- if block.settings.icon != 'none' or block.settings.text != blank -%}
+    <div class="hdt-product__icon-with-text hdt-bento-item" data-type="icon-with-text">
+        <div class="hdt-pi-icon-with-text hdt-s-text{% if block.settings.icon == 'none' %} hdt-pi-no-icon{% endif %}">
+            {%- if block.settings.icon != 'none' -%}
+              <span class="hdt-pi-icon">
+                {%- liquid
+                    if block.settings.custom_img_icon != blank
+                        echo block.settings.custom_img_icon | image_url: width: '20' | image_tag: widths: '20,40', sizes: '20px'
+                    elsif block.settings.custom_icon != blank
+                        echo block.settings.custom_icon
+                    else
+                        echo 'icon-' | append: block.settings.icon | append: '.svg' | inline_asset_content
+                    endif
+                -%}
+                </span>
+            {%- endif -%}
+            {%- if block.settings.text != blank %}<span class="hdt-pi-text hdt-font-medium">{{ block.settings.text }}</span>{% endif -%}
+        </div>
+    </div>
+    <div class="hdt-line-horizontal" unless-el></div>
+{%- endif -%}
+{% schema %}
+{
+    "name": "t:names.icon_with_text",
+    "tag": null,
+    "settings": [
+      {
+        "type": "select",
+        "id": "icon",
+        "options": [
+          {
+            "value": "none",
+            "label": "t:options.none"
+          },
+          {
+            "value": "atmos",
+            "label": "t:options.ic_atmos"
+          },
+          {
+            "value": "charge",
+            "label": "t:options.ic_charge"
+          },
+          {
+            "value": "charge-a",
+            "label": "t:options.ic_charge_a"
+          },
+          {
+              "value": "isolation",
+              "label": "t:options.ic_isolation"
+          },
+          {
+              "value": "cable",
+              "label": "t:options.ic_cable"
+          },
+          {
+              "value": "mic",
+              "label": "t:options.ic_mic"
+          },
+          {
+              "value": "aware",
+              "label": "t:options.ic_aware"
+          },
+          {
+              "value": "battery",
+              "label": "t:options.ic_battery"
+          },
+          {
+              "value": "battery-outline",
+              "label": "t:options.ic_battery_outline"
+          },
+          {
+              "value": "ear-deaf",
+              "label": "t:options.ic_ear_deaf"
+          },
+          {
+              "value": "water-resistant",
+              "label": "t:options.ic_water_resistant"
+          },
+          {
+            "value": "bluetooth",
+            "label": "t:options.ic_bluetooth"
+          },
+          {
+            "value": "mobile-phone",
+            "label": "t:options.ic_mobile_phone"
+          },
+          {
+            "value": "shipping-box",
+            "label": "t:options.ic_shipping_box"
+          },
+          {
+            "value": "lock",
+            "label": "t:options.ic_lock"
+          },
+          {
+            "value": "return",
+            "label": "t:options.ic_return"
+          },
+          {
+            "value": "headphone",
+            "label": "t:options.ic_headphone"
+          },
+          {
+            "value": "return-circle",
+            "label": "t:options.ic_return_circle"
+          },
+          {
+            "value": "security-check",
+            "label": "t:options.ic_security_check"
+          },
+          {
+            "value": "wave",
+            "label": "t:options.ic_wave"
+          },
+          {
+            "value": "lightning",
+            "label": "t:options.ic_lightning"
+          },
+          {
+            "value": "bio-network",
+            "label": "t:options.ic_bio_network"
+          },
+          {
+            "value": "focus-eye",
+            "label": "t:options.ic_focus_eye"
+          },
+          {
+            "value": "stitching",
+            "label": "t:options.ic_stitching"
+          },
+          {
+            "value": "trendy-cropped",
+            "label": "t:options.ic_trendy_cropped"
+          },
+          {
+            "value": "location-dot",
+            "label": "t:options.ic_location"
+          },
+          {
+            "value": "envelope",
+            "label": "t:options.ic_envelope"
+          },
+          {
+            "value": "phone",
+            "label": "t:options.ic_phone"
+          },
+          {
+            "value": "oclock",
+            "label": "t:options.ic_oclock"
+          },
+          {
+            "value": "comment",
+            "label": "t:options.ic_comment"
+          }
+        ],
+        "default": "return",
+        "label": "t:settings.icon"
+      },
+      {
+        "type": "textarea",
+        "id": "custom_icon",
+        "label": "t:settings.custom_icon",
+        "info": "t:info.custom_icon",
+        "visible_if": "{{ block.settings.icon != 'none' }}"
+      },
+      {
+        "type": "image_picker",
+        "id": "custom_img_icon",
+        "label": "t:settings.custom_img_icon",
+        "info": "t:info.icon_200",
+        "visible_if": "{{ block.settings.icon != 'none' }}"
+      },
+      {
+        "type": "inline_richtext",
+        "id": "text",
+        "label": "t:settings.text",
+        "default": "t:text_defaults.fast_secure_delivery"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:names.icon_with_text"
+      }
+    ]
+}
+{%- endschema -%}

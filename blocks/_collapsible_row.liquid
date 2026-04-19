@@ -1,0 +1,46 @@
+<hdt-accordion class="hdt-accordion" {{ block.shopify_attributes }}>
+    <details {% if block.settings.show_content_on_init %}open{% endif %}>
+        <summary not-dialog class="hdt-accordion-heading hdt-text-xl hdt-font-medium" aria-expanded="{{ block.settings.show_content_on_init }}">
+            <span class="hdt-icon-wrap">{{- 'icon-plus.svg' | inline_asset_content -}}</span>
+            <span>{{- block.settings.title -}}</span>
+        </summary>
+        <div class="hdt-accordion-content">
+            {%- content_for 'blocks' -%}
+        </div>
+    </details>
+</hdt-accordion>
+{% schema %}
+    {
+        "name": "t:names._collapsible_row",
+        "tag": null,
+        "blocks": [{ "type": "@theme" }],
+        "settings": [
+            {
+                "type": "text",
+                "id": "title",
+                "label": "t:settings.title",
+                "default": "t:text_defaults.faq_question"
+            },
+            {
+                "type": "checkbox",
+                "id": "show_content_on_init",
+                "label": "t:settings.auto_open",
+                "default": false
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names._collapsible_row",
+                "blocks": [
+                    {
+                        "type": "text",
+                        "settings": {
+                            "text":"<p>This is a sample answer for a frequently asked question. You can edit this content to provide relevant information for your customers.</p>",
+                            "text_size": "base"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

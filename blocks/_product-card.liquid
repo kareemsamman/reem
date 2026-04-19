@@ -1,0 +1,161 @@
+{%- doc -%}
+  @description
+  Renders a product card
+  This snippet is used to render a product card.
+  It is used in the product block, featured product block, and the product card block.
+  The product object is null or when placeholders are rendered.
+
+  @param {object} [product_url] - The URL of the product
+  @param {object} [lazy_load] - The lazy load attribute for the product image
+  @param {string} sizes - The sizes attribute for the product image
+  @param {string} swatch_list
+  @param {string} section_id - The ID of the section that contains this card.
+  @param {string} [class_card] - The class to apply to the card
+  @param {string} [image_ratio] - Size of the product image card. Values are "square" and "portrait". Default is "Adapt to image"
+  @param {string} [card_style] - Show border around the card
+  @param {string} [info_center]
+  @param {boolean} [show_vendor] - Show the product vendor. Default: false
+
+  @example
+  {%- content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, swatch_list: swatch_list, section_id: block.id, image_ratio: section.settings.pr_image_ratio, sizes: sizes, show_vendor: section.settings.show_vendor, card_style: section.settings.card_style, class_card: 'hdt-slider__slide', product_url: product_url, lazy_load: lazy_load -%}
+
+{%- enddoc -%}
+
+{%- liquid
+  assign product = closest.product
+  if product.media[1] != null and settings.show_secondary_image
+    assign has_secondary_image = true
+  else
+    assign has_secondary_image = false
+  endif
+  unless lazy_load
+    assign lazy_load = 'lazy'
+  endunless
+  unless product_url
+    assign product_url = product.url
+  endunless
+  # assign first_variant = product.selected_or_first_available_variant
+  assign featured_media = product.featured_media | default: settings.placeholder_img
+  assign swatch_count = 0
+  if product.has_only_default_variant == false and settings.swatch_mode != 'hide'
+    assign combined_listing_count = product.options_with_values | map: 'values' | map: 'product_url' | compact | size
+    assign linked_products_metafield = product.metafields.theme.linked_products
+    if product.options_with_values.first.values.size == 1 and linked_products_metafield and linked_products_metafield.value.products != blank and linked_products_metafield.value.products.value.count > 0 and linked_products_metafield.value.products.type == 'list.product_reference' and combined_listing_count == 0
+      assign linked_products = true
+      assign swatch_values = linked_products_metafield.value.products.value
+      assign swatch_count = swatch_values.count
+      assign swatch_name = product.options_with_values.first.name | escape
+    else
+      assign linked_products = false
+      assign swatch_count_total = product.options_with_values | map: 'values' | map: 'swatch' | compact | size
+      for option in product.options_with_values
+        assign name_downcase = option.name | downcase
+        assign swatch_count = option.values | map: 'swatch' | compact | size
+
+        if swatch_count > 0 or swatch_count_total == 0 and swatch_list contains name_downcase
+          if swatch_count == 0
+            assign swatch_legacy = true
+          else
+            assign swatch_legacy = false
+          endif
+          assign swatch_option_key = 'option' | append: option.position
+          assign swatch_values = option.values
+          if product.available
+            assign swatch_values_avai = swatch_values | where: "available"
+            if swatch_values_avai.size != swatch_values.size
+              assign swatch_values_avai = product.variants | where: "available" | map: swatch_option_key | uniq
+            endif
+          endif
+          if settings.swatch_type == 'all'
+            assign swatch_count = swatch_values.size
+          elsif product.available
+            assign swatch_count = swatch_values_avai.size
+          else
+            assign swatch_count = 0
+          endif
+          assign swatch_name = option.name | escape
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  if product.media[1] != null and settings.show_secondary_image
+    assign has_secondary_image = true
+  else
+    assign has_secondary_image = false
+  endif
+  assign info_center = info_center | default: settings.pr_text_alignment
+  capture highlights
+    render 'highlights', product: product, info_center: info_center
+  endcapture
+-%}
+
+<hdt-card-product class="hdt-card-product {{ class_card }}{% if highlights != blank %} hdt-has-pr-highlight{% endif %}{% if card_style == 'card' %} hdt-card-product__border{% endif %}{% if has_secondary_image %} hdt-card-product--with-2nd-img{% endif %}{% if highlights != blank %} hdt-card-product--highlight{% endif %}" can-reveal>
+  <div class="hdt-card-product__wrapper">
+    <div class="hdt-card-product__media" calc-nav>
+      {%- if featured_media -%}
+      <a href="{{ product_url }}" aria-label="{{ product.title | escape }}" data-pr-url class="hdt-card-product__media-wrapp hdt-ratio hdt-ratio--{{ image_ratio }}" style="{% if image_ratio == 'adapt_image' %}--aspect-ratioapt: {{ featured_media.preview_image.aspect_ratio }};{% endif %}">
+        {%- liquid
+          echo featured_media | image_url: width: featured_media.width | image_tag: loading: lazy_load, sizes: sizes, widths: '165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450', data-widths: '[165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450]', class: 'hdt-card-product__media--main'
+          if has_secondary_image
+            assign next_media = product.media[featured_media.position] | default: product.media[1]
+            echo next_media | image_url: width: next_media.width | image_tag: loading: 'lazy', sizes: sizes, widths: '165, 360, 533, 668, 720, 888, 940, 1066, 1200, 1450', class: 'hdt-card-product__media--hover'
+          endif
+        -%}
+      </a>
+      {%- assign badge_class = 'hdt-badge--' | append: settings.badge_shape -%}
+      {%- render 'badges', product: product, class: badge_class -%}
+      {%- render 'quick-add', product: product, section_id: section_id , product_url: product_url -%}
+      {%- endif -%}
+    </div>
+    {{- highlights -}}
+    <div class="hdt-card-product__content{% if info_center == 'center' %} hdt-text-center{% endif %}">
+      {%- liquid
+        if product.vendor.size > 0 and show_vendor
+        render 'vendor' with product.vendor
+        endif
+      -%}
+      <div class="hdt-card-product__title"><a href="{{ product_url }}" data-pr-url class="hdt-font-medium hdt-text-lg hdt-link hdt-s-text hdt-link">{{ product.title | escape }}</a></div>
+      {%- liquid
+        render 'card-price', product: product, show_volume_note: true, price_class: 'hdt-font-semibold hdt-text-lg'
+        if swatch_count > 0
+          render 'swatches', product: product, product_url: product_url, swatch_values: swatch_values, swatch_values_avai: swatch_values_avai, swatch_count: swatch_count, swatch_legacy: swatch_legacy, swatch_option_key: swatch_option_key, section_id: section_id, linked_products: linked_products, swatch_name: swatch_name
+        endif
+      -%}
+      {%- content_for 'blocks' -%}
+    </div>
+  </div>
+</hdt-card-product>
+
+{% schema %}
+{
+  "name": "t:names.product_card",
+  "blocks": [
+    /*{
+      "type": "_product-card-gallery"
+    },
+    {
+      "type": "_product-card-group"
+    },
+    {
+      "type": "_product-card-title"
+    },
+    {
+      "type": "custom-liquid"
+    },*/
+    {
+      "type": "_card-text"
+    },
+    /*{
+      "type": "_liquid"
+    },*/
+    {
+      "type": "@app"
+    }
+  ],
+  "tag": null,
+  "settings": [
+  ]
+}
+{% endschema %}

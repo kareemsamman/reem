@@ -1,0 +1,303 @@
+{{ 'customer.css' | asset_url | stylesheet_tag }}
+<div color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-section__main-addresses hdt-section-spacing hdt-s-gradient" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+  <div class="hdt-container"> 
+    <div class="hdt-section__header hdt-section__header--account hdt-text-center">
+      <h1 class="hdt-heading hdt-h4">{{ 'customer.addresses.title' | t }}</h1>
+    </div>
+  </div>
+  <div class="hdt-filters-wrapper hdt-filters-wrapper--account">
+    <nav class="hdt-filters-nav hdt-container" role="navigation" aria-label="{{ 'customer.account.nav_tabs' | t }}">
+      <ul class="hdt-filters-nav__tags hdt-filters-nav__tags--account hdt-font-medium" role="list">
+        <li>
+          <a class="hdt-filter__tag hdt-grid" role="link" aria-label="{{ 'customer.account.dashboard' | t }}" rel="nofollow" href="{{ routes.account_url }}" data-hover="{{ 'customer.account.dashboard' | t }}">
+            {{ 'icon-four-squares.svg' | inline_asset_content }} <span>{{ 'customer.account.dashboard' | t }}</span>
+          </a>
+        </li>
+        <li>
+          <a class="hdt-filter__tag hdt-grid hdt-pe-none" role="link" aria-current="tag" aria-label="{{ 'customer.account.addresses' | t }}" href="{{ routes.account_addresses_url }}" data-hover="{{ 'customer.account.addresses' | t }} ({{ customer.addresses_count }})">
+            {{ 'icon-location.svg' | inline_asset_content }} <span>{{ 'customer.account.addresses' | t }} ({{ customer.addresses_count }})</span>
+          </a>
+        </li>
+        <li>
+          <a class="hdt-filter__tag hdt-grid" role="link" aria-label="{{ 'customer.account.logout' | t }}" href="{{ routes.account_logout_url }}" data-no-instant data-hover="{{ 'customer.account.logout' | t }}">
+            {{ 'icon-logout.svg' | inline_asset_content }} <span>{{ 'customer.account.logout' | t }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="hdt-container hdt-container--addresses">
+    <div class="hdt-cus-addresses hdt-cus-addresses--add-new hdt-block hdt-text-center">
+      <button circle-bg-wrap type="button" aria-expanded="false" aria-controls="modal-add-address" class="hdt-btn hdt-btn-solid hdt-uppercase">
+        <span>{{ 'customer.addresses.add_new' | t }}</span>
+        <hdt-circle-bg mousemove></hdt-circle-bg>
+      </button>
+      <hdt-modal class="hdt-contents">
+        {%- assign form_add_id = 'address_form_new' -%}
+        <dialog id="modal-add-address" color-scheme="{{ settings.modal_color_scheme }}" class="hdt-dialog hdt-modal hdt-modal__address hdt-modal__add-address hdt-s-gradient{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+          <div class="hdt-modal__header hdt-s-text">
+            <span class="hdt-h5">{{ 'customer.addresses.add_new' | t }}</span>
+                <hdt-address-reset class="hdt-contents">
+                <button type="reset" form="{{ form_add_id }}" class="hdt-close-dialog-btn" aria-label="{{ 'accessibility.close' | t | escape }}">
+                    {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+                    {{- 'icon-close.svg' | inline_asset_content -}}
+                </button>
+                </hdt-address-reset>
+          </div>
+          <hdt-scroll-hint class="hdt-modal__inner hdt-scrollbar">
+            <div id="AddAddress" class="hdt-cus-addresses-inner hdt-rounded-sm hdt-start-fadeInDown">
+              {%- form 'customer_address', customer.new_address, aria-labelledBy: 'AddressNewHeading', class: 'hdt-add-new-address-form', id: form_add_id, return_to: routes.account_addresses_url  -%}
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[first_name]" id="input--{{ form.id }}--first_name" class="hdt-input hdt-field__input" autocomplete="given-name" value="{{ form.first_name }}" placeholder="{{ 'customer.addresses.first_name' | t }}">
+                    <label for="input--{{ form.id }}--first_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.first_name' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[last_name]" id="input--{{ form.id }}--last_name" class="hdt-input hdt-field__input" autocomplete="family-name" value="{{ form.last_name }}" placeholder="{{ 'customer.addresses.last_name' | t }}">
+                    <label for="input--{{ form.id }}--last_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.last_name' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[company]" id="input--{{ form.id }}--company" class="hdt-input hdt-field__input" autocomplete="organization" value="{{ form.company }}" placeholder="{{ 'customer.addresses.company' | t }}">
+                    <label for="input--{{ form.id }}--company" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.company' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[address1]" id="input--{{ form.id }}--address1" class="hdt-input hdt-field__input" autocomplete="address-line1" value="{{ form.address1 }}" placeholder="{{ 'customer.addresses.address1' | t }}">
+                    <label for="input--{{ form.id }}--address1" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.address1' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[address2]" id="input--{{ form.id }}--address2" class="hdt-input hdt-field__input" autocomplete="address-line2" value="{{ form.address2 }}" placeholder="{{ 'customer.addresses.address2' | t }}">
+                    <label for="input--{{ form.id }}--address2" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.address2' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[city]" id="input--{{ form.id }}--city" class="hdt-input hdt-field__input" autocomplete="address-level2" value="{{ form.city }}" placeholder="{{ 'customer.addresses.city' | t }}">
+                    <label for="input--{{ form.id }}--city" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.city' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <hdt-province hide-el="#fieldsetProvince" class="hdt-province hdt-contents hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <div class="hdt-select hdt-select--country">
+                      <select id="select--{{ form.id }}--country" name="address[country]" data-default="{{ form.country }}" autocomplete="country">
+                        <option value="" disabled selected hidden>{{ 'customer.addresses.country_region' | t }}</option>
+                        {{- all_country_option_tags -}}
+                      </select>
+                    </div>
+                  </div>
+                  <div id="fieldsetProvince" class="hdt-field" hidden>
+                    <div class="hdt-select">
+                      <select id="select--{{ form.id }}--province" name="address[province]" data-default="{{ form.province }}" autocomplete="address-level1"></select>
+                    </div>
+                  </div>
+                </hdt-province>
+                <div class="hdt-form-row hdt-row-grid md:hdt-grid-cols-2 hdt-grid-cols-1">
+                  <div class="hdt-field">
+                    <input type="text" name="address[zip]" id="input--{{ form.id }}--zip" class="hdt-input hdt-field__input" autocapitalize="characters" autocomplete="postal-code" value="{{ form.zip }}" placeholder="{{ 'customer.addresses.zip' | t }}">
+                    <label for="input--{{ form.id }}--zip" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.zip' | t | escape }}</span></label>
+                  </div>
+                  <div class="hdt-field">
+                    <input type="tel" name="address[phone]" id="input--{{ form.id }}--phone" class="hdt-input hdt-field__input" autocomplete="tel" value="{{ form.phone }}" placeholder="{{ 'customer.addresses.phone' | t }}">
+                    <label for="input--{{ form.id }}--phone" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.phone' | t | escape }}</span></label>
+                  </div>
+                </div>
+                <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                  <div class="hdt-field hdt-field--checkbox hdt-text-start">
+                    {{- form.set_as_default_checkbox -}}
+                    <label for="address_default_address_new" for-checkbox class="hdt-field__label"><span class="hdt-truncate">{{ 'customer.addresses.set_default' | t | escape }}</span></label>
+                  </div>
+                </div>
+              {%- endform -%}
+            </div>
+          </hdt-scroll-hint>
+          <div class="hdt-modal__footer">
+              <button circle-bg-wrap type="submit" form="{{ form_add_id }}" class="hdt-btn hdt-btn-solid hdt-w-full hdt-uppercase">
+                {{ 'customer.addresses.add' | t }}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </button>
+          </div>
+        </dialog>
+      </hdt-modal>
+    </div>
+    <div class="hdt-addresses-list hdt-row-flex md:hdt-flex-cols-2 hdt-flex-cols-1 hdt-justify-center" id="hdt-addresses-list" confirm-message="{{ 'customer.addresses.delete_confirm' | t | escape }}">
+      {%- paginate customer.addresses by 8 -%}
+        {%- for address in customer.addresses -%}
+          {%- assign address_num = paginate.current_offset | plus: forloop.index -%}
+          <div class="hdt-col hdt-address-item hdt-rounded-sm hdt-border">
+            <div class="hdt-formated-address">
+              <h2 class="hdt-heading hdt-address-heading hdt-font-bold">{{ 'customer.addresses.address' | t : number: address_num }}{% if address == customer.default_address %}<span class="hdt-text-sm hdt-font-medium">{{ 'customer.addresses.default' | t }}</span>{% endif %}</h2>
+              {{- address | format_address -}}
+            </div>
+            <div class="hdt-cus-actions">
+              <button circle-bg-wrap type="button" aria-expanded="false" aria-label="{{ 'customer.addresses.edit_address_num' | t : number: address_num }}" aria-controls="EditAddress_{{ address.id }}" class="hdt-edit-address-btn hdt-btn hdt-btn-solid hdt-btn--size-s hdt-uppercase">
+                {{- 'customer.addresses.edit' | t -}}
+                <hdt-circle-bg mousemove></hdt-circle-bg>
+              </button>
+              <hdt-address-delete class="hdt-contents" data-target="{{ address.url }}"><button type="button" aria-label="{{ 'customer.addresses.delete_address_num' | t : number: address_num }}" class="hdt-link-underline hdt-text-sm hdt-uppercase">{{ 'customer.addresses.delete' | t }}</button></hdt-address-delete>
+            </div>
+          </div>
+
+          <hdt-modal class="hdt-contents">
+            {%- assign form_id = 'address_form_' | append: address.id -%}
+            <dialog color-scheme="{{ settings.modal_color_scheme }}" id="EditAddress_{{ address.id }}" class="hdt-dialog hdt-modal hdt-modal__address hdt-modal__edit-address hdt-s-gradient hst-s-text{% if settings.modal_blur %} hdt-modal--blur{% endif %}" scroll-lock>
+              <div class="hdt-modal__header hdt-s-text">
+                <span class="hdt-h5">{{ 'customer.addresses.edit_address_num' | t: number: address_num }}</span>
+                <hdt-address-reset class="hdt-contents">
+                <button type="reset" form="{{ form_id }}" class="hdt-close-dialog-btn" aria-label="{{ 'accessibility.close' | t | escape }}">
+                    {{- 'icon-progress-imgtab.svg' | inline_asset_content -}}
+                    {{- 'icon-close.svg' | inline_asset_content -}}
+                </button>
+                </hdt-address-reset>
+              </div>
+              <hdt-scroll-hint class="hdt-modal__inner hdt-scrollbar">
+                <div class="hdt-col hdt-address-editor hdt-rounded-sm hdt-text-center hdt-start-fadeInDown">
+                  {%- form 'customer_address', address, class: 'hdt-add-new-address-form', id: form_id, return_to: routes.account_addresses_url -%}
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[first_name]" id="input--{{ form.id }}--first_name" class="hdt-input hdt-field__input" autocomplete="given-name" value="{{ form.first_name }}" placeholder="{{ 'customer.addresses.first_name' | t }}">
+                        <label for="input--{{ form.id }}--first_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.first_name' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[last_name]" id="input--{{ form.id }}--last_name" class="hdt-input hdt-field__input" autocomplete="family-name" value="{{ form.last_name }}" placeholder="{{ 'customer.addresses.last_name' | t }}">
+                        <label for="input--{{ form.id }}--last_name" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.last_name' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[company]" id="input--{{ form.id }}--company" class="hdt-input hdt-field__input" autocomplete="organization" value="{{ form.company }}" placeholder="{{ 'customer.addresses.company' | t }}">
+                        <label for="input--{{ form.id }}--company" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.company' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[address1]" id="input--{{ form.id }}--address1" class="hdt-input hdt-field__input" autocomplete="address-line1" value="{{ form.address1 }}" placeholder="{{ 'customer.addresses.address1' | t }}">
+                        <label for="input--{{ form.id }}--address1" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.address1' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[address2]" id="input--{{ form.id }}--address2" class="hdt-input hdt-field__input" autocomplete="address-line2" value="{{ form.address2 }}" placeholder="{{ 'customer.addresses.address2' | t }}">
+                        <label for="input--{{ form.id }}--address2" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.address2' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[city]" id="input--{{ form.id }}--city" class="hdt-input hdt-field__input" autocomplete="address-level2" value="{{ form.city }}" placeholder="{{ 'customer.addresses.city' | t }}">
+                        <label for="input--{{ form.id }}--city" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.city' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <hdt-province hide-el="#fieldsetProvince2" class="hdt-province hdt-contents hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <div class="hdt-select hdt-select--country">
+                          <select id="select--{{ form.id }}--country" name="address[country]" data-default="{{ form.country }}" autocomplete="country">
+                            {%- if form.country == blank %}<option value="" disabled selected hidden>{{ 'customer.addresses.country_region' | t }}</option>{% endif -%}
+                            {{- all_country_option_tags -}}
+                          </select>
+                        </div>
+                      </div>
+                      <div class="hdt-field" id="fieldsetProvince2" hidden>
+                        <div class="hdt-select"><select id="select--{{ form.id }}--province" name="address[province]" data-default="{{ form.province }}" autocomplete="address-level1"></select></div>
+                      </div>
+                    </hdt-province>
+                    <div class="hdt-form-row hdt-row-grid md:hdt-grid-cols-2 hdt-grid-cols-1">
+                      <div class="hdt-field">
+                        <input type="text" name="address[zip]" id="input--{{ form.id }}--zip" class="hdt-input hdt-field__input" autocapitalize="characters" autocomplete="postal-code" value="{{ form.zip }}" placeholder="{{ 'customer.addresses.zip' | t }}">
+                        <label for="input--{{ form.id }}--zip" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.zip' | t | escape }}</span></label>
+                      </div>
+                      <div class="hdt-field">
+                        <input type="tel" name="address[phone]" id="input--{{ form.id }}--phone" class="hdt-input hdt-field__input" autocomplete="tel" value="{{ form.phone }}" placeholder="{{ 'customer.addresses.phone' | t }}">
+                        <label for="input--{{ form.id }}--phone" class="hdt-field__label sr-only"><span class="hdt-truncate">{{ 'customer.addresses.phone' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                    <div class="hdt-form-row hdt-row-grid hdt-grid-cols-1">
+                      <div class="hdt-field hdt-field--checkbox hdt-text-start">
+                        {{- form.set_as_default_checkbox -}}
+                        <label for="address_default_address_{{ form.id }}" for-checkbox class="hdt-field__label"><span class="hdt-truncate">{{ 'customer.addresses.set_default' | t | escape }}</span></label>
+                      </div>
+                    </div>
+                  {%- endform -%}
+                </div>
+              </hdt-scroll-hint>
+              <div class="hdt-modal__footer">
+                  <button circle-bg-wrap type="submit" form="{{ form_id }}" class="hdt-btn hdt-btn-solid hdt-w-full hdt-uppercase">
+                    {{- 'customer.addresses.update' | t -}}
+                    <hdt-circle-bg mousemove></hdt-circle-bg>
+                  </button>
+              </div>
+            </dialog>
+          </hdt-modal>
+        {%- endfor -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endpaginate -%}
+    </div>
+  </div>
+</div>
+<script src="{{ 'customer.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "t:names.addresses",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_xl",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_top_mb",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "t:settings.padding_bottom_mb",
+      "default": 40
+    }
+  ]
+}
+{% endschema %}

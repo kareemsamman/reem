@@ -1,0 +1,53 @@
+<div class="hdt-group-btn-quickadd">
+{%- if product.available == false -%}
+    <a circle-bg-wrap aria-label="{{ 'products.product.view_product' | t }}" href="{{ product_url }}" class="hdt-product-card-btn hdt-btn hdt-btn--size-s hdt-btn--with-icon hdt-btn-reverse">
+      <span>{{ 'icon-quickview-rc.svg' | inline_asset_content }}</span>
+      <span class="sr-only-mobile">{{ 'products.product.view_product' | t }}</span>
+      <hdt-circle-bg mousemove="10"></hdt-circle-bg>
+    </a>
+{%- elsif settings.show_quick_view == false or product.has_only_default_variant -%}
+    {%- liquid
+      assign product_form_id = 'form-' | append: section_id | append: product.id
+      assign quantity_rule = product.selected_or_first_available_variant.quantity_rule
+      assign quantity_rule_min = quantity_rule.min | default: 1
+    -%}
+    {%- comment -%} Quick view {%- endcomment -%}
+    {%- if settings.show_quick_view -%}
+    <wrapp-hdt-open-btn class="hdt-contents hdt-open-quickview-wrapp">
+        <button type="button" aria-label="{{ 'products.product.quick_view' | t }}" handle="{{ product.handle }}" aria-controls="hdt-quick-view-modal" class="hdt-product-card-btn hdt-btn--loading_spinner hdt-product-card-btn--quick-view hdt-btn-reverse hdt-btn hdt-btn--inner hdt-btn--size-s hdt-btn--with-icon" aria-expanded="false">
+          <span circle-bg-wrap class="hdt-inner-btn">
+            <span class="hdt-quickview-icon">{{ 'icon-quickview-rc.svg' | inline_asset_content }}</span>
+            <span class="sr-only-mobile">{{ 'products.product.quick_view' | t }}</span>
+            {%- render 'loading-spinner', class: 'hdt-loading-area__spinner' -%}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </span>
+        </button>
+    </wrapp-hdt-open-btn>
+    {%- endif -%}
+
+    {%- comment -%} Add to card {%- endcomment -%}
+    <product-form class="hdt-contents">
+      {%- form 'product', product, id: product_form_id, class: 'hdt-contents', novalidate: 'novalidate' -%}
+        <input type="hidden" name="quantity" value="{{ quantity_rule_min }}">
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        <button aria-label="{{ 'products.product.add_to_cart' | t }}" type="submit" name="add" class="hdt-product-card-btn hdt-btn--loading_spinner hdt-product-card-btn--atc hdt-btn hdt-btn--inner hdt-btn--size-s hdt-btn--with-icon">
+          <span circle-bg-wrap class="hdt-inner-btn">
+            <span>{{- 'icon-addtocart.svg' | inline_asset_content -}}</span>
+            <span class="sr-only-mobile">{{ 'products.product.add_to_cart' | t }}</span>
+            {%- render 'loading-spinner', class: 'hdt-loading-area__spinner' -%}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+          </span>
+        </button>
+      {%- endform -%}
+    </product-form>
+{%- else -%}
+    <wrapp-hdt-open-btn class="hdt-contents hdt-open-quickview-wrapp">
+        <button circle-bg-wrap type="button" aria-label="{{ 'products.product.quick_view' | t }}" handle="{{ product.handle }}" aria-controls="hdt-quick-view-modal" class="hdt-product-card-btn hdt-btn--loading_spinner hdt-product-card-btn--quick-view hdt-btn hdt-btn-reverse hdt-btn--size-s hdt-btn--with-icon" aria-expanded="false">
+          <span class="hdt-quickview-icon">{{ 'icon-quickview-rc.svg' | inline_asset_content }}</span>
+          <span class="sr-only-mobile">{{ 'products.product.quick_view' | t }}</span>
+          {%- render 'loading-spinner', class: 'hdt-loading-area__spinner' -%}
+          <hdt-circle-bg mousemove="10"></hdt-circle-bg>
+        </button>
+    </wrapp-hdt-open-btn>
+  {%- endif -%}
+</div>

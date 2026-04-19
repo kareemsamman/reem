@@ -1,0 +1,100 @@
+{%- liquid
+    if section.settings.header_inside or section.settings.layout_type == 'layered'
+      assign header_inside = true
+      assign max_width = block.settings.max_width | append: 'px'
+    else
+      assign header_inside = false
+      assign max_width = '100%'
+    endif
+    if block.settings.header_center or section.settings.layout_type == 'layered'
+        assign shrink_translate = ''
+    else
+        assign shrink_translate = 'start'
+    endif
+    if section.settings.layout_type == 'layered'
+        assign header_pos = block.settings.header_pos
+    else
+        assign header_pos = block.settings.header_pos_standard
+    endif
+-%}
+
+{%- capture header_content -%}
+  <div class="hdt-title-content">{%- content_for 'blocks' -%}</div>
+{%- endcapture -%}
+
+<div data-shrink-translate="{{ shrink_translate }}" color-scheme class="hdt-section-title{% if header_inside %} hdt-section-title--{{ header_pos }}{% endif %} hdt-container-xl{% if block.settings.header_center %} hdt-text-center{% endif %}{% if header_inside and block.settings.heading_bottom_fade %} hdt-section-title--b-fade{% endif %}" style="--max-width: {{ max_width }}; --place-self: {{ header_pos }};" {{ block.shopify_attributes }}>
+    <div class="hdt-section-title-inner">{{ header_content }}</div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.section_header",
+        "tag": null,
+        "blocks": [{"type": "heading"},{"type": "text"},{"type": "spacer"},{"type": "subtext"},{"type": "_button"}],
+        "settings": [
+            {
+                "type": "select",
+                "id": "header_pos",
+                "label": "t:settings.header_position",
+                "options": [
+                    {
+                        "value": "start center",
+                        "label": "t:options.top"
+                    },
+                    {
+                        "value": "end center",
+                        "label": "t:options.bottom"
+                    },
+                ],
+                "default": "start center",
+                "visible_if": "{{ section.settings.layout_type == 'layered' }}"
+            },
+            {
+                "type": "select",
+                "id": "header_pos_standard",
+                "label": "t:settings.header_position",
+                "options": [
+                    {
+                        "value": "start center",
+                        "label": "t:options.top"
+                    },
+                    {
+                        "value": "center start",
+                        "label": "t:options.middle"
+                    },
+                    {
+                        "value": "end center",
+                        "label": "t:options.bottom"
+                    },
+                ],
+                "default": "start center",
+                "visible_if": "{{ section.settings.header_inside and section.settings.layout_type == 'standard' }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "header_center",
+                "label": "t:settings.header_center",
+                "default": false,
+                "visible_if": "{{ section.settings.layout_type == 'standard' }}"
+            },
+            {
+                "type": "checkbox",
+                "id": "heading_bottom_fade",
+                "label": "t:settings.heading_bottom_fade",
+                "info": "t:info.heading_bottom_fade",
+                "default": true,
+                "visible_if": "{{ section.settings.header_inside or section.settings.layout_type == 'layered' }}"
+            },
+            {
+                "type": "range",
+                "id": "max_width",
+                "label": "t:settings.desktop_max_width",
+                "min": 200,
+                "max": 1800,
+                "step": 20,
+                "unit": "px",
+                "default": 480,
+                "visible_if": "{{ section.settings.header_inside or section.settings.layout_type == 'layered' }}"
+            },
+        ],
+    }
+{% endschema %}

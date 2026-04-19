@@ -1,0 +1,49 @@
+{%- comment -%}
+  Renders product variant options
+
+  Accepts:
+  - value: {value} value object.
+  - input_id: {String}
+  - option_unavailable: {String}
+  - option_soldout: {String}
+  - label_sold_out: {String}
+  - label_unavailable: {String}
+  - swatch_style: {String}
+  - product_linked: {Object}
+  - product_id: {String}
+  - data_option_index: {String}
+  - selected: {String}
+  - class_swatch_white: {String}
+
+  Usage:
+  {%- render 'dropdown', value: value, swatch_style: swatch_style, input_id: input_id, option_unavailable: option_unavailable, option_soldout: option_soldout, value: value -%}
+{%- endcomment -%}
+
+{%- capture dropdown_block -%}
+  {%- liquid
+  if option_soldout
+    echo label_sold_out
+  elsif option_unavailable
+    echo label_unavailable
+  endif
+  -%}
+  {%- if swatch_style != blank %}<span class="hdt-block-swatch__color{{ class_swatch_white }}" {{ swatch_style }}></span>{% endif -%}
+  <span class="hdt-form-color-name" get-text>{{- value -}}</span>
+{%- endcapture -%}
+
+{%- if value.product_url or product_linked != blank -%}
+  {%- capture attr -%}
+    {%- if value.product_url -%}
+    href="{{ value.product_url }}"{% if value.selected %} selected{% endif %}{% if option_soldout %} product-sold-out{% endif %}
+    {%- else -%}
+    href="{{ product_linked.url }}"{% if product_linked.id == product_id %} selected{% endif %}{% unless product_linked.available %} product-sold-out{% endunless %}
+    {%- endif -%}
+  {%- endcapture -%}
+  <a {{ attr }} class="hdt-product-form_value focus-inset-1">
+    {{- dropdown_block -}}
+  </a>
+{%- else -%}
+  <button {{ data_option_index }} is-value data-value-id="{{ value.id }}" type="button" role="option" value="{{ value | escape }}" aria-selected="{{ selected }}" class="hdt-product-form_value focus-inset-1{% if option_unavailable %} is-unavailable{% elsif option_soldout %} is-disabled{% endif %}">
+    {{- dropdown_block -}}
+  </button>
+{%- endif -%}

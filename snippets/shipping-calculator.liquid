@@ -1,0 +1,50 @@
+
+{%- comment -%}
+  Renders a shipping calculator
+
+  Accepts:
+  - form_id: {String} Form ID (required)
+  - hide_cancel: {Boolean} Hide cancel button (optional)
+  - icon_show: {Boolean} show/hide icon for button
+  Usage:
+   {%- render 'shipping-calculator' -%}
+{%- endcomment -%}
+{%- assign form_id = form_id | default: section.id -%}
+
+<hdt-shipping-calculator class="hdt-shipping-calculator hdt-s-text" id="shipping-calculator-{{ form_id }}">
+  <hdt-province class="hdt-contents hdt-shipping-province" hide-el="#fieldsetProvince">
+    <fieldset class="hdt-field--fieldset hdt-border hdt-field-has-legend">
+      <legend><label for="ShippingCountry_{{ form_id }}">{{ 'cart.shipping_estimator.country' | t }}</label></legend>
+      <div class="hdt-select">
+        <select id="ShippingCountry_{{ form_id }}" name="address[country]" data-default="{% if customer and customer.default_address %}{{ customer.default_address.country | escape }}{% else %}{{ localization.country.name | escape }}{% endif %}">{{- country_option_tags -}}</select>
+      </div>
+    </fieldset>
+    <fieldset id="fieldsetProvince" class="hdt-field--fieldset hdt-border hdt-field-has-legend" hidden>
+      <legend><label for="ShippingProvince_{{ form_id }}" id="address_province_label">{{ 'cart.shipping_estimator.province' | t }}</label></legend>
+      <div class="hdt-select">
+        <select id="ShippingProvince_{{ form_id }}" name="address[province]" data-default="{% if customer %}{{ customer.default_address.province }}{% endif %}"></select>
+      </div>
+    </fieldset>
+  </hdt-province>
+  <fieldset class="hdt-field--fieldset hdt-field-shipcode hdt-border">
+    <label for="ShippingZip_{{ form_id }}" class="sr-only">{{ 'cart.shipping_estimator.zip_code' | t }}</label>
+    <input class="hdt-input" type="text" placeholder="{{ 'cart.shipping_estimator.zip_code' | t }}" id="ShippingZip_{{ form_id }}" name="address[zip]" value="{% if customer %}{{ customer.default_address.zip }}{% endif %}"/>
+  </fieldset>
+  <div class="hdt-field--btns hdt-flex hdt-justify-end">
+    <button circle-bg-wrap type="button" class="hdt-btn hdt-btn--with-icon hdt-get__rates">
+      <span>{{- 'cart.shipping_estimator.estimate' | t |escape -}}</span>
+      {%- if icon_show and icon_custom != '' -%}{{ 'icon-' | append: icon_custom | append: '.svg' | inline_asset_content }}{%- endif-%}
+      <hdt-circle-bg mousemove></hdt-circle-bg>
+    </button>
+  </div>
+  <div role="region" aria-live="polite" class="hdt-response__rates"></div>
+  <template data-lang-rates class="hdt-hidden">
+   {
+     "multiple_rates": {{ 'cart.shipping_estimator.multiple_rates' | t | json }},
+     "one_rate": {{ 'cart.shipping_estimator.one_rate' | t | json }}, 
+     "no_rates": {{ 'cart.shipping_estimator.no_rates' | t | json }},
+     "errors": {{ 'cart.shipping_estimator.errors' | t | json }},
+     "free": {{ 'cart.shipping_estimator.free' | t | json }}
+   }
+  </template>
+</hdt-shipping-calculator>

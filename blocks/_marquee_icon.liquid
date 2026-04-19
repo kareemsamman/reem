@@ -1,0 +1,237 @@
+{%- if block.settings.custom_img_icon != blank or block.settings.custom_icon != blank or block.settings.icon != 'none' -%}
+<div {{ block.shopify_attributes }} class="hdt-icon-wrapper hdt-icon__type-{{ block.settings.icon_type }} hdt-s-text hdt-inline-flex" style="{% if block.settings.custom_img_icon != blank %}{% assign icon_w_md = block.settings.icon_h_md | times: block.settings.custom_img_icon.aspect_ratio %}{% assign icon_w = block.settings.icon_h | times: block.settings.custom_img_icon.aspect_ratio %}--icon-mw-md: {{ icon_w_md }}px;--icon-mw: {{ icon_w}}px;{% endif %}--icon-h-md: {{ block.settings.icon_h_md }}px;--icon-h: {{ block.settings.icon_h }}px">
+    {%- liquid
+    if block.settings.custom_img_icon != blank
+    assign icon_w_md = icon_w_md | ceil
+    assign icon_w = icon_w | ceil
+    assign icon_w_md_2x = icon_w_md | times: 2
+    assign icon_w_2x = icon_w | times: 2
+    assign widths = icon_w_md_2x | append: ', ' | append: icon_w  | append: ', ' | append: icon_w_2x | append: ', ' | append: icon_w
+    assign sizes = '(min-width: 768px) 22px, 11px' | replace_first: '22', icon_w_md   | replace_first: '11', icon_w
+    assign max_w = icon_w_2x | at_least: icon_w_md_2x
+    if block.settings.rounded_image
+        assign img_class = 'hdt-custom-img-icon hdt-rounded-full'
+    else
+        assign img_class = 'hdt-custom-img-icon'
+    endif
+    echo block.settings.custom_img_icon | image_url: width: max_w | image_tag: widths: widths, sizes: sizes, class: img_class
+    elsif block.settings.custom_icon != blank
+    echo block.settings.custom_icon
+    else
+    echo 'icon-' | append: block.settings.icon | append: '.svg' | inline_asset_content
+    endif
+    -%}
+</div>
+{%- assign shape = section.settings.shape | default: 'none' -%}
+{%- if shape != 'none' -%}
+    <div class="hdt-shape-block hdt-shape__{{ shape }}"></div>
+{%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.icon",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "icon",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none",
+        },
+        {
+          "value": "atmos",
+          "label": "t:options.ic_atmos"
+        },
+        {
+          "value": "charge",
+          "label": "t:options.ic_charge"
+        },
+        {
+          "value": "charge-a",
+          "label": "t:options.ic_charge_a"
+        },
+        {
+            "value": "isolation",
+            "label": "t:options.ic_isolation"
+        },
+        {
+            "value": "cable",
+            "label": "t:options.ic_cable"
+        },
+        {
+            "value": "mic",
+            "label": "t:options.ic_mic"
+        },
+        {
+            "value": "aware",
+            "label": "t:options.ic_aware"
+        },
+        {
+            "value": "battery",
+            "label": "t:options.ic_battery"
+        },
+        {
+            "value": "battery-outline",
+            "label": "t:options.ic_battery_outline"
+        },
+        {
+            "value": "ear-deaf",
+            "label": "t:options.ic_ear_deaf"
+        },
+        {
+            "value": "water-resistant",
+            "label": "t:options.ic_water_resistant"
+        },
+        {
+          "value": "bluetooth",
+          "label": "t:options.ic_bluetooth"
+        },
+        {
+          "value": "mobile-phone",
+          "label": "t:options.ic_mobile_phone"
+        },
+        {
+          "value": "shipping-box",
+          "label": "t:options.ic_shipping_box"
+        },
+        {
+          "value": "lock",
+          "label": "t:options.ic_lock"
+        },
+        {
+          "value": "return",
+          "label": "t:options.ic_return"
+        },
+        {
+          "value": "headphone",
+          "label": "t:options.ic_headphone"
+        },
+        {
+          "value": "return-circle",
+          "label": "t:options.ic_return_circle",
+        },
+        {
+          "value": "security-check",
+          "label": "t:options.ic_security_check",
+        },
+        {
+          "value": "wave",
+          "label": "t:options.ic_wave",
+        },
+        {
+          "value": "lightning",
+          "label": "t:options.ic_lightning",
+        },
+        {
+          "value": "bio-network",
+          "label": "t:options.ic_bio_network",
+        },
+        {
+          "value": "focus-eye",
+          "label": "t:options.ic_focus_eye",
+        },
+        {
+          "value": "stitching",
+          "label": "t:options.ic_stitching",
+        },
+        {
+          "value": "trendy-cropped",
+          "label": "t:options.ic_trendy_cropped",
+        },
+        {
+          "value": "location-dot",
+          "label": "t:options.ic_location",
+        },
+        {
+          "value": "envelope",
+          "label": "t:options.ic_envelope",
+        },
+        {
+          "value": "phone",
+          "label": "t:options.ic_phone",
+        },
+        {
+          "value": "oclock",
+          "label": "t:options.ic_oclock",
+        },
+        {
+          "value": "comment",
+          "label": "t:options.ic_comment",
+        },
+        {
+          "value": "logo-trim",
+          "label": "t:options.icon_logo_trim"
+        }
+      ],
+      "default": "lock",
+      "label": "t:settings.icon"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_icon",
+      "label": "t:settings.custom_icon",
+      "info": "t:info.custom_icon"
+    },
+    {
+      "type": "image_picker",
+      "id": "custom_img_icon",
+      "label": "t:settings.custom_img_icon"
+    },
+    {
+      "type": "checkbox",
+      "id": "rounded_image",
+      "label": "t:settings.rounded_image",
+      "default": true,
+      "visible_if": "{{ block.settings.custom_img_icon != blank }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "cricle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "border",
+          "label": "t:options.border"
+        }
+      ],
+      "default": "none",
+      "label": "t:settings.icon_bg_type"
+    },
+    {
+      "type": "range",
+      "id": "icon_h_md",
+      "min": 20,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.icon_h_md",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "icon_h",
+      "min": 20,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.icon_h",
+      "default": 24
+    }
+  ],
+  "presets": [{ "name": "t:names.icon" }]
+}
+{% endschema %}

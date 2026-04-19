@@ -1,0 +1,65 @@
+{%- comment -%}
+  Renders a set of links for paginated results. Must be used within paginate tags.
+
+  Usage:
+  {% paginate results by 2 %}
+    {%- render 'pagination-products', paginate: paginate -%}
+  {% endpaginate %}
+
+  Accepts:
+  - paginate: {Object} (required)
+  - section_id: {String} The ID of the section that contains this card. (required)
+  - append_id: {String} The ID. (required)
+  - pagination_type: {String} (optional)
+  - load_more_label: {String} articles or products.  (optional)
+  - class: {String} a list class.  (optional)
+{%- endcomment -%}
+
+{%- if paginate.parts.size > 0 -%}
+    {%- if pagination_type == 'load_more' or pagination_type == 'infinite' -%}
+      {%- if paginate.next.is_link -%}
+        {%- liquid
+          if load_more_label == 'articles'
+            assign label = 'general.pagination.load_more_articles' | t
+          else
+            assign label = 'general.pagination.load_more_products' | t
+          endif
+          -%}
+        <div loadmore-btn-wrapp class="hdt-pagination-wrapper {{ class }}">
+          <wrapp-hdt-lm-main-url {% if pagination_type == 'infinite' %}render-on-scroll {% endif %}section-id="{{ section_id }}" append="{{ append_id }}" {% if is_prepend_btn %} prepend{% endif %}>
+            <a circle-bg-wrap href="{{ paginate.next.url }}" {% if is_prepend_btn %} prepend{% endif %} class="hdt-btn hdt-btn-solid hdt-btn--size-s hdt-btn--with-icon hdt-loamore-btn">
+              {{- label | escape -}}
+              {{- 'icon-circle-arrow.svg' | inline_asset_content -}}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+            </a>
+          </wrapp-hdt-lm-main-url>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+    <div class="hdt-pagination-wrapper {{ class }}">
+      <nav class="hdt-pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}">
+        <ul class="hdt-pagination__list" role="list">
+          {%- if paginate.previous -%}
+            <li><wrapp-hdt-facet-url><a href="{{ paginate.previous.url }}" class="hdt-pagination__item hdt-pagination__item--next hdt-btn-effhover" aria-label="{{ 'general.pagination.previous' | t }}">{{ 'icon-caret-left.svg' | inline_asset_content }}</a></wrapp-hdt-facet-url></li>
+          {%- endif -%}
+          {%- for part in paginate.parts -%}
+            <li>
+              {%- if part.is_link -%}
+                <wrapp-hdt-facet-url><a circle-bg-wrap href="{{ part.url }}" class="hdt-pagination__item hdt-btn-effhover" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}<hdt-circle-bg mousemove></hdt-circle-bg></a></wrapp-hdt-facet-url>
+              {%- else -%}
+                {%- if part.title == paginate.current_page -%}
+                  <wrapp-hdt-facet-url><a circle-bg-wrap role="link" aria-disabled="true" class="hdt-pagination__item hdt-pagination__item--current" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}<hdt-circle-bg mousemove></hdt-circle-bg></a></wrapp-hdt-facet-url>
+                {%- else -%}
+                  <span class="hdt-pagination__item hdt-btn-effhover">{{ part.title }}</span>
+                {%- endif -%}
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+          {%- if paginate.next -%}
+            <li><wrapp-hdt-facet-url><a circle-bg-wrap href="{{ paginate.next.url }}" class="hdt-pagination__item hdt-pagination__item--prev hdt-btn-effhover" aria-label="{{ 'general.pagination.next' | t }}">{{ 'icon-caret-right.svg' | inline_asset_content }}<hdt-circle-bg mousemove></hdt-circle-bg></a></wrapp-hdt-facet-url></li>
+          {%- endif -%}
+        </ul>
+      </nav>
+    </div>
+    {%- endif -%}
+{%- endif -%}

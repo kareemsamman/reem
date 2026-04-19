@@ -1,0 +1,20 @@
+{%- doc -%}
+@description
+Render a iframe video
+
+@param {object} video_url
+@param {string} player_id
+@param {string} [description]
+
+@example
+{%- render 'iframe', video_url: section.settings.video_url -%}
+
+{%- enddoc -%}
+{%- liquid
+  assign title = description | default: video_url.type | escape
+-%}
+{%- if video_url.type == 'youtube' -%}
+<iframe src="https://www.youtube.com/embed/{{ video_url.id }}?playsinline=1&autoplay=0&controls=0&mute=1&loop=1&playlist={{ video_url.id }}&enablejsapi=1&rel=0&cc_load_policy=0&iv_load_policy=0&showinfo=0&hl=en&origin={{ 'https://' | append: request.host | url_encode }}" allow="autoplay; encrypted-media" allowfullscreen="allowfullscreen" title="{{ title }}"></iframe>
+{%- else -%}
+<iframe src="https://player.vimeo.com/video/{{ video_url.id }}?player_id={{ player_id | escape }}&api=1&autoplay=0&autopause=1&background=1&loop=1&muted=1&transparent=0&responsive=1&portrait=0&title=0&byline=0" allow="autoplay; encrypted-media;" allowfullscreen="allowfullscreen" title="{{ title }}"></iframe>
+{%- endif -%}

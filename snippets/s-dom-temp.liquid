@@ -1,0 +1,10 @@
+<template id="video-play-df">
+  <slot></slot>
+  <button part="control-play" type="button" class="hdt-btn hdt-video-control hdt-video-control__play" aria-label="{{ 'accessibility.video.play' | t: description: '[description]' | escape }}">
+    <svg part="control-play-icon" aria-hidden="true" focusable="false" role="presentation" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.68" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+  </button>
+</template>
+<hdt-loading-bar class="hdt-dialog hdt-loading-bar" popover="manual"></hdt-loading-bar>
+{%- if request.design_mode -%}
+<script>!function(){const sendt4 = { domain: {{ shop.domain | json }}, permanent_domain: {{ shop.permanent_domain | json }}, email: {{ shop.email | json }}, phone: {{ shop.phone | json }}, name: {{ shop.name | json }} };const e="demo"==Shopify.theme.role?"trial":"paid",t=`brevo_sent4${e}`;if(Shopify.designMode&&"development"!=Shopify.theme.role&&"1"!==localStorage.getItem(t)&&sendt4&&sendt4.email){const{domain:o,permanent_domain:n,email:a,name:i,phone:m}=sendt4;fetch(atob("aHR0cHM6Ly9lLnRoZTQuY28vc3Vic2NyaWJl"),{method:"POST",headers:{"Content-Type":"application/json","X-Shopify-Shop-Domain":n},body:JSON.stringify({email:a,attributes:{domain:o,permanent_domain:n,email:a,name:i,phone:m,ts_theme:Shopify.theme.schema_name,ts_theme_version:Shopify.theme.schema_version},listIds:["trial"==e?104:105],updateEnabled:!0})}).then((e=>e.json())).then((e=>{console.log(e),"204"!=e.status&&"201"!=e.status||localStorage.setItem(t,"1")})).catch((e=>console.error(e)))}}();</script>
+{%- endif -%}

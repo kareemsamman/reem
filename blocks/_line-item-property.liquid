@@ -1,0 +1,196 @@
+
+{%- comment -%}
+  https://ui-elements-generator.myshopify.com/pages/line-item-property
+  Renders line item properties for a product.
+{%- endcomment -%}
+{%- assign product = section.settings.product | default: product -%}
+
+{%- if product != blank -%}
+{%- liquid
+  assign form_id = 'form' | append: section.id | append: product.id
+  assign id = "property" | append: block.id
+  assign property_type = block.settings.property_type
+  if  block.settings.show_at_ck_cart
+    assign property_name = block.settings.title | escape
+  else
+    assign property_name = '_' | append: block.settings.title | escape
+  endif
+  if property_type == 'text'
+    assign item_class = 'hdt-product-info__item--box'
+  else
+    assign item_class = 'hdt-product-info__item--text'
+  endif
+-%}
+<div class="hdt-product-info__item hdt-product__line-item-property hdt-s-text {{ item_class }}" data-type="property">
+  {%- case property_type -%}
+    {%- when 'checkbox' -%}
+      <hdt-block-required detect="checked" event="change" class="hdt-line-item-property hdt-line-item-property--{{ property_type }}" {{ block.shopify_attributes }}>
+        <input form="{{ form_id }}" class="hdt-grid-1x1" type="checkbox" id="{{ id }}"{% if block.settings.use_required %} required{% endif %} name="properties[{{ property_name }}]" value="{{ block.settings.ck_value | escape }}">
+        <label for="{{ id }}">{{ block.settings.title }}</label>
+      </hdt-block-required>
+
+    {%- when 'text' -%}
+      <hdt-block-required detect="length" event="input" class="hdt-line-item-property hdt-form--move-text hdt-line-item-property--{{ property_type }}" {{ block.shopify_attributes }}>
+        <div class="hdt-field">
+          {%- if block.settings.type_text == 'short' -%}
+          <input class="hdt-field__input hdt-input"  placeholder="{{ block.settings.title | escape }}" type="text" id="{{ id }}" form="{{ form_id }}"{% if block.settings.use_required %} required{% endif %} name="properties[{{ property_name }}]"{% if block.settings.max_characters > 0 %} maxlength="{{ block.settings.max_characters }}"{% endif %}>
+          <label class="hdt-field__label sr-only" for="{{ id }}"><span>{{ block.settings.title | escape }}</span></label>
+          {%- else -%}
+          <textarea class="hdt-field__input--no-label hdt-textarea" aria-label="{{ block.settings.title | escape }}" placeholder="{{ block.settings.title | escape }}" rows="4" id="{{ id }}" form="{{ form_id }}"{% if block.settings.use_required %} required{% endif %} name="properties[{{ property_name }}]"{% if block.settings.max_characters > 0 %} maxlength="{{ block.settings.max_characters }}"{% endif %}></textarea>
+          {%- endif -%}
+        </div>
+      </hdt-block-required>
+
+    {%- when 'options' -%}
+      {%- liquid
+        assign arr_options = block.settings.options | newline_to_br | split: '<br />'
+        if arr_options.size == 0
+          continue
+        endif
+      -%}
+      <hdt-block-required detect="checked" event="change" class="hdt-line-item-property hdt-line-item-property--{{ property_type }}" {{ block.shopify_attributes }}>
+        <label for="{{ id }}">{{ block.settings.title }}</label>
+        {%- if block.settings.type_options == 'radio' -%}
+          <div class="hdt-property-option-wrap">
+            {%- for option in arr_options -%}
+              <div class="hdt-property-option">
+                <input id="{{ id }}__{{ forloop.index }}" type="radio" form="{{ form_id }}"{% if block.settings.use_required %} required{% endif %} name="properties[{{ property_name }}]" value="{{ option | strip | escape }}">
+                <label for="{{ id }}__{{ forloop.index }}">{{ option }}</label>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- elsif block.settings.type_options == 'select' -%}
+          <div class="hdt-select">
+            <select id="{{ id }}" form="{{ form_id }}" name="properties[{{ property_name }}]"{% if block.settings.use_required %} required{% endif %}>
+              {%- for option in arr_options %}<option value="{{ option | strip | escape }}">{{ option }}</option>{% endfor -%}
+            </select>
+          </div>
+        {%- else -%}
+          {%- for option in arr_options -%}
+            <div class="hdt-property-option">
+              <input id="{{ id }}__{{ forloop.index }}" type="checkbox" sync-name="properties[{{ property_name }}]" value="{{ option | strip | escape }}">
+              <label for="{{ id }}__{{ forloop.index }}">{{ option }}</label>
+            </div>
+          {%- endfor -%}
+          <input type="hidden" form="{{ form_id }}" id="{{ id }}" name="properties[{{ property_name }}]"{% if block.settings.use_required %} required{% endif %}>
+        {%- endif -%}
+      </hdt-block-required>
+
+  {%- endcase -%}
+
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.line_item_property",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.line_item_property"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:settings.label",
+      "default": "t:text_defaults.your_label"
+    },
+    {
+      "type": "select",
+      "id": "property_type",
+      "options": [
+        {
+          "value": "text",
+          "label": "t:options.text"
+        },
+        {
+          "value": "checkbox",
+          "label": "t:options.checkbox"
+        },
+        {
+          "value": "options",
+          "label": "t:options.options"
+        }
+      ],
+      "default": "text",
+      "label": "t:settings.type"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_required",
+      "label": "t:settings.required",
+      "info": "t:info.required",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_at_ck_cart",
+      "label": "t:settings.show_at_ck_cart",
+      "info": "t:info.show_at_ck_cart",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "type_text",
+      "options": [
+        {
+          "value": "short",
+          "label": "t:options.short"
+        },
+        {
+          "value": "long",
+          "label": "t:options.long"
+        }
+      ],
+      "default": "short",
+      "label": "t:settings.text_type",
+      "visible_if": "{{ block.settings.property_type == 'text' }}"
+    },
+    {
+      "type": "number",
+      "id": "max_characters",
+      "label": "t:settings.max_characters",
+      "visible_if": "{{ block.settings.property_type == 'text' }}"
+    },
+    {
+      "type": "text",
+      "id": "ck_value",
+      "default": "t:text_defaults.yes",
+      "label": "t:settings.value",
+      "info": "t:info.ck_value",
+      "visible_if": "{{ block.settings.property_type == 'checkbox' }}"
+    },
+    {
+      "type": "select",
+      "id": "type_options",
+      "options": [
+        {
+          "value": "select",
+          "label": "t:options.select"
+        },
+        {
+          "value": "radio",
+          "label": "t:options.radio"
+        }
+      ],
+      "default": "select",
+      "label": "t:settings.type_options",
+      "visible_if": "{{ block.settings.property_type == 'options' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "options",
+      "default": "option1\noption2",
+      "label": "t:settings.options",
+      "info": "t:info.options",
+      "visible_if": "{{ block.settings.property_type == 'options' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.line_item_property"
+    }
+  ]
+}
+{% endschema %}

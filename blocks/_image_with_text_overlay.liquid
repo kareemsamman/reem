@@ -1,0 +1,134 @@
+
+{%- liquid
+  if section.blocks.size < 2
+    assign sizes = '50vw'
+  else
+    assign overlay_space = 50.0 | divided_by: section.blocks.size | at_most: 12.0
+    assign sizes = 150.0 | divided_by: section.blocks.size
+    assign sizes = '(min-width: 768px) calc(' | append: sizes | append: 'vw + ' | append: overlay_space | append: 'vw), 50vw'
+    assign widths = '400,500,600,700,800,900,1000,1100,1200,1400,1600,' | append: block.settings.image.width
+  endif
+  if block.settings.heading != blank or block.settings.text != blank or block.settings.button_label != blank
+    assign has_content = true
+  else
+    assign has_content = false
+  endif
+-%}
+
+<div color-scheme="{{ block.settings.color_scheme }}" class="hdt-iwto hdt-hover-ani hdt-slider__slide{% if block.settings.button_label != blank %} hdt-has-btn{% endif %}" {{ block.shopify_attributes }}>
+    <div class="hdt-iwto-image">
+      {%- liquid
+        if block.settings.image != blank
+          echo block.settings.image | image_url: width: block.settings.image.width | image_tag: sizes: sizes, widths: widths, class: 'hdt-zoom-img', pswp-el: ''
+        else
+          assign block_index = section.blocks | find_index: 'id', block.id
+          assign img_number = block_index | plus: 1 | modulo: 3
+          if img_number == 0
+            assign img_number = 3
+          endif
+          echo 'hero-apparel-' | append: img_number | placeholder_svg_tag: 'placeholder-svg hdt-placeholder hdt-zoom-img'
+        endif
+      -%}
+    </div>
+    {%- if has_content -%}
+      <div class="hdt-iwto-content">
+        {%- if block.settings.heading != blank %}<h2 can-reveal class="hdt-theme-block hdt-heading-block hdt-h5 hdt-heading">{{ block.settings.heading }}</h2>{% endif -%}
+        {%- if block.settings.text != blank %}<div class="rte hdt-s-text">{{ block.settings.text }}</div>{% endif -%}
+        {%- if block.settings.button_label != blank -%}
+          {%- liquid
+            if block.settings.button_link != blank
+              assign btn_tab = 'a'
+            else
+              assign btn_tab = 'button'
+            endif
+            if block.settings.show_btn_icon and block.settings.button_link != blank and block.settings.text
+              assign has_icon = true
+            else
+              assign has_icon = false
+            endif
+          -%}
+          <div class="hdt-smwt-btn-wrap">
+            <{{ btn_tab }} data-eff="hover-rise" class="hdt-btn hdt-btn--inner hdt-btn-solid hdt-btn--size-s{% if has_icon %} hdt-btn--with-icon{% endif %}{% if block.settings.btn_uppercase and settings.btn_case != 'uppercase' %} hdt-uppercase{% endif %}"{% if block.settings.button_link != blank %} href="{{ block.settings.button_link }}"{% if block.settings.open_in_new_tab %} target="_blank" aria-describedby="a11y-new-window-message" rel="noopener noreferrer"{% endif %}{% else %} disabled{% endif %}>
+              <span circle-bg-wrap class="hdt-inner-btn">
+              {{- block.settings.button_label | escape -}}
+              {%- if has_icon %}<span class="hdt-smwt-btn-icon hdt-shrink-0">{{ 'icon-circle-arrow.svg' | inline_asset_content }}</span>{% endif -%}
+              <hdt-circle-bg mousemove></hdt-circle-bg>
+              </span>
+            </{{ btn_tab }}>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:names.image_with_text_overlay",
+  "tag": null,
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-4"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:settings.image"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:text_defaults.heading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:settings.text",
+      "default": "t:text_defaults.text_content_scrolling"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "default": "t:text_defaults.shop_now",
+      "label": "t:settings.button_label",
+      "info": "t:info.button_label_blank"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:settings.button_link",
+      "visible_if": "{{ block.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:settings.open_in_new_tab",
+      "default": false,
+      "visible_if": "{{ block.settings.button_link != blank and block.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_btn_icon",
+      "label": "t:settings.show_btn_icon",
+      "default": true,
+      "visible_if": "{{ block.settings.button_link != blank and block.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "btn_uppercase",
+      "label": "t:settings.uppercase",
+      "default": false,
+      "visible_if": "{{ settings.btn_case != 'uppercase' }}",
+    },
+  ],
+  "presets": [
+    {
+      "name": "t:names.image_with_text_overlay",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

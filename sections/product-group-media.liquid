@@ -1,0 +1,284 @@
+{%- if request.design_mode -%}
+  {%- assign product = closest.product -%}
+  {%- if product and product.variants_count > 1 and product.media.size > 1 -%}
+    <style>
+      #hdt-group-media-wrap {
+        display: block;
+        max-width: 126rem;
+        margin: 6rem auto;
+        padding: 0 3rem;
+        color: var(--color-foreground);
+        img {
+          width: 10rem;
+          max-height: 10rem;
+          object-fit: cover;
+        }
+      }
+      #hdt-group-media-json {
+        text-align: center;
+      }
+      #hdt-group-media-option {
+        border: 2px solid var(--color-line-border);
+        padding: 2rem;
+        border-bottom: 0;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        fieldset {
+          padding: 2rem;
+          border: 1px solid var(--color-line-border);
+          label {
+            margin-inline-start: 3px;
+            vertical-align: middle;
+          }
+          div + div {
+            margin-top: 1rem;
+          }
+        }
+        legend {
+          padding-inline: 1.5rem;
+        }
+      }
+      #hdt-group-media-heading {
+        text-align: center;
+        font-size: 4rem;
+        font-weight: 500;
+        color: var(--color-foreground);
+        margin-bottom: 3rem;
+      }
+      #hdt-group-media-list {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        border: 2px solid var(--color-line-border);
+        padding: 2rem;
+        justify-content: center;
+        > .hdt-group-media-item {
+          max-width: 10rem;
+        }
+        .hdt-select {
+          border-radius: 0rem;
+          &:not(.is-selected) {
+            display: none;
+          }
+        }
+        img{
+          border-radius: 0rem;
+        }
+      }
+      #hdt-group-media-code {
+        clip: rect(0,0,0,0);
+        overflow: hidden;
+        position: absolute;
+        height: 1px;
+        width: 1px;
+      }
+      #hdt-group-media-json {
+        border: 2px solid var(--color-line-border);
+        padding: 2rem;
+        border-top: 0;
+      }
+      #hdt-group-media-copy {
+        padding: 1rem 2rem;
+        color: var(--color-foreground);
+        border: 2px solid var(--color-line-border);
+        min-width: 16rem;
+        text-transform: uppercase;
+        font-weight: 500;
+        font-size: 1.4rem;
+        transition: color .25s ease, background-color .25s ease, border-color .25s ease, box-shadow .25s ease, opacity .25s ease;
+        &:hover {
+          background-color: color-mix(in srgb, var(--color-foreground), transparent 95%);
+        }
+      }
+      #hdt-group-media-option input[type=checkbox]:after{
+        mask-image: url("{{ 'icon-check.svg' | asset_url }}");
+        -webkit-mask-image: url("{{ 'icon-check.svg' | asset_url }}");
+        background-color: transparent;
+        mask-repeat: no-repeat;
+        mask-size: 16px 12px;
+        mask-position: center;
+      }
+      #hdt-group-media-option input[type=checkbox]:checked:after{background-color: var(--color-foreground);}
+      
+    </style>
+    {%- liquid
+    assign group_media_obj = product.metafields.theme.group_media_obj.value
+    if group_media_obj.size > 0
+      assign options = group_media_obj.options
+    else
+      assign options = '-0,-1,-2'
+      assign swatch_list = 'products.theme_settings.swatch' | t | downcase | strip | replace: ' ,', ',' | replace: ', ', ',' | split: ',' | uniq
+      for option in product.options_with_values
+        assign name_downcase = option.name | downcase
+        if swatch_list contains name_downcase
+          assign key = '-' | append: forloop.index0
+          assign options = options | replace: key, forloop.index0
+          break
+        endif
+      endfor
+      assign options = options | split: ','
+    endif
+    -%}
+
+    <hdt-media-group-config id="hdt-group-media-wrap">
+      <div id="hdt-group-media-heading">Config product group media<br> {{ product.title }}</div>
+      <div id="hdt-group-media-option">
+        <fieldset>
+          <legend>Choose options mix:</legend>
+          {%- for option in product.options_with_values -%}
+            {%- liquid
+              assign check = false
+              assign index0 = options[forloop.index0] | plus: 0
+              if index0 == forloop.index0
+                assign check = true
+              endif
+            -%}
+            <div>
+              <input type="checkbox" id="{{ option.name | handle }}" name="{{ option.name | escape }}" value="{{ forloop.index0 }}"{% if check %} checked {% endif %}/>
+              <label for="{{ option.name | handle }}">{{ option.name }}</label>
+            </div>
+          {%- endfor -%}
+        </fieldset>
+      </div>
+      <div id="hdt-group-media-list">
+        {%- for media in product.media -%}
+          <div class="hdt-group-media-item" data-media-id="{{ media.id }}">
+            {%- liquid
+              if group_media_obj.size > 0
+                assign position = media.position | minus: 1
+                assign media_group = group_media_obj.medias[position].values
+              endif
+              echo media.preview_image | image_url: width: 200 | image_tag: sizes: '100px', widths: '100, 200, 300'
+            -%}
+            {%- for option in product.options_with_values -%}
+              {%- liquid
+                assign check = false
+                assign index0 = options[forloop.index0] | plus: 0
+                if index0 == forloop.index0
+                  assign check = true
+                endif
+                assign key = '*' | append: forloop.index0
+              -%}
+              <div class="hdt-select{% if check %} is-selected{% endif %}">
+                <select name="{{ forloop.index0 }}">
+                  {%- comment %}<option value="-1">None</option>{% endcomment -%}
+                  <option value="{{ key }}"{% if media_group contains key and check %} selected{% endif %}>*</option>
+                  {%- for value in option.values -%}
+                    <option value="{{ value.id }}"{% if media_group contains value.id and check %} selected{% endif %}>{{ value }}</option>
+                  {%- endfor -%}
+                </select>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endfor -%}
+      </div>
+      <div id="hdt-group-media-json">
+        <textarea id="hdt-group-media-code"></textarea>
+        <button id="hdt-group-media-copy">copy code</button>
+      </div>
+    </hdt-media-group-config>
+  {%- else -%}
+    <style>
+      .hdt-media-group-alert {
+        padding: 6rem 3rem;
+        max-width: min(60rem, 90vw);
+        margin: 6rem auto;
+        padding: min(4rem, 5vw);
+        border: 2px solid var(--color-line-border);
+        background-color: var(--color-background-strong);
+        color: var(--color-foreground);
+      }
+    </style>
+    <div class="hdt-media-group-alert hdt-text-center hdt-h5">Please add more than 1 media to the product and make sure the product has more than 1 variant.</div>
+  {%- endif -%}
+{%- endif -%}
+
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    class MediaGroup extends HTMLElement {
+      #codeElement;
+      constructor() {
+        super();
+      }
+      connectedCallback() {
+        const selectAll = Array.from(this.querySelectorAll('#hdt-group-media-list select'));
+        this.#codeElement = document.getElementById('hdt-group-media-code');
+
+        this.querySelector('fieldset')?.addEventListener('change', (event) => {
+          if (event.target.type !== 'checkbox') return;
+          const filtered = selectAll.filter(select => {
+              return select.name == event.target.value;
+          });
+          filtered.forEach((select) => {
+            select.parentElement.classList.toggle('is-selected', event.target.checked);
+          });
+          this.#renderCode();
+        });
+        selectAll.forEach((select) => {
+          select.addEventListener('change', this.#renderCode, false);
+        });
+
+        this.#renderCode();
+        document.getElementById('hdt-group-media-copy').addEventListener('click', this.#copyFn, false);
+      }
+
+      #renderCode = () => {
+        const code = {options: [], medias: []};
+        let check = true;
+        this.querySelectorAll('#hdt-group-media-list > .hdt-group-media-item').forEach((media, index) => {
+          const selects = media.querySelectorAll('.is-selected select' ),
+          values = [],
+          options = [];
+          selects.forEach((select) => {
+            if (check) code.options.push(parseInt(select.name));
+            if (select.value != '-1') values.push(select.value);
+          });
+          check = false;
+          //console.log('values: ', values);
+          code.medias.push({
+            "mid": parseInt(media.dataset.mediaId), index, "values": values.join('-')
+          });
+        });
+        //console.log(code);
+        this.#codeElement.textContent = (code.medias.length > 0 ) ? JSON.stringify(code) : '';
+      }
+      #copyFn = (e) => {
+          // Get the text field
+          const copyText = document.getElementById("hdt-group-media-code");
+          // Select the text field
+          copyText.select();
+          copyText.setSelectionRange(0, 99999); // For mobile devices
+          // Copy the text inside the text field
+          //navigator.clipboard.writeText(copyText.value);
+          navigator.permissions.query({name:'clipboard-write'}).then(function(result) {
+            if (result.state == 'granted') {
+              navigator.clipboard.writeText(copyText.value);
+            } else  {
+              document.execCommand("copy");
+            }
+            e.target.textContent = 'copied'
+            setTimeout(() => {
+              e.target.textContent = 'copy code'
+            }, 500);
+          });
+      }
+    }
+    customElements.define('hdt-media-group-config', MediaGroup);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Product group media",
+  "tag": "section",
+  "class": "hdt-section-config",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    }
+  ]
+}
+{% endschema %}

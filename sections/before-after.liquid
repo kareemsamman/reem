@@ -1,0 +1,183 @@
+{%- style -%}
+#Section-{{ section.id }} { --bg-bf: rgba({{ section.settings.bg.rgba }});--icon-bf: rgba({{ section.settings.icon.rgba}}); }
+#Section-{{ section.id }} .hdt-bf-image_caption { --color-foreground: rgba({{ section.settings.text_caption.rgba }}); }
+{%- endstyle -%}
+{%- liquid
+if settings.sections_reveal_on_scroll and section.settings.reveal_on_scroll 
+    assign reveal = 'reveal'
+else
+    assign reveal = ''
+endif 
+-%}
+<div {% if reveal == 'reveal' %}reveal-on-scroll {% endif %}color-scheme="{{ section.settings.color_scheme }}" id="Section-{{ section.id }}" class="hdt-s-gradient hdt-section-spacing" style="--section-pt: {{ section.settings.padding_top }}px; --section-pb: {{ section.settings.padding_bottom }}px; --section-pt-xl: {{ section.settings.padding_top_xl }}px; --section-pb-xl: {{ section.settings.padding_bottom_xl }}px;">
+    <div class="hdt-container-xl">
+        {%- content_for 'block', type: '_section_header', id: 'section-header' -%}
+        <hdt-before-after id="before-after-{{ section.id }}" {{ section.settings.direction }}{% if reveal == 'reveal' %} reveal-on-scroll {% endif %} class="hdt-before-after hdt-ratio--adapt_image md:hdt-ratio--adapt_image hdt-relative hdt-oh hdt-grid hdt-rounded">
+            {% content_for 'blocks' %}
+            <input type="range" orient="{{ section.settings.direction }}" class="hdt-bf-range hdt-opacity-0" aria-label="{{ 'accessibility.before_after' | t | escape }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" value="{{ section.settings.pos_start }}" min="0" max="100" step="1">
+            <span class="hdt-bf-image-handle hdt-absolute hdt-flex hdt-align-center">
+                <span class="hdt-flex hdt-justify-center hdt-align-center">
+                    {{- 'icon-before-after.svg' | inline_asset_content -}}
+                </span>
+            </span>
+        </hdt-before-after>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "t:names.before-after",
+        "class": "hdt-section",
+        "disabled_on": {
+            "groups": ["*"]
+        },
+        "max_blocks": 2,
+        "blocks": [{"type": "_section_header"}, {"type": "_image-before-after"}],
+        "settings": [
+            {
+                "type": "radio",
+                "id": "direction",
+                "label": "t:settings.direction",
+                "options": [
+                    {
+                    "value": "horizontal",
+                    "label": "t:options.horizontal"
+                    },
+                    {
+                    "value": "vertical",
+                    "label": "t:options.vertical"
+                    }
+                ]
+            },
+            {
+                "type": "header",
+                "content": "t:content.drag_cursor"
+            },
+            {
+                "type": "color",
+                "id": "bg",
+                "label": "t:settings.background_line",
+                "default": "#FFFFFF"
+            },
+            {
+                "type": "color",
+                "id": "icon",
+                "label": "t:settings.icon",
+                "default": "#563C49"
+            },
+            {
+                "type": "range",
+                "id": "pos_start",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "default": 50,
+                "unit": "%",
+                "label": "t:settings.pos_start"
+            },
+            {
+                "type": "header",
+                "content": "t:content.image_caption"
+            },
+            {
+                "type": "color",
+                "id": "text_caption",
+                "label": "t:settings.text",
+                "default": "#FFFFFF"
+            },
+            {
+                "type": "header",
+                "content": "t:content.appearance"
+            },
+            {
+                "type": "checkbox",
+                "id": "reveal_on_scroll",
+                "label": "t:settings.reveal_on_scroll",
+                "info": "t:info.reveal_on_scroll",
+                "default": true,
+                "visible_if": "{{ settings.sections_reveal_on_scroll }}"
+            },
+            {
+                "type": "color_scheme",
+                "id": "color_scheme",
+                "label": "t:settings.color_scheme",
+                "default": "scheme-1"
+            },
+            {
+                "type": "header",
+                "content": "t:content.section_padding"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_xl",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom",
+                "default": 60
+            },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_top_mb",
+                "default": 40
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 200,
+                "step": 4,
+                "unit": "px",
+                "label": "t:settings.padding_bottom_mb",
+                "default": 40
+            }
+        ],
+        "presets": [
+            {
+                "name": "t:names.before-after",
+                "category": "t:categories.banners",
+                "blocks": [
+                    {
+                        "type": "_section_header",
+                        "static": true,
+                        "id": "section-header",
+                        "blocks": [
+                            {"type": "heading"},
+                            {"type": "text"}
+                        ],
+                        "settings": {
+                            "text_alignment": "center"
+                        }
+                    },
+                    {
+                        "type": "_image-before-after",
+                        "settings": {
+                            "caption": "Before"
+                        }
+                    },
+                    {
+                        "type": "_image-before-after",
+                        "settings": {
+                            "caption": "After"
+                        }
+                    }
+                ]
+            }
+        ],
+    }
+{% endschema %}

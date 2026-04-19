@@ -1,0 +1,308 @@
+{%- liquid
+    if section.settings.menu != blank and section.settings.menu.links
+        assign has_menu = true
+    else
+        assign has_menu = false
+    endif
+    if section.settings.enable_country_selector and localization.available_countries.size > 1
+        assign has_country_and_region = true
+    else
+        assign has_country_and_region = false
+    endif
+    if section.settings.enable_language_selector and localization.available_languages.size > 1
+        assign has_language = true
+    else
+        assign has_language = false
+    endif
+    if section.settings.show_social
+        assign has_social = true
+    else
+        assign has_social = false
+    endif
+    if section.settings.text != blank or section.settings.button_label != blank
+        assign has_text = true
+    else
+        assign has_text = false
+    endif
+-%}
+
+{%- capture tollbar_menu_and_region -%}
+<div class="hdt-toolbar-part hdt-toolbar-part--menu">
+    {%- if has_menu or has_country_and_region or has_language -%}
+        {%- if has_country_and_region -%}
+            <div class="hdt-localization-selector-wrap hdt-relative">
+            <button class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-ToolbarCountry" aria-label="{{ 'localization.country_aria_label' | t }}">
+                {%- if section.settings.show_country_flag %}<img src="{{ localization.country | image_url: width: 44 }}" alt="{{ localization.country.name | escape }}" width="44" height="33" loading="lazy" class="hdt-disclosure__flag">{% endif -%}
+                <span>{% if section.settings.show_country_name %}{{ localization.country.name }} ({{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}){% else %}{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}{% endif %}</span>
+                {{- 'icon-carret-down.svg' | inline_asset_content -}}
+            </button>
+            {%- render 'country-localization', id: 'Toolbar' -%}
+            </div>
+        {%- endif -%}
+        {%- if has_language -%}
+            <div class="hdt-localization-selector-wrap hdt-relative">
+            <button class="hdt-localization-selector hdt-inline-flex hdt-align-center" aria-haspopup="dialog" aria-expanded="false" aria-controls="Popover-ToolbarLanguage" aria-label="{{ 'localization.language_aria_label' | t }}">
+                <span>{{ localization.language.endonym_name | capitalize }}</span>
+                {{- 'icon-carret-down.svg' | inline_asset_content -}}
+            </button>
+            {%- render 'language-localization', id: 'Toolbar' -%}
+            </div>
+        {%- endif -%}
+        {%- if has_menu -%}
+        <div class="hdt-toolbar__nav">
+            <div role="list" class="hdt-toolbar__menu hdt-toolbar__menu--shape-{{ section.settings.shape }} hdt-flex hdt-flex-wrap hdt-justify-center md:hdt-justify-start hdt-align-center">
+            {%- for link in section.settings.menu.links -%}
+            <div role="listitem"><a href="{{ link.url }}" class="hdt-btn-text-flip hdt-grid"{% if link.current %} aria-current="page"{% endif %} data-hover="{{ link.title | escape }}"><span class="hdt-grid-1x1">{{ link.title }}</span></a></div>
+            {%- unless section.settings.shape == 'none' or forloop.last -%}<div class="hdt-shape-block hdt-shape__{{ section.settings.shape }}"> </div>{%- endunless -%}
+            {%- endfor -%}
+            </div>
+        </div>
+        {%- endif -%}
+    {%- endif -%}
+</div>
+{%- endcapture -%}
+
+{%- capture toolbar_text -%}
+<div class="hdt-toolbar-part hdt-toolbar-part--text">
+    {%- if has_text -%}
+        <div class="rte hdt-s-text">{{ section.settings.text }}</div>
+        {%- liquid
+            if section.settings.button_link != blank
+                assign btn_tab = 'a'
+            else
+                assign btn_tab = 'button'
+            endif
+        -%}
+        <{{ btn_tab }} circle-bg-wrap class="hdt-btn hdt-btn--toolbar hdt-btn-solid{% if section.settings.show_btn_icon %} hdt-btn--with-icon{% endif %}"{% if section.settings.button_link != blank %} href="{{ section.settings.button_link }}"{% if section.settings.open_in_new_tab %} target="_blank" aria-describedby="a11y-new-window-message" rel="noopener noreferrer"{% endif %}{% else %} disabled{% endif %}>
+            {{- section.settings.button_label | escape -}}
+            {%- if section.settings.show_btn_icon -%}{{ 'icon-arrow-right.svg' | inline_asset_content }}{%- endif -%}
+            <hdt-circle-bg mousemove></hdt-circle-bg>
+        </{{ btn_tab }}>
+    {%- endif -%}
+</div>
+{%- endcapture -%}
+
+{%- capture toolbar_social -%}
+<div class="hdt-toolbar-part hdt-toolbar-part--social">
+    {%- if has_social -%}
+        {%- render 'social-links', size: 'small' -%}
+    {%- endif -%}
+</div>
+{%- endcapture -%}
+
+<div class="hdt-{% if section.settings.hidden_on_mobile %}hidden{% else %}block{% endif %} md:hdt-block hdt-toolbar hdt-s-gradient{% if section.settings.show_separator_line %} hdt-section-separator-bottom{% endif %}" color-scheme="{{ section.settings.color_scheme }}">
+    <div class="hdt-container{% if section.settings.full_width %}-xl{% endif %} hdt-flex hdt-align-center md:hdt-justify-between hdt-justify-center hdt-s-text hdt-text-sm">
+        <div class="hdt-toolbar-parts">
+            {%- case section.settings.order -%}
+                {%- when 'social-text-menu' -%}
+                    {{- toolbar_social }}{{ toolbar_text }}{{ tollbar_menu_and_region -}}
+                {%- when 'text-social-menu' -%}
+                    {{- toolbar_text }}{{ toolbar_social }}{{ tollbar_menu_and_region -}}
+                {%- when 'text-menu-social' -%}
+                    {{- toolbar_text }}{{ tollbar_menu_and_region }}{{ toolbar_social -}}
+                {%- when 'menu-text-social' -%}
+                    {{- tollbar_menu_and_region }}{{ toolbar_text }}{{ toolbar_social -}}
+                {%- when 'menu-social-text' -%}
+                    {{- tollbar_menu_and_region }}{{ toolbar_social }}{{ toolbar_text -}}
+                {%- when 'social-menu-text' -%}
+                    {{- toolbar_social }}{{ tollbar_menu_and_region }}{{ toolbar_text -}}
+            {%- endcase -%}
+        </div>
+    </div>
+</div>
+
+{%- schema -%}
+{
+  "name": "Toolbar old",
+  "limit": 1,
+  "tag": "section",
+  "class": "hdt-section hdt-section-toolbar hdt-relative",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:settings.make_full_width",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_separator_line",
+      "label": "t:settings.show_separator_line",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "shape",
+      "default": "slash",
+      "label": "t:settings.divider_shape",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "slash",
+          "label": "t:options.slash"
+        },
+        {
+          "value": "line",
+          "label": "t:options.line"
+        },
+        {
+          "value": "circle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        },
+        {
+          "value": "diamond",
+          "label": "t:options.diamond"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "order",
+      "default": "social-text-menu",
+      "label": "t:settings.order",
+      "options": [
+        {
+          "value": "social-text-menu",
+          "label": "t:options.social_text_menu"
+        },
+        {
+          "value": "text-social-menu",
+          "label": "t:options.text_social_menu"
+        },
+        {
+          "value": "text-menu-social",
+          "label": "t:options.text_menu_social"
+        },
+        {
+          "value": "menu-text-social",
+          "label": "t:options.menu_text_social"
+        },
+        {
+          "value": "menu-social-text",
+          "label": "t:options.menu_social_text"
+        },
+        {
+          "value": "social-menu-text",
+          "label": "t:options.social_menu_text"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "hidden_on_mobile",
+      "label": "t:settings.hidden_on_mobile",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:content.menu_and_region",
+      "info": "t:info.region_appear_lg_only"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:settings.navigation",
+      "info": "t:info.toolbar_navigation",
+      "default": "customer-account-main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_country_selector",
+      "default": false,
+      "label": "t:settings.country_selector",
+      "info": "t:info.country_selector"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_name",
+      "default": true,
+      "label": "t:settings.show_country_name",
+      "visible_if": "{{ section.settings.enable_country_selector }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_flag",
+      "default": true,
+      "label": "t:settings.show_country_flag",
+      "visible_if": "{{ section.settings.enable_country_selector }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_language_selector",
+      "default": false,
+      "label": "t:settings.language_selector",
+      "info": "t:info.language_selector"
+    },
+    {
+      "type": "header",
+      "content": "t:content.text",
+      "info": "t:info.appear_lg_only"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "t:settings.content",
+      "default": "t:text_defaults.discover_new_arrials"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:settings.button_label",
+      "info": "t:info.button_label_blank",
+      "default": "t:text_defaults.shop_now",
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:settings.button_link",
+      "visible_if": "{{ section.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:settings.open_in_new_tab",
+      "default": false,
+      "visible_if": "{{ section.settings.button_link != blank and section.settings.button_label != blank }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_btn_icon",
+      "label": "t:settings.show_btn_icon",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:content.social",
+      "info": "t:info.appear_lg_only"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "default": true,
+      "label": "t:settings.social_links",
+      "info": "t:info.social_links"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Toolbar old"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{%- endschema -%}

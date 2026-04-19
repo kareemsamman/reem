@@ -1,0 +1,45 @@
+<div class="hdt-spacer-block" style="--space: {{ block.settings.space }}px; --space-md: {{ block.settings.space_md }}px; --space-xl: {{ block.settings.space_xl }}px;" {{ block.shopify_attributes }}></div>
+
+{% schema %}
+{
+  "name": "t:names.spacer",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "space_xl",
+      "min": 0,
+      "max": 500,
+      "step": 5,
+      "unit": "px",
+      "label": "t:settings.space",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "space_md",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.space_tablet",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "space",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "t:settings.space_mobile",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.spacer"
+    }
+  ]
+}
+{% endschema %}

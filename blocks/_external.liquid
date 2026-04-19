@@ -1,0 +1,33 @@
+{%- capture children -%}
+  {%- content_for 'blocks' -%}
+{%- endcapture -%}
+
+{%- if children != blank -%}
+<div class="hdt-product-info__item hdt-product-info__item--box hdt-product__external" data-type="external" {{ block.shopify_attributes }}>
+{{- children -}}
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:names.external_links",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.external_links"
+    }
+  ],
+  "blocks": [{"type": "_external_link"}],
+  "presets": [
+    {
+      "name": "t:names.external_links",
+      "blocks": [
+        {
+          "type": "_external_link"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
