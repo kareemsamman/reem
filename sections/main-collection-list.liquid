@@ -2,9 +2,20 @@
  theme.collections
 {%- endcomment -%}
 
-{%- if section.settings.collection_list != blank and section.settings.collection_list.count > 0 -%}
 {%- liquid
-    assign current_handle = collection.handle
+    assign sub_collections = collection.metafields.ecomposer.collections.value
+    if sub_collections == blank or sub_collections.size == 0
+      assign sub_collections = section.settings.collection_list
+    endif
+-%}
+<div style="background:#ffeb3b;padding:12px;font-family:monospace;font-size:14px;border:2px solid red;">
+  DEBUG: collection = {{ collection.handle }}<br>
+  metafield raw = {{ collection.metafields.ecomposer.collections.value | json }}<br>
+  sub_collections.size = {{ sub_collections.size }}<br>
+  sub_collections handles = {% for c in sub_collections %}{{ c.handle }}, {% endfor %}
+</div>
+{%- if sub_collections != blank and sub_collections.size > 0 -%}
+{%- liquid
     if section.settings.reveal_on_scroll and settings.sections_reveal_on_scroll
       assign reveal = 'reveal'
     else
@@ -16,23 +27,7 @@
         <hdt-slider id="Slider-{{ section.id }}" autoheight class="hdt-slider hdt-slider__active-true hdt-relative" config='{ "active": true, "autoHeight": true, "ntCenter": false, "loop": false, "slidesToScroll": "auto", "dragFree": false, "breakpoints": { "(min-width: 768px)": {  "active": true } } }'>
             <div class="hdt-slider__viewport">
             <div role="list" class="hdt-slider__container">
-                <div {{ reveal }} role="listitem" class="hdt-slider__slide hdt-collection-dynamic-item hdt-collection-list__item">
-                    {%- assign image_collection = collection.metafields.theme.image.value | default: collection.featured_image -%}
-                    <span aria-label="{{ 'accessibility.go_to_collection' | t: collection: collection.title | escape }}" class="hdt-collection-list__link hdt-collection-current hdt-btn-effhover">
-                        <div class="hdt-collection-list__image hdt-ratio hdt-ratio--square">
-                        {%- liquid
-                        if image_collection != blank
-                            echo image_collection | image_url: width: image_collection.width | image_tag: sizes: '50px', widths: '50,100'
-                        else
-                            echo 'collection-apparel-1' | placeholder_svg_tag: 'hdt-placeholder-svg'
-                        endif
-                        -%}
-                        </div>
-                        <div class="hdt-collection-list__title hdt-text-xl hdt-font-medium" aria-hidden="true">{{ collection.title | escape }}<sup class="hdt-pr-number">{{ collection.all_products_count }}</sup></div>
-                    </span>
-                </div>
-                {%- for collection_item in section.settings.collection_list -%}
-                    {%- unless collection_item.handle ==  current_handle -%}
+                {%- for collection_item in sub_collections -%}
                     {%- assign image = collection_item.metafields.theme.image.value | default: collection_item.featured_image -%}
                     <div {{ reveal }} role="listitem" class="hdt-slider__slide hdt-collection-dynamic-item hdt-collection-list__item">
                         <a circle-bg-wrap href="{{ collection_item.url }}" aria-label="{{ 'accessibility.go_to_collection' | t: collection: collection_item.title | escape }}" class="hdt-collection-list__link  hdt-btn-effhover">
@@ -49,7 +44,6 @@
                             <hdt-circle-bg mousemove></hdt-circle-bg>
                         </a>
                     </div>
-                    {%- endunless -%}
                 {%- endfor -%}
             </div>
             </div>

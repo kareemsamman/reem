@@ -52,9 +52,22 @@
     <div class="hdt-main-collection-list hdt-container{% if section.settings.full_width %}-xl{% endif %}">
       <h1 class="hdt-h1 hdt-text-left">{{ 'general.meta.list_collections' | t | escape }}</h1>
       {%- if section.settings.display_type == 'all' or section.settings.collection_list.count == 0 -%}
+        {%- liquid
+          assign child_handles = ','
+          for parent_col in collections
+            assign subs = parent_col.metafields.ecomposer.collections.value
+            if subs != blank
+              for child in subs
+                assign child_handles = child_handles | append: child.handle | append: ','
+              endfor
+            endif
+          endfor
+        -%}
         {%- paginate collections by paginate_by -%}
           <hdt-reval-items selector="[reveal]"{% if reveal == 'reveal' %} reveal-on-scroll="true"{% endif %} role="list" class="hdt-collection-list hdt-row-grid xl:hdt-grid-cols-{{ section.settings.columns_desktop }} md:hdt-grid-cols-{{ section.settings.columns_desktop | at_most: 3 }} hdt-grid-cols-2 hdt-ratio--{{ section.settings.image_ratio }}">
             {%- for collection in collections -%}
+              {%- assign needle = ',' | append: collection.handle | append: ',' -%}
+              {%- unless child_handles contains needle -%}
               <{{ tag_card }} max-tilt="8" role="listitem" class="hdt-collection-list__item {{ class_hover }}">
                 <a href="{{ collection.url }}" class="hdt-collection-list__link" {{ reveal }}>
                   <div class="hdt-collection-list__image-wrapper">
@@ -71,6 +84,7 @@
                 </div>
                 </a>
             </{{ tag_card }}>
+              {%- endunless -%}
             {%- endfor -%}
           </hdt-reval-items>
           {%- render 'pagination', paginate: paginate -%}
