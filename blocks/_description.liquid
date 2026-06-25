@@ -10,9 +10,9 @@
 <div class="hdt-product-info__item hdt-product__description {{ item_class }} hdt-product__description--{{ block.settings.layout }}" data-type="description" {{ block.shopify_attributes }}>
   {%- if block.settings.layout == "collapsible" -%}
     <hdt-accordion class="hdt-accordion">
-      <details {% if block.settings.show_content_on_init %}open{% endif %}>
-          <summary class="hdt-s-text hdt-s-text hdt-font-medium hdt-text-lg" aria-expanded="{{ block.settings.show_content_on_init }}">
-            {{- 'products.product.description.title' | t -}}
+      <details open>
+          <summary class="hdt-s-text hdt-s-text hdt-font-medium hdt-text-lg" aria-expanded="true">
+            {%- if request.locale.iso_code == 'ar' -%}الوصف{%- else -%}{{- 'products.product.description.title' | t -}}{%- endif -%}
             {{- 'icon-select-arrow.svg' | inline_asset_content -}}
           </summary>
           <div class="rte hdt-s-text hdt-font-normal hdt-inner-content">{{ product.description }}</div>
