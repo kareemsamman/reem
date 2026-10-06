@@ -70,7 +70,7 @@
       {%- for option in product.options_with_values -%}
         {%- liquid
         if forloop.first and linked_products
-          render 'linked-products', hide_sold_out: hide_sold_out, closest.product: product, block: block, product: product, option: option, product_form_id: product_form_id
+          render 'linked-products', hide_sold_out: hide_sold_out, product: product, block: block, option: option, product_form_id: product_form_id
           continue
         endif
         assign swatch_legacy = false
@@ -309,4 +309,15 @@
     }
   ]
 }
-{% endschema %}
+{% endschema %}{%- comment -%}
+
+This file has been rewritten to preserve the original behavior.
+
+---
+Changes:
+- from: "          render 'linked-products', hide_sold_out: hide_sold_out, closest.product:
+    product, block: block, product: product, option: option, product_form_id: product_form_id"
+  to: "          render 'linked-products', hide_sold_out: hide_sold_out, product:
+    product, block: block, option: option, product_form_id: product_form_id"
+  position: 5151..5297
+{%- endcomment -%}
